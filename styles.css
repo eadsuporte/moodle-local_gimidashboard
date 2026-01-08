@@ -1,0 +1,99 @@
+.gimidashboard {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.gimidashboard-title {
+  margin: 0 0 12px 0;
+  font-weight: 700;
+}
+.gimidashboard-filter {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin: 10px 0 18px;
+}
+.gimidashboard-filter-label {
+  font-weight: 600;
+}
+.gimidashboard-select {
+  min-width: 420px;
+  padding: 8px;
+}
+.gimidashboard-panel {
+  border: 1px solid #dbe3ea;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #ffffff;
+  margin: 0 0 16px 0;
+}
+.gimidashboard-panel-header {
+  background: #0b5c8f;
+  color: #ffffff;
+  padding: 10px 14px;
+  font-weight: 700;
+}
+.gimidashboard-panel-body {
+  padding: 14px;
+}
+.gimidashboard-stats {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+  margin: 10px 0 16px;
+}
+.gimidashboard-stat-card {
+  border: 1px solid #dbe3ea;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #ffffff;
+  padding: 14px;
+  text-align: center;
+  overflow: visible;
+}
+.gimidashboard-stat-value {
+  font-size: 34px;
+  font-weight: 800;
+  line-height: 1.1;
+}
+.gimidashboard-stat-label {
+  margin-top: 6px;
+  color: #4b5563;
+  font-weight: 600;
+}
+.gimidashboard-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.gimidashboard-table thead th {
+  font-weight: 800;
+  color: #111827;
+}
+.gimidashboard-table th,
+.gimidashboard-table td {
+  padding: 10px 10px;
+  border-bottom: 1px solid #eef2f6;
+  text-align: left;
+  vertical-align: middle;
+}
+.gimidashboard-ok {
+  color: #15803d;
+  font-weight: 900;
+  font-size: 18px;
+}
+.gimidashboard-no {
+  color: #b91c1c;
+  font-weight: 900;
+  font-size: 18px;
+}
+.gimidashboard-empty {
+  padding: 10px 12px;
+  background: #f8fafc;
+  border: 1px dashed #dbe3ea;
+  border-radius: 8px;
+  margin: 10px 0 16px;
+}
+.gimidashboard-empty-row {
+  text-align: center;
+  color: #6b7280;
+  padding: 16px;
+}

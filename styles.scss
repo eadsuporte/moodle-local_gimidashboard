@@ -1,0 +1,119 @@
+// local/gimidashboard/scss/styles.scss
+$max-width: 1200px;
+$border: #dbe3ea;
+$border-soft: #eef2f6;
+$brand: #0b5c8f;
+$white: #ffffff;
+$text: #111827;
+$text-muted: #4b5563;
+$text-muted-2: #6b7280;
+$bg-soft: #f8fafc;
+$ok: #15803d;
+$no: #b91c1c;
+$radius: 8px;
+@mixin panel {
+    border: 1px solid $border;
+    border-radius: $radius;
+    overflow: hidden;
+    background: $white;
+}
+.gimidashboard {
+    max-width: $max-width;
+    margin: 0 auto;
+    &-title {
+        margin: 0 0 12px 0;
+        font-weight: 700;
+    }
+    &-filter {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        margin: 10px 0 18px;
+        &-label {
+            font-weight: 600;
+        }
+    }
+    &-select {
+        min-width: 420px;
+        padding: 8px;
+    }
+    &-panel {
+        @include panel;
+        margin: 0 0 16px 0;
+        &-header {
+            background: $brand;
+            color: $white;
+            padding: 10px 14px;
+            font-weight: 700;
+        }
+        &-body {
+            padding: 14px;
+        }
+    }
+    &-stats {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 12px;
+        margin: 10px 0 16px;
+    }
+    &-stat {
+        &-card {
+            @include panel;
+            padding: 14px;
+            text-align: center;
+            overflow: visible; // ensures border radius behaves well in some themes
+        }
+        &-value {
+            font-size: 34px;
+            font-weight: 800;
+            line-height: 1.1;
+        }
+        &-label {
+            margin-top: 6px;
+            color: $text-muted;
+            font-weight: 600;
+        }
+    }
+    &-table {
+        width: 100%;
+        border-collapse: collapse;
+        thead {
+            th {
+                font-weight: 800;
+                color: $text;
+            }
+        }
+        th,
+        td {
+            padding: 10px 10px;
+            border-bottom: 1px solid $border-soft;
+            text-align: left;
+            vertical-align: middle;
+        }
+    }
+    &-cert {
+        // empty on purpose (kept for semantic hook)
+    }
+    &-ok {
+        color: $ok;
+        font-weight: 900;
+        font-size: 18px;
+    }
+    &-no {
+        color: $no;
+        font-weight: 900;
+        font-size: 18px;
+    }
+    &-empty {
+        padding: 10px 12px;
+        background: $bg-soft;
+        border: 1px dashed $border;
+        border-radius: $radius;
+        margin: 10px 0 16px;
+    }
+    &-empty-row {
+        text-align: center;
+        color: $text-muted-2;
+        padding: 16px;
+    }
+}

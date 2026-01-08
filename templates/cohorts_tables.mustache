@@ -1,0 +1,47 @@
+{{#message}}
+    <div class="gimidashboard-empty">{{message}}</div>
+{{/message}}
+
+{{#cohorts}}
+    <div class="gimidashboard-panel gimidashboard-cohort">
+        <div class="gimidashboard-panel-header">{{name}}</div>
+
+        <div class="gimidashboard-panel-body">
+            <table class="gimidashboard-table">
+                <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Course</th>
+                    <th>Group</th>
+                    <th>Progress</th>
+                    <th>Grade</th>
+                    <th>Certificate</th>
+                </tr>
+                </thead>
+                <tbody>
+                {{#rows}}
+                    <tr>
+                        <td>{{username}}</td>
+                        <td>{{email}}</td>
+                        <td>{{course}}</td>
+                        <td>{{group}}</td>
+                        <td>{{progress}}</td>
+                        <td>{{grade}}</td>
+                        <td class="gimidashboard-cert">
+                            {{#certificate_yes}}<span class="gimidashboard-ok">✔</span>{{/certificate_yes}}
+                            {{#certificate_no}}<span class="gimidashboard-no">✖</span>{{/certificate_no}}
+                        </td>
+                    </tr>
+                {{/rows}}
+
+                {{^rows}}
+                    <tr>
+                        <td colspan="7" class="gimidashboard-empty-row">No users found in this cohort.</td>
+                    </tr>
+                {{/rows}}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{{/cohorts}}

@@ -1,0 +1,13 @@
+<form class="gimidashboard-filter" method="get" action="">
+    <label class="gimidashboard-filter-label" for="course">Category or course</label>
+
+    <select name="course" id="course" class="gimidashboard-select">
+        <option value="">Choose...</option>
+
+        {{#groups}}
+            {{#options}}
+                <option value="{{value}}" {{#selected}}selected{{/selected}}>{{{text}}}</option>
+            {{/options}}
+        {{/groups}}
+    </select>
+</form>
