@@ -54,13 +54,13 @@ class cohorts_report {
         [$insql, $params] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED, 'c');
 
         // Cohort-course mapping from enrol='cohort' (customint1 = cohortid).
-        $pairs = $DB->get_records_sql(
-            "SELECT DISTINCT e.courseid, e.customint1 AS cohortid
+        $pairs = $DB->get_records_sql("
+             SELECT DISTINCT e.courseid, e.customint1 AS cohortid
                FROM {enrol} e
               WHERE e.enrol = 'cohort'
                 AND e.status = 0
                 AND e.customint1 IS NOT NULL
-                AND e.courseid $insql",
+                AND e.courseid {$insql}",
             $params
         );
 
@@ -216,7 +216,7 @@ class cohorts_report {
 
                     foreach ($graderecs as $g) {
                         $uid = $g->userid;
-                        $pct = ((float)$g->finalgrade / (float)$g->grademax) * 100.0;
+                        $pct = ($g->finalgrade / $g->grademax) * 100.0;
                         $gradepct[$uid] = round($pct);
                     }
                 }

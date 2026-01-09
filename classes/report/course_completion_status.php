@@ -77,7 +77,7 @@ class course_completion_status {
             $enrolled[] = $enrolledcount;
 
             // Completion % (course_completions).
-            $completedcount = (int)$DB->get_field_sql("
+            $completedcount = $DB->get_field_sql("
                  SELECT COUNT(DISTINCT cc.userid)
                    FROM {course_completions} cc
                    JOIN {user} u ON u.id = cc.userid
@@ -107,7 +107,7 @@ class course_completion_status {
                     AND u.suspended = 0",
                 ['courseid' => $courseid]
             );
-            $gradeavg[] = $avg === null ? 0 : round((float)$avg, 1);
+            $gradeavg[] = $avg === null ? 0 : round($avg, 1);
         }
 
         if (!$labels) {

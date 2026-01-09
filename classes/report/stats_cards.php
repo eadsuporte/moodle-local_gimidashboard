@@ -56,7 +56,7 @@ class stats_cards {
                FROM {user_enrolments} ue
                JOIN {enrol} e ON e.id = ue.enrolid
                JOIN {user} u ON u.id = ue.userid
-              WHERE e.courseid $insql
+              WHERE e.courseid {$insql}
                 AND e.status = 0
                 AND ue.status = 0
                 AND u.deleted = 0
@@ -66,11 +66,11 @@ class stats_cards {
 
         // Total enrolments (unique user-course pairs).
         $totalpairs = $DB->get_field_sql("
-             SELECT COUNT(DISTINCT $combo)
+             SELECT COUNT(DISTINCT {$combo})
                FROM {user_enrolments} ue
                JOIN {enrol} e ON e.id = ue.enrolid
                JOIN {user} u ON u.id = ue.userid
-              WHERE e.courseid $insql
+              WHERE e.courseid {$insql}
                 AND e.status = 0
                 AND ue.status = 0
                 AND u.deleted = 0
@@ -80,7 +80,7 @@ class stats_cards {
 
         // Completed pairs.
         $completedpairs = $DB->get_field_sql("
-             SELECT COUNT(DISTINCT $combo)
+             SELECT COUNT(DISTINCT {$combo})
                FROM {user_enrolments} ue
                JOIN {enrol} e ON e.id = ue.enrolid
                JOIN {user} u ON u.id = ue.userid
@@ -88,7 +88,7 @@ class stats_cards {
                  ON cc.course = e.courseid
                 AND cc.userid = ue.userid
                 AND cc.timecompleted IS NOT NULL
-              WHERE e.courseid $insql
+              WHERE e.courseid {$insql}
                 AND e.status = 0
                 AND ue.status = 0
                 AND u.deleted = 0
@@ -110,7 +110,7 @@ class stats_cards {
           LEFT JOIN {user_lastaccess} ula
                  ON ula.courseid = e.courseid
                 AND ula.userid = ue.userid
-              WHERE e.courseid $insql
+              WHERE e.courseid {$insql}
                 AND e.status = 0
                 AND ue.status = 0
                 AND u.deleted = 0
@@ -125,7 +125,7 @@ class stats_cards {
                FROM {grade_items} gi
                JOIN {grade_grades} gg ON gg.itemid = gi.id
                JOIN {user} u ON u.id = gg.userid
-              WHERE gi.courseid $insql
+              WHERE gi.courseid {$insql}
                 AND gi.itemtype = 'course'
                 AND gg.finalgrade IS NOT NULL
                 AND gi.grademax > 0
@@ -133,7 +133,7 @@ class stats_cards {
                 AND u.suspended = 0",
             $params
         );
-        $gradeavg = $gradeavg === null ? 0 : round((float)$gradeavg);
+        $gradeavg = $gradeavg === null ? 0 : round($gradeavg);
 
         // Feedback responses (distinct users who completed any feedback in these courses).
         $feedbackusers = 0;
@@ -142,7 +142,7 @@ class stats_cards {
                  SELECT COUNT(DISTINCT fc.userid)
                    FROM {feedback_completed} fc
                    JOIN {feedback} f ON f.id = fc.feedback
-                  WHERE f.course $insql",
+                  WHERE f.course {$insql}",
                 $params
             );
         }
