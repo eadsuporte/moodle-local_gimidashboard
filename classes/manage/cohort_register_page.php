@@ -106,13 +106,6 @@ class cohort_register_page {
                 return $templatecontext;
             }
 
-            // Ensure selected cohort is allowed for this scope.
-            //$allowedids = array_map(static fn($x) => $x['id'], $available);
-            //if (!in_array($cohortid, $allowedids, true)) {
-            //    $templatecontext['error'] = 'Selected cohort is not available for this scope.';
-            //    return $templatecontext;
-            //}
-
             // Create or load user.
             $prov = user_provisioner::get_or_create_by_email($fullname, $email);
             $user = $prov['user'];
@@ -125,7 +118,8 @@ class cohort_register_page {
             $profileurl = (new \moodle_url('/user/profile.php', ['id' => $user->id]))->out(false);
 
             $templatecontext['success'] = true;
-            $templatecontext['success_title'] = $prov['isnew'] ? 'User created and enrolled successfully.' : 'User enrolled successfully.';
+            $templatecontext['success_title'] =
+                $prov['isnew'] ? 'User created and enrolled successfully.' : 'User enrolled successfully.';
             $templatecontext['profileurl'] = $profileurl;
             $templatecontext['userfullname'] = fullname($user);
             $templatecontext['whatsapptxt'] = user_provisioner::build_whatsapp_text($user, $prov['isnew'], $prov['password']);

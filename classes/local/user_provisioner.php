@@ -140,9 +140,17 @@ class user_provisioner {
         $fullname = fullname($user);
 
         if ($isnew) {
-            return "Hello {$fullname}!\n\nYour access is ready.\n\nURL: {$loginurl}\nUsername: {$user->username}\nPassword: {$password}\n";
+            return "Hello {$fullname}!\n\n" .
+                "Your access is ready.\n\n" .
+                "URL: {$loginurl}\n" .
+                "Username: {$user->username}\n" .
+                "Password: {$password}\n";
         }
 
-        return "Hello {$fullname}!\n\nYou were added to the cohort.\n\nURL: {$loginurl}\nUsername: {$user->username}\nPassword: (use your current password)\n";
+        return "Hello {$fullname}!\n\n" .
+            "You were added to the cohort.\n\n" .
+            "URL: {$loginurl}\n" .
+            "Username: {$user->username}\n" .
+            "Password: (use your current password)\n";
     }
 }
