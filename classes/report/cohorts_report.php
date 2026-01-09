@@ -93,7 +93,8 @@ class cohorts_report {
 
         // Detect mod_coursecertificate tables (best-effort).
         $hascoursecertificate = $DB->get_manager()->table_exists('coursecertificate')
-            && ($DB->get_manager()->table_exists('coursecertificate_issues') || $DB->get_manager()->table_exists('coursecertificate_issue'));
+            && ($DB->get_manager()->table_exists('coursecertificate_issues') ||
+                $DB->get_manager()->table_exists('coursecertificate_issue'));
 
         $issuestable = null;
         if ($hascoursecertificate) {
