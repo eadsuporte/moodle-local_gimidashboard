@@ -24,8 +24,8 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2026010801;
-$plugin->release   = '0.1.0';
-$plugin->requires  = 2023042400; // Moodle 4.2+.
+$plugin->version   = 2026010900;
+$plugin->release   = '0.1.1';
+$plugin->requires  = 2023042400;
 $plugin->component = 'local_gimidashboard';
 $plugin->maturity  = MATURITY_ALPHA;
