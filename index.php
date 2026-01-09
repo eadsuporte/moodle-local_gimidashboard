@@ -62,10 +62,10 @@ if ($sel->is_course()) {
     if ($cat) {
         $courses = $cat->get_courses(['recursive' => true]);
         foreach ($courses as $c) {
-            if ((int)$c->id === 1) {
+            if ($c->id === 1) {
                 continue;
             }
-            $courseids[] = (int)$c->id;
+            $courseids[] = $c->id;
         }
     }
 }

@@ -51,8 +51,8 @@ class stats_cards {
         $combo = $DB->sql_concat('ue.userid', "'-'", 'e.courseid');
 
         // Total distinct learners (unique users across all courses).
-        $learners = (int)$DB->get_field_sql(
-            "SELECT COUNT(DISTINCT ue.userid)
+        $learners = $DB->get_field_sql("
+             SELECT COUNT(DISTINCT ue.userid)
                FROM {user_enrolments} ue
                JOIN {enrol} e ON e.id = ue.enrolid
                JOIN {user} u ON u.id = ue.userid
@@ -65,8 +65,8 @@ class stats_cards {
         );
 
         // Total enrolments (unique user-course pairs).
-        $totalpairs = (int)$DB->get_field_sql(
-            "SELECT COUNT(DISTINCT $combo)
+        $totalpairs = $DB->get_field_sql("
+             SELECT COUNT(DISTINCT $combo)
                FROM {user_enrolments} ue
                JOIN {enrol} e ON e.id = ue.enrolid
                JOIN {user} u ON u.id = ue.userid
@@ -79,8 +79,8 @@ class stats_cards {
         );
 
         // Completed pairs.
-        $completedpairs = (int)$DB->get_field_sql(
-            "SELECT COUNT(DISTINCT $combo)
+        $completedpairs = $DB->get_field_sql("
+             SELECT COUNT(DISTINCT $combo)
                FROM {user_enrolments} ue
                JOIN {enrol} e ON e.id = ue.enrolid
                JOIN {user} u ON u.id = ue.userid
@@ -98,12 +98,12 @@ class stats_cards {
 
         $completionpct = 0;
         if ($totalpairs > 0) {
-            $completionpct = (int)round(($completedpairs / $totalpairs) * 100.0);
+            $completionpct = round(($completedpairs / $totalpairs) * 100.0);
         }
 
         // Never accessed pairs (user_lastaccess missing/0).
-        $neveraccessed = (int)$DB->get_field_sql(
-            "SELECT COUNT(DISTINCT $combo)
+        $neveraccessed = $DB->get_field_sql("
+             SELECT COUNT(DISTINCT $combo)
                FROM {user_enrolments} ue
                JOIN {enrol} e ON e.id = ue.enrolid
                JOIN {user} u ON u.id = ue.userid
@@ -120,8 +120,8 @@ class stats_cards {
         );
 
         // Grade average % for enrolled users (course total grade item).
-        $gradeavg = $DB->get_field_sql(
-            "SELECT AVG((gg.finalgrade / gi.grademax) * 100)
+        $gradeavg = $DB->get_field_sql("
+             SELECT AVG((gg.finalgrade / gi.grademax) * 100)
                FROM {grade_items} gi
                JOIN {grade_grades} gg ON gg.itemid = gi.id
                JOIN {user} u ON u.id = gg.userid
@@ -133,13 +133,13 @@ class stats_cards {
                 AND u.suspended = 0",
             $params
         );
-        $gradeavg = $gradeavg === null ? 0 : (int)round((float)$gradeavg);
+        $gradeavg = $gradeavg === null ? 0 : round((float)$gradeavg);
 
         // Feedback responses (distinct users who completed any feedback in these courses).
         $feedbackusers = 0;
         if ($DB->get_manager()->table_exists('feedback') && $DB->get_manager()->table_exists('feedback_completed')) {
-            $feedbackusers = (int)$DB->get_field_sql(
-                "SELECT COUNT(DISTINCT fc.userid)
+            $feedbackusers = $DB->get_field_sql("
+                 SELECT COUNT(DISTINCT fc.userid)
                    FROM {feedback_completed} fc
                    JOIN {feedback} f ON f.id = fc.feedback
                   WHERE f.course $insql",
@@ -149,11 +149,26 @@ class stats_cards {
 
         return [
             'cards' => [
-                ['value' => (string)$learners, 'label' => 'Learners Enrolled'],
-                ['value' => $completionpct . '%', 'label' => 'Completion'],
-                ['value' => (string)$neveraccessed, 'label' => 'Never Accessed'],
-                ['value' => (string)$gradeavg, 'label' => 'Grade Average'],
-                ['value' => (string)$feedbackusers, 'label' => 'User Feedback'],
+                [
+                    'value' => $learners,
+                    'label' => 'Learners Enrolled',
+                ],
+                [
+                    'value' => $completionpct . '%',
+                    'label' => 'Completion',
+                ],
+                [
+                    'value' => $neveraccessed,
+                    'label' => 'Never Accessed',
+                ],
+                [
+                    'value' => $gradeavg,
+                    'label' => 'Grade Average',
+                ],
+                [
+                    'value' => $feedbackusers,
+                    'label' => 'User Feedback',
+                ],
             ],
         ];
     }

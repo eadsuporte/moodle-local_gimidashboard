@@ -52,7 +52,7 @@ class filter_options {
         // Index categories by id.
         $catbyid = [];
         foreach ($categories as $c) {
-            $catbyid[(int)$c->id] = $c;
+            $catbyid[$c->id] = $c;
         }
 
         // Helper: get top/root category id from path "/1/2/3".
@@ -62,25 +62,25 @@ class filter_options {
                 return 0;
             }
             $parts = explode('/', $path);
-            return (int)($parts[0] ?? 0);
+            return ($parts[0] ?? 0);
         };
 
         // Determine which categories are selectable (privileged).
         $catselectable = [];
         foreach ($categories as $cat) {
-            $ctx = context_coursecat::instance((int)$cat->id, IGNORE_MISSING);
+            $ctx = context_coursecat::instance($cat->id, IGNORE_MISSING);
             if ($ctx && has_capability('moodle/category:manage', $ctx, $USER)) {
-                $catselectable[(int)$cat->id] = true;
+                $catselectable[$cat->id] = true;
             }
         }
 
         // Determine which courses are selectable.
         $courseselectable = [];
         foreach ($courses as $course) {
-            $ctx = context_course::instance((int)$course->id, IGNORE_MISSING);
+            $ctx = context_course::instance($course->id, IGNORE_MISSING);
             if ($ctx && (has_capability('moodle/course:viewparticipants', $ctx, $USER)
                     || has_capability('moodle/course:update', $ctx, $USER))) {
-                $courseselectable[(int)$course->id] = true;
+                $courseselectable[$course->id] = true;
             }
         }
 
@@ -90,17 +90,17 @@ class filter_options {
         // Pre-group categories by root.
         $catsbyroot = [];
         foreach ($categories as $cat) {
-            $rootid = $getrootid((string)$cat->path);
+            $rootid = $getrootid($cat->path);
             if (!$rootid) {
                 continue;
             }
-            $catsbyroot[$rootid][] = (int)$cat->id;
+            $catsbyroot[$rootid][] = $cat->id;
         }
 
         // Pre-group courses by category.
         $coursesbycat = [];
         foreach ($courses as $course) {
-            $coursesbycat[(int)$course->category][] = $course;
+            $coursesbycat[$course->category][] = $course;
         }
 
         // Build each optgroup using each root category present.
@@ -121,28 +121,28 @@ class filter_options {
 
                 // Add category option if selectable.
                 if (!empty($catselectable[$catid])) {
-                    $indent = str_repeat('&nbsp;&nbsp;&nbsp;&nbsp;', max(0, ((int)$cat->depth - (int)$catbyid[$rootid]->depth)));
+                    $indent = str_repeat('&nbsp;&nbsp;&nbsp;&nbsp;', max(0, ($cat->depth - $catbyid[$rootid]->depth)));
                     $optgroupitems[] = [
-                        'value' => 'cat-' . (int)$catid,
-                        'text' => $indent . 'Category: ' . htmlspecialchars((string)$cat->name),
-                        'selected' => ($selectedraw === 'cat-' . (int)$catid),
+                        'value' => 'cat-' . $catid,
+                        'text' => $indent . 'Category: ' . htmlspecialchars($cat->name),
+                        'selected' => ($selectedraw === 'cat-' . $catid),
                     ];
                 }
 
                 // Add courses for this category if selectable.
                 if (!empty($coursesbycat[$catid])) {
                     foreach ($coursesbycat[$catid] as $course) {
-                        $cid = (int)$course->id;
+                        $cid = $course->id;
                         if (empty($courseselectable[$cid]) && empty($catselectable[$catid])) {
                             // If user cannot view the course, and also cannot manage the category, skip.
                             continue;
                         }
 
-                        $indent = str_repeat('&nbsp;&nbsp;&nbsp;&nbsp;', max(0, ((int)$cat->depth - (int)$catbyid[$rootid]->depth + 1)));
+                        $indent = str_repeat('&nbsp;&nbsp;&nbsp;&nbsp;', max(0, ($cat->depth - $catbyid[$rootid]->depth + 1)));
                         $optgroupitems[] = [
-                            'value' => (string)$cid,
-                            'text' => $indent . htmlspecialchars((string)$course->fullname),
-                            'selected' => ($selectedraw === (string)$cid),
+                            'value' => $cid,
+                            'text' => $indent . htmlspecialchars($course->fullname),
+                            'selected' => ($selectedraw === $cid),
                         ];
                     }
                 }
@@ -154,7 +154,7 @@ class filter_options {
             }
 
             $groups[] = [
-                'label' => (string)$catbyid[$rootid]->name,
+                'label' => $catbyid[$rootid]->name,
                 'options' => $optgroupitems,
             ];
         }

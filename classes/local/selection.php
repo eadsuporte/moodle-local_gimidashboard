@@ -53,12 +53,12 @@ class selection {
         }
 
         if (preg_match('/^cat-(\d+)$/', $raw, $m)) {
-            $self->categoryid = (int)$m[1];
+            $self->categoryid = $m[1];
             return $self;
         }
 
         if (ctype_digit($raw)) {
-            $self->courseid = (int)$raw;
+            $self->courseid = $raw;
         }
 
         return $self;

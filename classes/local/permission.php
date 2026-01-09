@@ -41,7 +41,7 @@ class permission {
      */
     public static function require_capability() {
         global $PAGE;
-        
+
         $systemcontext = context_system::instance();
 
         $courseparam = optional_param('course', '', PARAM_RAW_TRIMMED);
@@ -50,7 +50,6 @@ class permission {
         // If user tries to force an unauthorized selection, ignore it.
         if (!$sel->is_allowed()) {
             $sel = selection::from_param('');
-            $courseparam = '';
         }
 
         // Set page context to system (dashboard is global), but validate permissions by selection.
@@ -66,10 +65,10 @@ class permission {
 
             if ($cat) {
                 foreach ($cat->get_courses(['recursive' => true]) as $c) {
-                    if ((int) $c->id === 1) {
+                    if ( $c->id == 1) {
                         continue;
                     }
-                    $cctx = context_course::instance((int) $c->id, IGNORE_MISSING);
+                    $cctx = context_course::instance( $c->id, IGNORE_MISSING);
                     if ($cctx && has_capability('moodle/course:update', $cctx)) {
                         $allowed = true;
                         break;

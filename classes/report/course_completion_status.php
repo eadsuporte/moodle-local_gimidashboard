@@ -54,16 +54,16 @@ class course_completion_status {
         $gradeavg = [];
 
         foreach ($courseids as $courseid) {
-            $course = $DB->get_record('course', ['id' => $courseid], 'id,fullname', IGNORE_MISSING);
+            $course = $DB->get_record('course', ['id' => $courseid], 'id,fullname');
             if (!$course) {
                 continue;
             }
 
-            $labels[] = (string)$course->fullname;
+            $labels[] = $course->fullname;
 
             // Enrolled users (distinct).
-            $enrolledcount = (int)$DB->get_field_sql(
-                "SELECT COUNT(DISTINCT ue.userid)
+            $enrolledcount = $DB->get_field_sql("
+                 SELECT COUNT(DISTINCT ue.userid)
                    FROM {user_enrolments} ue
                    JOIN {enrol} e ON e.id = ue.enrolid
                    JOIN {user} u ON u.id = ue.userid
@@ -77,8 +77,8 @@ class course_completion_status {
             $enrolled[] = $enrolledcount;
 
             // Completion % (course_completions).
-            $completedcount = (int)$DB->get_field_sql(
-                "SELECT COUNT(DISTINCT cc.userid)
+            $completedcount = (int)$DB->get_field_sql("
+                 SELECT COUNT(DISTINCT cc.userid)
                    FROM {course_completions} cc
                    JOIN {user} u ON u.id = cc.userid
                   WHERE cc.course = :courseid
@@ -94,8 +94,8 @@ class course_completion_status {
             $completionpct[] = round($pct, 1);
 
             // Grade average % (course grade item).
-            $avg = $DB->get_field_sql(
-                "SELECT AVG((gg.finalgrade / gi.grademax) * 100)
+            $avg = $DB->get_field_sql("
+                 SELECT AVG((gg.finalgrade / gi.grademax) * 100)
                    FROM {grade_items} gi
                    JOIN {grade_grades} gg ON gg.itemid = gi.id
                    JOIN {user} u ON u.id = gg.userid

@@ -75,8 +75,8 @@ class cohorts_report {
         $cohorttocourses = [];
         $cohortids = [];
         foreach ($pairs as $p) {
-            $cohortid = (int)$p->cohortid;
-            $courseid = (int)$p->courseid;
+            $cohortid = $p->cohortid;
+            $courseid = $p->courseid;
             $cohorttocourses[$cohortid][] = $courseid;
             $cohortids[$cohortid] = $cohortid;
         }
@@ -88,16 +88,16 @@ class cohorts_report {
         $courserecs = $DB->get_records_list('course', 'id', $courseids, '', 'id,fullname');
         $coursenames = [];
         foreach ($courserecs as $c) {
-            $coursenames[(int)$c->id] = (string)$c->fullname;
+            $coursenames[$c->id] = $c->fullname;
         }
 
         // Detect mod_coursecertificate tables (best-effort).
         $hascoursecertificate = $DB->get_manager()->table_exists('coursecertificate')
             && ($DB->get_manager()->table_exists('coursecertificate_issues') || $DB->get_manager()->table_exists('coursecertificate_issue'));
 
-        $issuesTable = null;
+        $issuestable = null;
         if ($hascoursecertificate) {
-            $issuesTable = $DB->get_manager()->table_exists('coursecertificate_issues')
+            $issuestable = $DB->get_manager()->table_exists('coursecertificate_issues')
                 ? 'coursecertificate_issues'
                 : 'coursecertificate_issue';
         }
@@ -105,7 +105,7 @@ class cohorts_report {
         $outcohorts = [];
 
         foreach ($cohorts as $cohort) {
-            $cohortid = (int)$cohort->id;
+            $cohortid = $cohort->id;
             $linkedcourses = $cohorttocourses[$cohortid] ?? [];
             if (!$linkedcourses) {
                 continue;
@@ -125,19 +125,19 @@ class cohorts_report {
 
             if (!$members) {
                 $outcohorts[] = [
-                    'name' => (string)$cohort->name,
+                    'name' => $cohort->name,
                     'rows' => [],
                 ];
                 continue;
             }
 
-            $memberids = array_map(static fn($u) => (int)$u->id, $members);
+            $memberids = array_map(static fn($u) => $u->id, $members);
 
             // Preload per-course helpers (groups, progress, grades, certificate issues).
             $percourse = [];
 
             foreach ($linkedcourses as $courseid) {
-                $courseid = (int)$courseid;
+                $courseid = $courseid;
                 $useridsforthiscourse = $memberids;
 
                 // Groups: get all group memberships for these users.
@@ -156,13 +156,13 @@ class cohorts_report {
                     );
 
                     foreach ($grouprecs as $gr) {
-                        $uid = (int)$gr->userid;
-                        $groupnames[$uid][] = (string)$gr->name;
+                        $uid = $gr->userid;
+                        $groupnames[$uid][] = $gr->name;
                     }
                 }
 
                 // Progress: total completable modules and completed per user.
-                $totalcompletable = (int)$DB->get_field_sql(
+                $totalcompletable = $DB->get_field_sql(
                     "SELECT COUNT(1)
                        FROM {course_modules} cm
                       WHERE cm.course = :courseid
@@ -191,7 +191,7 @@ class cohorts_report {
                     );
 
                     foreach ($done as $d) {
-                        $completedcount[(int)$d->userid] = (int)$d->donecount;
+                        $completedcount[$d->userid] = $d->donecount;
                     }
                 }
 
@@ -214,15 +214,15 @@ class cohorts_report {
                     );
 
                     foreach ($graderecs as $g) {
-                        $uid = (int)$g->userid;
+                        $uid = $g->userid;
                         $pct = ((float)$g->finalgrade / (float)$g->grademax) * 100.0;
-                        $gradepct[$uid] = (int)round($pct);
+                        $gradepct[$uid] = round($pct);
                     }
                 }
 
                 // Certificate issues: best-effort for mod_coursecertificate.
                 $certissued = [];
-                if ($hascoursecertificate && $issuesTable) {
+                if ($hascoursecertificate && $issuestable) {
                     $instances = $DB->get_records('coursecertificate', ['course' => $courseid], '', 'id');
                     $instanceids = array_keys($instances);
 
@@ -233,14 +233,14 @@ class cohorts_report {
 
                         $issuerecs = $DB->get_records_sql(
                             "SELECT userid
-                               FROM {{$issuesTable}}
+                               FROM {{$issuestable}}
                               WHERE coursecertificateid $iinsql
                                 AND userid $uinsql",
                             $sqlparams
                         );
 
                         foreach ($issuerecs as $ir) {
-                            $certissued[(int)$ir->userid] = true;
+                            $certissued[$ir->userid] = true;
                         }
                     }
                 }
@@ -257,10 +257,10 @@ class cohorts_report {
             // Build rows: one line per (user, course).
             $rows = [];
             foreach ($members as $m) {
-                $userid = (int)$m->id;
+                $userid = $m->id;
 
                 foreach ($linkedcourses as $courseid) {
-                    $courseid = (int)$courseid;
+                    $courseid = $courseid;
                     $helpers = $percourse[$courseid] ?? null;
                     if (!$helpers) {
                         continue;
@@ -270,22 +270,22 @@ class cohorts_report {
                     $grouptext = $groups ? implode(', ', $groups) : '-';
 
                     $progresspct = 0;
-                    $total = (int)$helpers['totalcompletable'];
+                    $total = $helpers['totalcompletable'];
                     if ($total > 0) {
-                        $done = (int)($helpers['completed'][$userid] ?? 0);
-                        $progresspct = (int)round(($done / $total) * 100.0);
+                        $done = ($helpers['completed'][$userid] ?? 0);
+                        $progresspct = round(($done / $total) * 100.0);
                     }
 
-                    $grade = (int)($helpers['gradepct'][$userid] ?? 0);
+                    $grade = ($helpers['gradepct'][$userid] ?? 0);
                     $issued = !empty($helpers['certissued'][$userid]);
 
                     $rows[] = [
-                        'username' => (string)$m->username,
-                        'email' => (string)$m->email,
+                        'username' => $m->username,
+                        'email' => $m->email,
                         'course' => $coursenames[$courseid] ?? ('Course #' . $courseid),
                         'group' => $grouptext,
                         'progress' => $progresspct . '%',
-                        'grade' => (string)$grade,
+                        'grade' => $grade,
                         'certificate_yes' => $issued,
                         'certificate_no' => !$issued,
                     ];
@@ -293,7 +293,7 @@ class cohorts_report {
             }
 
             $outcohorts[] = [
-                'name' => (string)$cohort->name,
+                'name' => $cohort->name,
                 'rows' => $rows,
             ];
         }
