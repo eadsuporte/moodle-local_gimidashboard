@@ -34,8 +34,6 @@ use local_gimidashboard\report\cohorts_report;
 require_login();
 permission::require_capability();
 
-$context = context_system::instance();
-
 $courseparam = optional_param('course', '', PARAM_RAW_TRIMMED);
 $sel = selection::from_param($courseparam);
 
@@ -45,10 +43,13 @@ if (!$sel->is_allowed()) {
     $courseparam = '';
 }
 
-$PAGE->set_context($context);
+$PAGE->set_context(context_system::instance());
 $PAGE->set_url(new moodle_url('/local/gimidashboard/index.php', ['course' => $courseparam]));
 $PAGE->set_title('Academy Dashboard');
 $PAGE->set_heading('Academy Dashboard');
+$PAGE->add_body_class("gimidashboard");
+
+$PAGE->requires->js_call_amd('local_gimidashboard/dashboard', 'init');
 
 echo $OUTPUT->header();
 
@@ -70,7 +71,13 @@ if ($sel->is_course()) {
     }
 }
 
-$PAGE->requires->js_call_amd('local_gimidashboard/dashboard', 'init');
+if (is_siteadmin()) {
+    $templatecontext = [
+        "simpleurl" => (new \moodle_url('/local/gimidashboard/cohort_register.php', ['course' => $courseparam]))->out(false),
+        "importurl" => (new \moodle_url('/local/gimidashboard/cohort_import.php', ['course' => $courseparam]))->out(false),
+    ];
+    echo $OUTPUT->render_from_template('local_gimidashboard/index', $templatecontext);
+}
 
 $templatecontext = filter_options::get_template_context($courseparam);
 echo $OUTPUT->render_from_template('local_gimidashboard/filter_select', $templatecontext);
