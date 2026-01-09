@@ -136,7 +136,7 @@ class user_provisioner {
     public static function build_whatsapp_text(stdClass $user, bool $isnew, ?string $password): string {
         global $CFG;
 
-        $loginurl =  "{$CFG->wwwroot}/login/";
+        $loginurl = "{$CFG->wwwroot}/login/";
         $fullname = fullname($user);
 
         if ($isnew) {
@@ -144,13 +144,13 @@ class user_provisioner {
                 "Your access is ready.\n\n" .
                 "URL: {$loginurl}\n" .
                 "Username: {$user->username}\n" .
-                "Password: {$password}\n";
+                "Password: {$password}";
         }
 
         return "Hello {$fullname}!\n\n" .
             "You were added to the cohort.\n\n" .
             "URL: {$loginurl}\n" .
             "Username: {$user->username}\n" .
-            "Password: (use your current password)\n";
+            "Password: (use your current password)";
     }
 }
