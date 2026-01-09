@@ -3,6 +3,15 @@
  */
 
 define(['core/chartjs'], function (Chart) {
+
+    const truncate = (s, n) => {
+        s = String(s || "");
+        if (n <= 1) {
+            return "…";
+        }
+        return s.length > n ? (s.substring(0, n - 1) + "…") : s;
+    };
+
     /**
      * Render a chart from <script type="application/json" data-gimidashboard-chart="ID">...</script>
      * @param {string} chartId
@@ -22,6 +31,33 @@ define(['core/chartjs'], function (Chart) {
             payload = JSON.parse(script.textContent);
         } catch (e) {
             return;
+        }
+
+        if (payload.shortenxlabels) {
+            const limit = Number(payload.xlabellimit || 15);
+
+            payload.options = payload.options || {};
+            payload.options.scales = payload.options.scales || {};
+            payload.options.scales.x = payload.options.scales.x || {};
+            payload.options.scales.x.ticks = payload.options.scales.x.ticks || {};
+
+            payload.options.scales.x.ticks.callback = function (value) {
+                // Category scale: value costuma ser o índice; getLabelForValue é o mais seguro
+                const full = this.getLabelForValue ? this.getLabelForValue(value) : (payload.labels[value] || "");
+                return truncate(full, limit);
+            };
+
+            // Opcional: melhora legibilidade quando tem muitos cursos
+            payload.options.scales.x.ticks.autoSkip = true;
+            payload.options.scales.x.ticks.maxTicksLimit = 20;
+
+            // Tooltip continua mostrando o nome completo
+            payload.options.plugins = payload.options.plugins || {};
+            payload.options.plugins.tooltip = payload.options.plugins.tooltip || {};
+            payload.options.plugins.tooltip.callbacks = payload.options.plugins.tooltip.callbacks || {};
+            payload.options.plugins.tooltip.callbacks.title = function (items) {
+                return (items && items[0] && items[0].label) ? items[0].label : '';
+            };
         }
 
         var ctx = canvas.getContext('2d');
