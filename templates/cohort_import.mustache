@@ -1,0 +1,262 @@
+{{#isadmin}}
+    <div class="gimidashboard-topbar">
+        <a class="btn btn-primary gimidashboard-link" href="{{dashboardurl}}">Academy Dashboard</a>
+        <a class="btn btn-primary gimidashboard-link" href="{{simpleurl}}">Simple enrolment</a>
+    </div>
+
+    {{{filter}}}
+
+{{/isadmin}}
+
+{{#error}}
+    <div class="gimidashboard-alert gimidashboard-alert-error">{{error}}</div>
+{{/error}}
+
+{{#success}}
+    <div class="gimidashboard-alert gimidashboard-alert-success">
+        <strong>{{success_title}}</strong>
+    </div>
+{{/success}}
+
+<div class="gimidashboard-panel">
+    <div class="gimidashboard-panel-header">Bulk import</div>
+    <div class="gimidashboard-panel-body">
+
+        <div class="gimidashboard-help">
+            <p>Paste the Excel data (one per line) in the following format:<br>
+                <strong>Full name</strong> &lt;separator&gt; <strong>Email</strong></p>
+            <p>The fields can be separated by
+                <strong style="color: #E91E63;font-size: 1.4em;">TAB</strong> or
+                <strong style="color: #E91E63;font-size: 1.4em;">|</strong> or
+                <strong style="color: #E91E63;font-size: 1.4em;">;</strong> or
+                <strong style="color: #E91E63;font-size: 1.4em;">,</strong>.</p>
+            <p><strong>Examples:</strong></p>
+            <ul>
+                <li>João da Silva <strong style="color: #E91E63;font-size: 1.4em;">&lt;TAB&gt;</strong> joao@email.com</li>
+                <li>Maria Souza <strong style="color: #E91E63;font-size: 1.4em;">|</strong> maria@email.com</li>
+                <li>Carlos Pereira <strong style="color: #E91E63;font-size: 1.4em;">;</strong> carlos@email.com</li>
+                <li>Ana Lima <strong style="color: #E91E63;font-size: 1.4em;">,</strong> ana@email.com</li>
+            </ul>
+            <p><strong>Note:</strong> when pasting directly from Excel, you’ll see a larger gap between the name and the
+                email. That isn’t a normal space - it’s a <strong>tab character (TAB)</strong>, which is one of the
+                accepted separators and is expected in this format.</p>
+        </div>
+
+        <form method="post" action="{{actionurl}}">
+            <input type="hidden" name="sesskey" id="sesskey" value="{{config.sesskey}}">
+
+            <div class="gimidashboard-formrow">
+                <label for="rows">Rows</label>
+                <textarea id="rows" name="rows" class="gimidashboard-textarea" rows="10"
+                          placeholder="John Doe | john@example.com"></textarea>
+                <div id="rows-logs"></div>
+            </div>
+
+            <div class="gimidashboard-formrow">
+                <label for="cohortid">Cohort</label>
+                <select id="cohortid" name="cohortid" required>
+                    <option value="">Choose...</option>
+                    {{#cohorts}}
+                        <option value="{{id}}">{{name}}</option>
+                    {{/cohorts}}
+                </select>
+            </div>
+
+            <div class="gimidashboard-formrow">
+                <button class="gimidashboard-btn" type="submit" name="submit" value="1">Import</button>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+{{#js}}
+    /*<script>*/
+    require(["jquery"], function ($) {
+        /**
+         * Keep the exact same logic as PHP:
+         * - trim
+         * - collapse whitespace
+         * - firstname = first token
+         * - lastname = rest (or "." if empty)
+         */
+        function splitName(fullname) {
+            fullname = String(fullname || "")
+                    .replace(/\s+/g, " ")
+                    .trim();
+
+            if (!fullname) {
+                return { firstname: "Student", lastname: "." };
+            }
+
+            var parts = fullname.split(" ");
+            var firstname = parts.shift() || "Student";
+            var lastname = parts.join(" ").trim();
+
+            if (!lastname) {
+                lastname = ".";
+            }
+
+            return { firstname: firstname, lastname: lastname };
+        }
+
+        /**
+         * Mirrors PHP import parsing:
+         * - "fullname | email"
+         * - tab separated
+         * - fallback: split by 2+ spaces
+         */
+        function parseLine(line) {
+            line = String(line || "").trim();
+            if (!line) {
+                return null;
+            }
+
+            var fullname = "";
+            var email = "";
+
+            if (line.indexOf("|") !== -1) {
+                var p1 = line.split("|");
+                fullname = (p1[0] || "").trim();
+                email = (p1.slice(1).join("|") || "").trim();
+            } else if (line.indexOf("\t") !== -1) {
+                var p2 = line.split("\t");
+                fullname = (p2[0] || "").trim();
+                email = (p2.slice(1).join("\t") || "").trim();
+            } else if (line.indexOf(";") !== -1) {
+                var p3 = line.split(";");
+                fullname = (p3[0] || "").trim();
+                email = (p3.slice(1).join(";") || "").trim();
+            } else if (line.indexOf(",") !== -1) {
+                var p4 = line.split(",");
+                fullname = (p4[0] || "").trim();
+                email = (p4.slice(1).join(",") || "").trim();
+            } else {
+                var p0 = line.split(/\s{2,}/);
+                if (p0.length >= 2) {
+                    fullname = (p0[0] || "").trim();
+                    email = (p0[1] || "").trim();
+                }
+            }
+
+            if (!fullname || !email) {
+                return null;
+            }
+
+            return { fullname: fullname, email: email };
+        }
+
+        function esc(s) {
+            return $("<div/>").text(String(s == null ? "" : s)).html();
+        }
+
+        function renderRowsPreview() {
+            var $rows = $("#rows");
+            var $logs = $("#rows-logs");
+
+            if (!$rows.length || !$logs.length) {
+                return;
+            }
+
+            var raw = $rows.val() || "";
+            raw = String(raw).trim();
+
+            if (!raw) {
+                $logs.html("");
+                return;
+            }
+
+            var lines = raw.split(/\r?\n/);
+            var rows = [];
+
+            for (var i = 0; i < lines.length; i++) {
+                var parsed = parseLine(lines[i]);
+                if (!parsed) {
+                    continue;
+                }
+                var name = splitName(parsed.fullname);
+                rows.push({
+                    firstname: name.firstname,
+                    lastname: name.lastname,
+                    email: parsed.email
+                });
+            }
+
+            if (!rows.length) {
+                $logs.html(
+                        '<div class="gimidashboard-alert gimidashboard-alert-error">No valid rows detected. Use: Full name | Email (one per line).</div>'
+                );
+                return;
+            }
+
+
+            var html = '';
+            html += '<div class="gimidashboard-alert gimidashboard-alert-success">';
+            html += '<h6>The following table corresponds to the pre-processed data.</h6>';
+            html += '<table class="gimidashboard-table table table-bordered">';
+            html += '<thead><tr><th>Firstname</th><th>Lastname</th><th>Email</th></tr></thead><tbody>';
+
+            rows.forEach(function (r) {
+                html += "<tr>";
+                html += "<td>" + esc(r.firstname) + "</td>";
+                html += "<td>" + esc(r.lastname) + "</td>";
+                html += "<td>" + esc(r.email) + "</td>";
+                html += "</tr>";
+            });
+
+            html += "</tbody></table></div>";
+
+            $logs.html(html);
+        }
+
+        // Keyboard edits, cut, drag-drop, etc.
+        $(document).on("input", "#rows", function () {
+            renderRowsPreview();
+        });
+
+        // Paste fires before the textarea value is updated in some browsers; delay one tick.
+        $(document).on("paste", "#rows", function () {
+            setTimeout(renderRowsPreview, 0);
+        });
+    });
+{{/js}}
+
+{{#results}}
+    <div class="gimidashboard-panel">
+        <div class="gimidashboard-panel-header">Results</div>
+        <div class="gimidashboard-panel-body">
+
+            <table class="gimidashboard-table">
+                <thead>
+                <tr>
+                    <th>Status</th>
+                    <th>Full name</th>
+                    <th>Email</th>
+                    <th>Profile</th>
+                </tr>
+                </thead>
+                <tbody>
+                {{#results}}
+                    <tr>
+                        <td>{{status}}</td>
+                        <td>{{fullname}}</td>
+                        <td>{{email}}</td>
+                        <td>
+                            {{#profileurl}}
+                                <a href="{{profileurl}}" target="_blank" rel="noreferrer">Open</a>{{/profileurl}}
+                            {{^profileurl}}-{{/profileurl}}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="4">
+                            <div class="gimidashboard-copylabel">WhatsApp message:</div>
+                            <pre class="gimidashboard-copy">{{whatsapptxt}}</pre>
+                        </td>
+                    </tr>
+                {{/results}}
+                </tbody>
+            </table>
+
+        </div>
+    </div>
+{{/results}}

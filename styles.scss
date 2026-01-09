@@ -116,4 +116,92 @@ $radius: 8px;
         color: $text-muted-2;
         padding: 16px;
     }
+
+    // cohort_import.php
+    // cohort_register.php
+    &-topbar {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 0 0 18px 0;
+    }
+    &-link {
+        font-weight: 700;
+        text-decoration: none;
+        color: $brand;
+    }
+    &-scope {
+        margin: 10px 0 14px;
+        padding: 10px 12px;
+        background: $bg-soft;
+        border: 1px solid $border;
+        border-radius: $radius;
+    }
+    &-alert {
+        padding: 12px 14px;
+        border-radius: $radius;
+        margin: 10px 0 14px;
+        &-error {
+            background: #fff1f2;
+            border: 1px solid lighten($no, 35%);
+        }
+        &-success {
+            background: #f0fdf4;
+            border: 1px solid lighten($ok, 40%);
+        }
+    }
+    &-formrow {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin: 0 0 12px 0;
+        input,
+        select {
+            padding: 10px;
+            border: 1px solid $border;
+            border-radius: $radius;
+        }
+    }
+    &-textarea {
+        padding: 10px;
+        border: 1px solid $border;
+        border-radius: $radius;
+    }
+    &-btn {
+        padding: 10px 14px;
+        border-radius: 10px;
+        border: 1px solid $brand;
+        background: $brand;
+        color: $white;
+        font-weight: 800;
+        cursor: pointer;
+        width: fit-content;
+        &:hover {
+            opacity: 0.9;
+        }
+    }
+    &-help {
+        margin: 0 0 12px 0;
+        color: $text-muted;
+    }
+    &-copylabel {
+        margin: 10px 0 6px;
+        font-weight: 800;
+        color: $text;
+    }
+    &-copy {
+        width: 100%;
+        min-height: 90px;
+        padding: 10px;
+        border-radius: $radius;
+        border: 1px solid $border;
+        background: #ffffff;
+    }
+    &-success-line {
+        margin-top: 6px;
+        color: $ok;
+    }
+}
+a[href="https://conecti.me"] {
+    display: none !important;
 }

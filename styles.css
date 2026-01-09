@@ -97,3 +97,89 @@
   color: #6b7280;
   padding: 16px;
 }
+.gimidashboard-topbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 18px 0;
+}
+.gimidashboard-link {
+  font-weight: 700;
+  text-decoration: none;
+  color: #0b5c8f;
+}
+.gimidashboard-scope {
+  margin: 10px 0 14px;
+  padding: 10px 12px;
+  background: #f8fafc;
+  border: 1px solid #dbe3ea;
+  border-radius: 8px;
+}
+.gimidashboard-alert {
+  padding: 12px 14px;
+  border-radius: 8px;
+  margin: 10px 0 14px;
+}
+.gimidashboard-alert-error {
+  background: #fff1f2;
+  border: 1px solid #ef9898;
+}
+.gimidashboard-alert-success {
+  background: #f0fdf4;
+  border: 1px solid #78e9a2;
+}
+.gimidashboard-formrow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0 0 12px 0;
+}
+.gimidashboard-formrow input,
+.gimidashboard-formrow select {
+  padding: 10px;
+  border: 1px solid #dbe3ea;
+  border-radius: 8px;
+}
+.gimidashboard-textarea {
+  padding: 10px;
+  border: 1px solid #dbe3ea;
+  border-radius: 8px;
+}
+.gimidashboard-btn {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid #0b5c8f;
+  background: #0b5c8f;
+  color: #ffffff;
+  font-weight: 800;
+  cursor: pointer;
+  width: fit-content;
+}
+.gimidashboard-btn:hover {
+  opacity: 0.9;
+}
+.gimidashboard-help {
+  margin: 0 0 12px 0;
+  color: #4b5563;
+}
+.gimidashboard-copylabel {
+  margin: 10px 0 6px;
+  font-weight: 800;
+  color: #111827;
+}
+.gimidashboard-copy {
+  width: 100%;
+  min-height: 90px;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #dbe3ea;
+  background: #ffffff;
+}
+.gimidashboard-success-line {
+  margin-top: 6px;
+  color: #15803d;
+}
+
+a[href="https://conecti.me"] {
+  display: none !important;
+}
