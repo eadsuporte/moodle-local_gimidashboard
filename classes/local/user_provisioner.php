@@ -100,7 +100,7 @@ class user_provisioner {
             $username = $baseusername . '.' . $suffix;
         }
 
-        $password = $email; // generate_password(12);
+        $password = $email;
 
         $user = (object) [
             'auth' => 'manual',
@@ -175,7 +175,7 @@ class user_provisioner {
      */
     private static function sso($user) {
         // Helpers base64url.
-        $b64url_encode = static function(string $data): string {
+        $b64urlencode = static function(string $data): string {
             return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
         };
 
@@ -187,18 +187,18 @@ class user_provisioner {
             'exp' => time() + 15 * 60, // 15 minutos
         ];
 
-        $headerb64 = $b64url_encode(json_encode($header, JSON_UNESCAPED_SLASHES));
-        $payloadb64 = $b64url_encode(json_encode($payload, JSON_UNESCAPED_SLASHES));
+        $headerb64 = $b64urlencode(json_encode($header, JSON_UNESCAPED_SLASHES));
+        $payloadb64 = $b64urlencode(json_encode($payload, JSON_UNESCAPED_SLASHES));
 
         // Assina com o external_tokens.token (HS256).
         $data = "{$headerb64}.{$payloadb64}";
         $sig = hash_hmac('sha256', $data, self::$token, true);
-        $sigb64 = $b64url_encode($sig);
+        $sigb64 = $b64urlencode($sig);
 
         $jwt = "{$headerb64}.{$payloadb64}.{$sigb64}";
 
-        $afterLoginPath = '/my/';
+        $afterloginpath = '/my/';
 
-        return 'local/gimidashboard/sso.php?jwt=' . rawurlencode($jwt) . '&url=' . rawurlencode($afterLoginPath);
+        return 'local/gimidashboard/sso.php?jwt=' . rawurlencode($jwt) . '&url=' . rawurlencode($afterloginpath);
     }
 }
