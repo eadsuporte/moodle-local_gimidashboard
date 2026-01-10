@@ -34,7 +34,6 @@ use local_gimidashboard\report\filter_options;
  * Simple cohort enrolment page.
  */
 class cohort_register_page {
-
     /**
      * Build template context and handle submission.
      *
@@ -49,11 +48,12 @@ class cohort_register_page {
         require_once($CFG->dirroot . '/cohort/lib.php');
 
         $isadmin = is_siteadmin();
+        $param = ['course' => $courseparam];
         $templatecontext = [
             'isadmin' => $isadmin,
-            'cohort_import_url' => (new \moodle_url('/local/gimidashboard/cohort_import.php', ['course' => $courseparam]))->out(false),
-            'cohort_register_url' => (new \moodle_url('/local/gimidashboard/cohort_register.php', ['course' => $courseparam]))->out(false),
-            'dashboard_url' => (new \moodle_url('/local/gimidashboard/', ['course' => $courseparam]))->out(false),
+            'cohort_import_url' => (new \moodle_url('/local/gimidashboard/cohort_import.php', $param))->out(false),
+            'cohort_register_url' => (new \moodle_url('/local/gimidashboard/cohort_register.php', $param))->out(false),
+            'dashboard_url' => (new \moodle_url('/local/gimidashboard/', $param))->out(false),
             'scope_label' => scope_helper::get_scope_label($sel),
             'error' => '',
             'success' => false,
