@@ -165,6 +165,7 @@ class user_provisioner {
             "LMS administration Team";
     }
 
+    /** @var string */
     public static $token = "a9f3c1d7e4b8f2a6c0d9e1f7b4a8c6d2e9f0b1a3d5c7e8f4a6b2";
 
     /**
