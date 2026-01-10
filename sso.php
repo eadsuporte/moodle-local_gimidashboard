@@ -15,6 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * phpcs:disable moodle.Files.RequireLogin.Missing
  * SSO simples via JWT assinado com mdl_external_tokens.token.
  * Payload deve conter { "username": "..." }.
  * Algoritmo esperado: HS256.
