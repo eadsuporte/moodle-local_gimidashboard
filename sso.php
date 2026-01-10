@@ -32,7 +32,7 @@ require_once($CFG->libdir . '/moodlelib.php');
 
 @header('X-Content-Type-Options: nosniff');
 
-$jwt = required_param('jwt',  PARAM_RAW_TRIMMED);
+$jwt = required_param('jwt', PARAM_RAW_TRIMMED);
 
 $parts = gimi_parse_jwt($jwt);
 if (empty($parts)) {
