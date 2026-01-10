@@ -100,7 +100,7 @@ class user_provisioner {
             $username = $baseusername . '.' . $suffix;
         }
 
-        $password = generate_password(12);
+        $password = $email; // generate_password(12);
 
         $user = (object) [
             'auth' => 'manual',
@@ -116,6 +116,7 @@ class user_provisioner {
         ];
 
         $user->id = user_create_user($user, true, false);
+        set_user_preference('auth_forcepasswordchange', 1, $user->id);
 
         return [
             'user' => $user,
@@ -140,17 +141,64 @@ class user_provisioner {
         $fullname = fullname($user);
 
         if ($isnew) {
-            return "Hello {$fullname}!\n\n" .
-                "Your access is ready.\n\n" .
-                "URL: {$loginurl}\n" .
+            $ssourl = self::sso($user);
+            return "Welcome {$fullname},\n\n" .
+                "Your account has been successfully created and your access is now available.\n\n" .
+                "You can log in using the information below:\n" .
+                "Direct Access URL: {$CFG->wwwroot}/{$ssourl}\n" .
+                "Login URL: {$loginurl}\n" .
                 "Username: {$user->username}\n" .
-                "Password: {$password}";
+                "Password: {$password}\n\n" .
+                "If you have any questions or experience any issues, please feel free to contact our support team.\n\n" .
+                "Best regards,\n" .
+                "LMS administration Team";
         }
 
-        return "Hello {$fullname}!\n\n" .
-            "You were added to the cohort.\n\n" .
-            "URL: {$loginurl}\n" .
+        return "Welcome {$fullname},\n\n" .
+            "You have been added to the cohort and your access is now available.\n\n" .
+            "You can log in using the information below:\n" .
+            "Login URL: {$loginurl}\n" .
             "Username: {$user->username}\n" .
-            "Password: (use your current password)";
+            "Password: (use your current password)\n\n" .
+            "If you have any questions or experience any issues, please feel free to contact our support team.\n\n" .
+            "Best regards,\n" .
+            "LMS administration Team";
+    }
+
+    public static $token = "a9f3c1d7e4b8f2a6c0d9e1f7b4a8c6d2e9f0b1a3d5c7e8f4a6b2";
+
+    /**
+     * Create sso link
+     *
+     * @param $user
+     * @return string
+     */
+    private static function sso($user) {
+        // Helpers base64url.
+        $b64url_encode = static function(string $data): string {
+            return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
+        };
+
+        // Header + payload (inclui exp curto por segurança).
+        $header = ['alg' => 'HS256', 'typ' => 'JWT'];
+        $payload = [
+            'username' => $user->username,
+            'nbf' => time() - 5,
+            'exp' => time() + 15 * 60, // 15 minutos
+        ];
+
+        $headerb64 = $b64url_encode(json_encode($header, JSON_UNESCAPED_SLASHES));
+        $payloadb64 = $b64url_encode(json_encode($payload, JSON_UNESCAPED_SLASHES));
+
+        // Assina com o external_tokens.token (HS256).
+        $data = "{$headerb64}.{$payloadb64}";
+        $sig = hash_hmac('sha256', $data, self::$token, true);
+        $sigb64 = $b64url_encode($sig);
+
+        $jwt = "{$headerb64}.{$payloadb64}.{$sigb64}";
+
+        $afterLoginPath = '/my/';
+
+        return 'local/gimidashboard/sso.php?jwt=' . rawurlencode($jwt) . '&url=' . rawurlencode($afterLoginPath);
     }
 }
