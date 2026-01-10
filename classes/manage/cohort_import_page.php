@@ -66,6 +66,14 @@ class cohort_import_page {
                 [$a, $b] = array_map('trim', explode("\t", $line, 2));
                 $fullname = $a;
                 $email = $b;
+            } else if (strpos($line, ";") !== false) {
+                [$a, $b] = array_map('trim', explode(";", $line, 2));
+                $fullname = $a;
+                $email = $b;
+            } else if (strpos($line, ",") !== false) {
+                [$a, $b] = array_map('trim', explode(",", $line, 2));
+                $fullname = $a;
+                $email = $b;
             } else {
                 // Last fallback: split by multiple spaces.
                 $parts = preg_split('/\s{2,}/', $line);
@@ -97,11 +105,11 @@ class cohort_import_page {
         require_once($CFG->dirroot . '/cohort/lib.php');
 
         $isadmin = is_siteadmin();
-        $context = [
+        $templatecontext = [
             'isadmin' => $isadmin,
-            'actionurl' => (new \moodle_url('/local/gimidashboard/cohort_import.php', ['course' => $courseparam]))->out(false),
-            'simpleurl' => (new \moodle_url('/local/gimidashboard/cohort_register.php', ['course' => $courseparam]))->out(false),
-            'dashboardurl' => (new \moodle_url('/local/gimidashboard/', ['course' => $courseparam]))->out(false),
+            'cohort_import_url' => (new \moodle_url('/local/gimidashboard/cohort_import.php', ['course' => $courseparam]))->out(false),
+            'cohort_register_url' => (new \moodle_url('/local/gimidashboard/cohort_register.php', ['course' => $courseparam]))->out(false),
+            'dashboard_url' => (new \moodle_url('/local/gimidashboard/', ['course' => $courseparam]))->out(false),
             'error' => '',
             'success' => false,
             'success_title' => '',
@@ -110,24 +118,24 @@ class cohort_import_page {
             'hasselection' => ($sel->is_course() || $sel->is_category()),
         ];
 
-        if (!$context['hasselection']) {
-            $context['error'] = 'Select a category or course to start.';
-            return $context;
+        if (!$templatecontext['hasselection']) {
+            $templatecontext['error'] = 'Select a category or course to start.';
+            return $templatecontext;
         }
 
         $courseids = scope_helper::resolve_courseids($sel);
         $available = scope_helper::get_available_cohorts($courseids);
 
         foreach ($available as $c) {
-            $context['cohorts'][] = [
+            $templatecontext['cohorts'][] = [
                 'id' => $c['id'],
                 'name' => $c['name'],
             ];
         }
 
-        if (empty($context['cohorts'])) {
-            $context['error'] = 'No cohorts with members were found for this scope.';
-            return $context;
+        if (empty($templatecontext['cohorts'])) {
+            $templatecontext['error'] = 'No cohorts with members were found for this scope.';
+            return $templatecontext;
         }
 
         if (optional_param('submit', 0, PARAM_INT) && data_submitted()) {
@@ -137,20 +145,20 @@ class cohort_import_page {
             $cohortid = optional_param('cohortid', 0, PARAM_INT);
 
             if ($cohortid <= 0) {
-                $context['error'] = 'Select a cohort.';
-                return $context;
+                $templatecontext['error'] = 'Select a cohort.';
+                return $templatecontext;
             }
 
             $allowedids = array_map(static fn($x) => $x['id'], $available);
-            if (!in_array($cohortid, $allowedids, true)) {
-                $context['error'] = 'Selected cohort is not available for this scope.';
-                return $context;
+            if (!in_array($cohortid, $allowedids)) {
+                $templatecontext['error'] = 'Selected cohort is not available for this scope.';
+                return $templatecontext;
             }
 
             $rows = self::parse_rows($raw);
             if (empty($rows)) {
-                $context['error'] = 'No valid rows found. Paste "Full name | Email" (one per line).';
-                return $context;
+                $templatecontext['error'] = 'No valid rows found. Paste "Full name | Email" (one per line).';
+                return $templatecontext;
             }
 
             $ok = 0;
@@ -162,7 +170,7 @@ class cohort_import_page {
 
                 if ($fullname === '' || $email === '' || !validate_email($email)) {
                     $errors++;
-                    $context['results'][] = [
+                    $templatecontext['results'][] = [
                         'status' => 'Error',
                         'fullname' => $fullname !== '' ? $fullname : '(missing name)',
                         'email' => $email !== '' ? $email : '(missing email)',
@@ -182,7 +190,7 @@ class cohort_import_page {
                 $profileurl = (new \moodle_url('/user/profile.php', ['id' => $user->id]))->out(false);
 
                 $ok++;
-                $context['results'][] = [
+                $templatecontext['results'][] = [
                     'status' => $prov['isnew'] ? 'Created' : 'Existing',
                     'fullname' => fullname($user),
                     'email' => $user->email,
@@ -191,10 +199,10 @@ class cohort_import_page {
                 ];
             }
 
-            $context['success'] = true;
-            $context['success_title'] = "Import finished. Success: {$ok}. Errors: {$errors}.";
+            $templatecontext['success'] = true;
+            $templatecontext['success_title'] = "Import finished. Success: {$ok}. Errors: {$errors}.";
         }
 
-        return $context;
+        return $templatecontext;
     }
 }

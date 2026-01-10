@@ -51,9 +51,9 @@ class cohort_register_page {
         $isadmin = is_siteadmin();
         $templatecontext = [
             'isadmin' => $isadmin,
-            'actionurl' => (new \moodle_url('/local/gimidashboard/cohort_import.php', ['course' => $courseparam]))->out(false),
-            'simpleurl' => (new \moodle_url('/local/gimidashboard/cohort_register.php', ['course' => $courseparam]))->out(false),
-            'dashboardurl' => (new \moodle_url('/local/gimidashboard/', ['course' => $courseparam]))->out(false),
+            'cohort_import_url' => (new \moodle_url('/local/gimidashboard/cohort_import.php', ['course' => $courseparam]))->out(false),
+            'cohort_register_url' => (new \moodle_url('/local/gimidashboard/cohort_register.php', ['course' => $courseparam]))->out(false),
+            'dashboard_url' => (new \moodle_url('/local/gimidashboard/', ['course' => $courseparam]))->out(false),
             'scope_label' => scope_helper::get_scope_label($sel),
             'error' => '',
             'success' => false,
@@ -103,6 +103,13 @@ class cohort_register_page {
 
             if (!validate_email($email)) {
                 $templatecontext['error'] = 'Invalid email.';
+                return $templatecontext;
+            }
+
+            // Ensure selected cohort is allowed for this scope.
+            $allowedids = array_map(static fn($x) => $x['id'], $available);
+            if (!in_array($cohortid, $allowedids)) {
+                $templatecontext['error'] = 'Selected cohort is not available for this scope.';
                 return $templatecontext;
             }
 

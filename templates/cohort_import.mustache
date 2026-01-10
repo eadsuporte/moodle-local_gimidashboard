@@ -1,7 +1,7 @@
 {{#isadmin}}
     <div class="gimidashboard-topbar">
-        <a class="btn btn-primary gimidashboard-link" href="{{dashboardurl}}">Academy Dashboard</a>
-        <a class="btn btn-primary gimidashboard-link" href="{{simpleurl}}">Simple enrolment</a>
+        <a class="btn btn-primary gimidashboard-link" href="{{dashboard_url}}">Academy Dashboard</a>
+        <a class="btn btn-primary gimidashboard-link" href="{{cohort_register_url}}">Simple enrolment</a>
     </div>
 
     {{{filter}}}
@@ -14,7 +14,42 @@
 
 {{#success}}
     <div class="gimidashboard-alert gimidashboard-alert-success">
-        <strong>{{success_title}}</strong>
+        <h6><strong>{{success_title}}</strong></h6>
+        <div class="gimidashboard-panel">
+                <div class="gimidashboard-panel-header">Results</div>
+                <div class="gimidashboard-panel-body">
+
+                    <table class="gimidashboard-table">
+                        <thead>
+                        <tr>
+                            <th>Status</th>
+                            <th>Full name</th>
+                            <th>Email</th>
+                            <th>WhatsApp message</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {{#results}}
+                            <tr>
+                                <td>
+                                    {{status}}<br>
+                                    {{#profileurl}}
+                                        <a href="{{profileurl}}" target="_blank" rel="noreferrer">Open</a>
+                                    {{/profileurl}}
+                                    {{^profileurl}}-{{/profileurl}}
+                                </td>
+                                <td>{{fullname}}</td>
+                                <td>{{email}}</td>
+                                <td>
+                                    <pre class="gimidashboard-copy">{{whatsapptxt}}</pre>
+                                </td>
+                            </tr>
+                        {{/results}}
+                        </tbody>
+                    </table>
+
+                </div>
+            </div>
     </div>
 {{/success}}
 
@@ -26,23 +61,23 @@
             <p>Paste the Excel data (one per line) in the following format:<br>
                 <strong>Full name</strong> &lt;separator&gt; <strong>Email</strong></p>
             <p>The fields can be separated by
-                <strong style="color: #E91E63;font-size: 1.4em;">TAB</strong> or
-                <strong style="color: #E91E63;font-size: 1.4em;">|</strong> or
-                <strong style="color: #E91E63;font-size: 1.4em;">;</strong> or
-                <strong style="color: #E91E63;font-size: 1.4em;">,</strong>.</p>
+                <strong style="color:#E91E63;font-size:1.4em;">TAB</strong> or
+                <strong style="color:#E91E63;font-size:1.4em;">|</strong> or
+                <strong style="color:#E91E63;font-size:1.4em;">;</strong> or
+                <strong style="color:#E91E63;font-size:1.4em;">,</strong>.</p>
             <p><strong>Examples:</strong></p>
             <ul>
-                <li>João da Silva <strong style="color: #E91E63;font-size: 1.4em;">&lt;TAB&gt;</strong> joao@email.com</li>
-                <li>Maria Souza <strong style="color: #E91E63;font-size: 1.4em;">|</strong> maria@email.com</li>
-                <li>Carlos Pereira <strong style="color: #E91E63;font-size: 1.4em;">;</strong> carlos@email.com</li>
-                <li>Ana Lima <strong style="color: #E91E63;font-size: 1.4em;">,</strong> ana@email.com</li>
+                <li>John Smith <strong style="color:#E91E63;font-size:1.4em;">&lt;TAB&gt;</strong> john@email.com</li>
+                <li>Mary Johnson <strong style="color:#E91E63;font-size:1.4em;">|</strong> mary@email.com</li>
+                <li>Michael Brown <strong style="color:#E91E63;font-size:1.4em;">;</strong> michael@email.com</li>
+                <li>Anna Davis <strong style="color:#E91E63;font-size:1.4em;">,</strong> anna@email.com</li>
             </ul>
             <p><strong>Note:</strong> when pasting directly from Excel, you’ll see a larger gap between the name and the
                 email. That isn’t a normal space - it’s a <strong>tab character (TAB)</strong>, which is one of the
                 accepted separators and is expected in this format.</p>
         </div>
 
-        <form method="post" action="{{actionurl}}">
+        <form method="post" action="{{cohort_import_url}}">
             <input type="hidden" name="sesskey" id="sesskey" value="{{config.sesskey}}">
 
             <div class="gimidashboard-formrow">
@@ -71,7 +106,6 @@
 </div>
 
 {{#js}}
-    /*<script>*/
     require(["jquery"], function ($) {
         /**
          * Keep the exact same logic as PHP:
@@ -220,43 +254,3 @@
         });
     });
 {{/js}}
-
-{{#results}}
-    <div class="gimidashboard-panel">
-        <div class="gimidashboard-panel-header">Results</div>
-        <div class="gimidashboard-panel-body">
-
-            <table class="gimidashboard-table">
-                <thead>
-                <tr>
-                    <th>Status</th>
-                    <th>Full name</th>
-                    <th>Email</th>
-                    <th>Profile</th>
-                </tr>
-                </thead>
-                <tbody>
-                {{#results}}
-                    <tr>
-                        <td>{{status}}</td>
-                        <td>{{fullname}}</td>
-                        <td>{{email}}</td>
-                        <td>
-                            {{#profileurl}}
-                                <a href="{{profileurl}}" target="_blank" rel="noreferrer">Open</a>{{/profileurl}}
-                            {{^profileurl}}-{{/profileurl}}
-                        </td>
-                    </tr>
-                    <tr>
-                        <td colspan="4">
-                            <div class="gimidashboard-copylabel">WhatsApp message:</div>
-                            <pre class="gimidashboard-copy">{{whatsapptxt}}</pre>
-                        </td>
-                    </tr>
-                {{/results}}
-                </tbody>
-            </table>
-
-        </div>
-    </div>
-{{/results}}

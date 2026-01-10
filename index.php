@@ -73,8 +73,8 @@ if ($sel->is_course()) {
 
 if (is_siteadmin()) {
     $templatecontext = [
-        "simpleurl" => (new \moodle_url('/local/gimidashboard/cohort_register.php', ['course' => $courseparam]))->out(false),
-        "importurl" => (new \moodle_url('/local/gimidashboard/cohort_import.php', ['course' => $courseparam]))->out(false),
+        "cohort_register_url" => (new \moodle_url('/local/gimidashboard/cohort_register.php', ['course' => $courseparam]))->out(false),
+        "cohort_import_url" => (new \moodle_url('/local/gimidashboard/cohort_import.php', ['course' => $courseparam]))->out(false),
     ];
     echo $OUTPUT->render_from_template('local_gimidashboard/index', $templatecontext);
 }

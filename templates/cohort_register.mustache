@@ -1,7 +1,7 @@
 {{#isadmin}}
     <div class="gimidashboard-topbar">
-        <a class="btn btn-primary gimidashboard-link" href="{{dashboardurl}}">Academy Dashboard</a>
-        <a class="btn btn-primary gimidashboard-link" href="{{importurl}}">Bulk import</a>
+        <a class="btn btn-primary gimidashboard-link" href="{{dashboard_url}}">Academy Dashboard</a>
+        <a class="btn btn-primary gimidashboard-link" href="{{cohort_import_url}}">Bulk import</a>
     </div>
 
     {{{filter}}}
@@ -35,7 +35,7 @@
         <div class="gimidashboard-panel-header">Add a learner to a cohort</div>
         <div class="gimidashboard-panel-body">
 
-            <form method="post" action="{{actionurl}}">
+            <form method="post" action="{{cohort_register_url}}">
                 <input type="hidden" name="sesskey" id="sesskey" value="{{config.sesskey}}">
 
                 <div class="gimidashboard-formrow">
