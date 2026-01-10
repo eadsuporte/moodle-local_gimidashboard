@@ -60,8 +60,6 @@ class course_completion_status {
             }
 
             $labels[] = $course->fullname;
-            $courseurls[] = (new \moodle_url('/course/view.php', ['id' => (int)$course->id]))->out(false);
-
 
             // Enrolled users (distinct).
             $enrolledcount = $DB->get_field_sql("
