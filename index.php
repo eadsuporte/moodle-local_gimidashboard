@@ -49,7 +49,9 @@ $PAGE->set_title('Academy Dashboard');
 $PAGE->set_heading('Academy Dashboard');
 $PAGE->add_body_class("gimidashboard");
 
-$PAGE->requires->js_call_amd('local_gimidashboard/dashboard', 'init');
+$PAGE->requires->js(new moodle_url('https://cdn.jsdelivr.net/npm/apexcharts'));
+$PAGE->requires->js_call_amd('local_gimidashboard/dashboard', 'chart');
+$PAGE->requires->js_call_amd('local_gimidashboard/dashboard', 'search');
 
 echo $OUTPUT->header();
 

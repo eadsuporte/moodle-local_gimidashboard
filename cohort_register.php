@@ -49,7 +49,8 @@ $PAGE->set_title('Cohort enrolment');
 $PAGE->set_heading('Cohort enrolment');
 $PAGE->add_body_class("gimidashboard");
 
-$PAGE->requires->js_call_amd('local_gimidashboard/dashboard', 'init');
+$PAGE->requires->js_call_amd('local_gimidashboard/dashboard', 'chart');
+$PAGE->requires->js_call_amd('local_gimidashboard/dashboard', 'search');
 
 echo $OUTPUT->header();
 

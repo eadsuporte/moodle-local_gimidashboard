@@ -47,7 +47,8 @@ $PAGE->set_title('Bulk cohort import');
 $PAGE->set_heading('Bulk cohort import');
 $PAGE->add_body_class("gimidashboard");
 
-$PAGE->requires->js_call_amd('local_gimidashboard/dashboard', 'init');
+$PAGE->requires->js_call_amd('local_gimidashboard/dashboard', 'chart');
+$PAGE->requires->js_call_amd('local_gimidashboard/dashboard', 'search');
 
 echo $OUTPUT->header();
 

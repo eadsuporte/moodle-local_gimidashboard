@@ -72,18 +72,9 @@ define(['core/chartjs'], function (Chart) {
     }
 
     /**
-     * Init dashboard behaviors.
+     * Render all charts on the page.
      */
-    function init() {
-        // Auto-submit on selection change.
-        var sel = document.getElementById('course');
-        if (sel && sel.form) {
-            sel.addEventListener('change', function () {
-                sel.form.submit();
-            });
-        }
-
-        // Render all charts on the page.
+    function chart() {
         document
             .querySelectorAll('script[data-gimidashboard-chart]')
             .forEach(function (node) {
@@ -94,5 +85,20 @@ define(['core/chartjs'], function (Chart) {
             });
     }
 
-    return {init: init};
+    /**
+     * Auto-submit on selection change.
+     */
+    function search() {
+        var sel = document.getElementById('course');
+        if (sel && sel.form) {
+            sel.addEventListener('change', function () {
+                sel.form.submit();
+            });
+        }
+    }
+
+    return {
+        chart: chart,
+        search: search,
+    };
 });
