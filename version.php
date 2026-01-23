@@ -28,4 +28,4 @@ $plugin->version   = 2026011000;
 $plugin->release   = '0.1.3';
 $plugin->requires  = 2023042400;
 $plugin->component = 'local_gimidashboard';
-$plugin->maturity  = MATURITY_ALPHA;
+$plugin->maturity  = MATURITY_STABLE;
