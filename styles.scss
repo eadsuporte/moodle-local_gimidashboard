@@ -116,7 +116,6 @@ $radius: 8px;
         color: $text-muted-2;
         padding: 16px;
     }
-
     // cohort_import.php
     // cohort_register.php
     &-topbar {
@@ -202,6 +201,9 @@ $radius: 8px;
         color: $ok;
     }
 }
+#page-footer .copyright,
+#page-footer .copyright .madeby,
 a[href="https://conecti.me"] {
     display: none !important;
+    visibility: hidden !important;
 }

@@ -180,6 +180,9 @@
   color: #15803d;
 }
 
+#page-footer .copyright,
+#page-footer .copyright .madeby,
 a[href="https://conecti.me"] {
   display: none !important;
+  visibility: hidden !important;
 }
