@@ -138,7 +138,6 @@ class cohorts_report {
             $percourse = [];
 
             foreach ($linkedcourses as $courseid) {
-                $courseid = $courseid;
                 $useridsforthiscourse = $memberids;
 
                 // Groups: get all group memberships for these users.
@@ -261,7 +260,6 @@ class cohorts_report {
                 $userid = $m->id;
 
                 foreach ($linkedcourses as $courseid) {
-                    $courseid = $courseid;
                     $helpers = $percourse[$courseid] ?? null;
                     if (!$helpers) {
                         continue;
