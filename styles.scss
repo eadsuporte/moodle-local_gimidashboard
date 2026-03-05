@@ -62,7 +62,8 @@ $radius: 8px;
             @include panel;
             padding: 14px;
             text-align: center;
-            overflow: visible; // ensures border radius behaves well in some themes
+            overflow: visible;
+            width: 100%;
         }
         &-value {
             font-size: 34px;
