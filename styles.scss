@@ -1,4 +1,3 @@
-// local/gimidashboard/scss/styles.scss
 $max-width: 1200px;
 $border: #dbe3ea;
 $border-soft: #eef2f6;
@@ -92,7 +91,6 @@ $radius: 8px;
         }
     }
     &-cert {
-        // empty on purpose (kept for semantic hook)
     }
     &-ok {
         color: $ok;
@@ -116,8 +114,6 @@ $radius: 8px;
         color: $text-muted-2;
         padding: 16px;
     }
-    // cohort_import.php
-    // cohort_register.php
     &-topbar {
         display: flex;
         align-items: center;
