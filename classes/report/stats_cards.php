@@ -149,10 +149,10 @@ class stats_cards {
 
         return [
             'cards' => [
-                [
-                    'value' => $learners,
-                    'label' => 'Learners Enrolled',
-                ],
+                //[
+                //    'value' => $learners,
+                //    'label' => 'Learners Enrolled',
+                //],
                 [
                     'value' => $completionpct . '%',
                     'label' => 'Completion',

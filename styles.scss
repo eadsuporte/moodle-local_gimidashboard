@@ -51,8 +51,9 @@ $radius: 8px;
         }
     }
     &-stats {
-        display: grid;
-        grid-template-columns: repeat(5, minmax(0, 1fr));
+        //display: grid;
+        //grid-template-columns: repeat(5, minmax(0, 1fr));
+        display: flex;
         gap: 12px;
         margin: 10px 0 16px;
     }
