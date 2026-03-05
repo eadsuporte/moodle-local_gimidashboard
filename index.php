@@ -24,8 +24,8 @@
 
 require_once(__DIR__ . '/../../config.php');
 
-use local_gimidashboard\local\permission;
-use local_gimidashboard\local\selection;
+use local_gimidashboard\permission;
+use local_gimidashboard\selection;
 use local_gimidashboard\report\filter_options;
 use local_gimidashboard\report\course_completion_status;
 use local_gimidashboard\report\stats_cards;

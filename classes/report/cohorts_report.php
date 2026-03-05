@@ -27,7 +27,7 @@
 namespace local_gimidashboard\report;
 
 use Exception;
-use local_gimidashboard\local\selection;
+use local_gimidashboard\selection;
 
 /**
  * Builds the cohort tables:

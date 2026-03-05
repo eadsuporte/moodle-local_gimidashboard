@@ -22,7 +22,7 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace local_gimidashboard\local;
+namespace local_gimidashboard;
 
 use context_course;
 use context_coursecat;
