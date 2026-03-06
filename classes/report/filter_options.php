@@ -47,7 +47,7 @@ class filter_options {
         // Fetch categories.
         $categories = $DB->get_records('course_categories', null, 'sortorder ASC', 'id,name,parent,depth,path');
         // Fetch courses (exclude site course id=1).
-        $courses = $DB->get_records_select('course', 'id <> 1', [], 'sortorder ASC', 'id,fullname,category,visible');
+        $courses = $DB->get_records_select('course', 'id <> 1 AND visible = 1', [], 'sortorder ASC', 'id,fullname,category,visible');
 
         // Index categories by id.
         $catbyid = [];
