@@ -197,9 +197,38 @@ $radius: 8px;
         color: $ok;
     }
 }
+.gimidashboard-panel-body {
+    .dataTables_wrapper {
+        width: 100%;
+    }
+    .dataTables_length,
+    .dataTables_filter {
+        margin-bottom: 12px;
+        input,
+        select {
+            border: 1px solid #dbe3ea;
+            border-radius: 6px;
+            padding: 6px 8px;
+            background: #ffffff;
+        }
+    }
+    .dataTables_info,
+    .dataTables_paginate {
+        margin-top: 12px;
+    }
+    table.dataTable thead {
+        th, td {
+            border-bottom: 1px solid #eef2f6;
+        }
+    }
+}
+
 #page-footer .copyright,
 #page-footer .copyright .madeby,
 a[href="https://conecti.me"] {
     display: none !important;
     visibility: hidden !important;
 }
+
+@import "amd/src/dataTables";
+@import "amd/src/dataTables-buttons";

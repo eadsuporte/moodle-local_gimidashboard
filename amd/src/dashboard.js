@@ -21,7 +21,16 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-define(['core/chartjs'], function (Chart) {
+define([
+    "jquery",
+    "core/chartjs",
+    "local_gimidashboard/jszip",
+    "local_gimidashboard/dataTables",
+    "local_gimidashboard/dataTables.buttons",
+    "local_gimidashboard/dataTables.buttons.colVis",
+    "local_gimidashboard/dataTables.buttons.html5",
+    "local_gimidashboard/dataTables.buttons.print"
+], function ($, Chart) {
 
     const truncate = (s, n) => {
         s = String(s || "");
@@ -30,6 +39,62 @@ define(['core/chartjs'], function (Chart) {
         }
         return s.length > n ? (s.substring(0, n - 1) + "…") : s;
     };
+
+    /**
+     * Initialize DataTables for dashboard tables.
+     */
+    function table() {
+        const tables = document.querySelectorAll(".gimidashboard-table");
+        if (!tables.length) {
+            return;
+        }
+
+        tables.forEach((element) => {
+            if (!$.fn || !$.fn.dataTable) {
+                console.log("dataTable not found");
+                return;
+            }
+
+            if ($.fn.dataTable.isDataTable(element)) {
+                console.log("dataTable.isDataTable not found");
+                return;
+            }
+
+            $(element).DataTable({
+                autoWidth: false,
+                responsive: true,
+                pageLength: 10,
+                lengthMenu: [10, 25, 50, 100],
+                scrollX: true,
+                select: true,
+                layout: {
+                    topStart: 'pageLength',
+                    topEnd: 'search',
+                    bottomStart: 'info',
+                    bottomEnd: [
+                        'paging',
+                        {
+                            buttons: [
+                                {
+                                    extend: 'print',
+                                    title: element.dataset.title || null,
+                                }, {
+                                    extend: 'copyHtml5',
+                                    title: element.dataset.title || null,
+                                }, {
+                                    extend: 'excelHtml5',
+                                    title: element.dataset.title || null,
+                                }, {
+                                    extend: 'csvHtml5',
+                                    title: element.dataset.title || null,
+                                }
+                            ]
+                        }
+                    ],
+                }
+            });
+        });
+    }
 
     /**
      * Render a chart from <script type="application/json" data-gimidashboard-chart="ID">...</script>
@@ -97,7 +162,7 @@ define(['core/chartjs'], function (Chart) {
         document
             .querySelectorAll('script[data-gimidashboard-chart]')
             .forEach(function (node) {
-                var chartId = node.getAttribute('data-gimidashboard-chart');
+                var chartId = node.getAttribute("data-gimidashboard-chart");
                 if (chartId) {
                     renderChart(chartId);
                 }
@@ -108,9 +173,9 @@ define(['core/chartjs'], function (Chart) {
      * Auto-submit on selection change.
      */
     function search() {
-        var sel = document.getElementById('course');
+        var sel = document.getElementById("course");
         if (sel && sel.form) {
-            sel.addEventListener('change', function () {
+            sel.addEventListener("change", function () {
                 sel.form.submit();
             });
         }
@@ -119,5 +184,6 @@ define(['core/chartjs'], function (Chart) {
     return {
         chart: chart,
         search: search,
+        table: table,
     };
 });

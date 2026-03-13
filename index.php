@@ -51,8 +51,11 @@ $PAGE->add_body_class("gimidashboard");
 
 $PAGE->requires->js_call_amd("local_gimidashboard/dashboard", "chart");
 $PAGE->requires->js_call_amd("local_gimidashboard/dashboard", "search");
+$PAGE->requires->js_call_amd("local_gimidashboard/dashboard", "table");
 
 echo $OUTPUT->header();
+
+// echo $OUTPUT->render_from_template('local_gimidashboard/index', []);
 
 // Resolve course scope: category -> all courses in subtree; course -> itself.
 $courseids = [];
