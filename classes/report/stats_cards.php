@@ -53,7 +53,7 @@ class stats_cards {
            SELECT DISTINCT e.courseid, ue.userid
              FROM {user_enrolments} ue
              JOIN {enrol} e ON e.id = ue.enrolid
-             JOIN {user} u ON u.id = ue.userid
+             JOIN {user}  u ON u.id = ue.userid
             WHERE {$activewheresql}";
 
         $combo = $DB->sql_concat("ae.userid", "'-'", "ae.courseid");
