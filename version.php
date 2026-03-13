@@ -25,7 +25,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->version = 2026031300;
-$plugin->release   = '1.2.0';
+$plugin->release   = "1.2.0";
 $plugin->requires  = 2023042400;
-$plugin->component = 'local_gimidashboard';
+$plugin->component = "local_gimidashboard";
 $plugin->maturity  = MATURITY_STABLE;

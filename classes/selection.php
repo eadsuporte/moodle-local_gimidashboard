@@ -48,7 +48,7 @@ class selection {
         $self = new self();
 
         $raw = trim($raw);
-        if ($raw === '') {
+        if ($raw === "") {
             return $self;
         }
 
@@ -79,7 +79,7 @@ class selection {
 
         if ($this->categoryid) {
             $ctx = context_coursecat::instance($this->categoryid, IGNORE_MISSING);
-            return $ctx ? has_capability('moodle/category:manage', $ctx, $USER) : false;
+            return $ctx ? has_capability("moodle/category:manage", $ctx, $USER) : false;
         }
 
         if ($this->courseid) {
@@ -87,7 +87,7 @@ class selection {
             if (!$ctx) {
                 return false;
             }
-            return has_capability('moodle/course:viewparticipants', $ctx, $USER);
+            return has_capability("moodle/course:viewparticipants", $ctx, $USER);
         }
 
         return true;

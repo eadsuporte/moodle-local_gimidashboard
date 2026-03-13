@@ -44,10 +44,10 @@ class report_helper {
         string $coursefield,
         string $userfield,
         array $courseids,
-        string $courseprefix = 'c',
+        string $courseprefix = "c",
         ?array $userids = null,
-        string $userprefix = 'u',
-        string $nowprefix = 'nowactive'
+        string $userprefix = "u",
+        string $nowprefix = "nowactive"
     ): array {
         global $DB;
 
@@ -88,14 +88,14 @@ class report_helper {
      */
     public static function get_active_enrolment_subquery(
         array $courseids,
-        string $courseprefix = 'c',
+        string $courseprefix = "c",
         ?array $userids = null,
-        string $userprefix = 'u',
-        string $nowprefix = 'nowactive'
+        string $userprefix = "u",
+        string $nowprefix = "nowactive"
     ): array {
         [$wheresql, $params] = self::get_active_enrolment_conditions(
-            'e.courseid',
-            'ue.userid',
+            "e.courseid",
+            "ue.userid",
             $courseids,
             $courseprefix,
             $userids,
@@ -126,7 +126,7 @@ class report_helper {
             return [];
         }
 
-        [$wheresql, $params] = self::get_active_enrolment_conditions('e.courseid', 'ue.userid', $courseids, 'ca', $userids, 'ua');
+        [$wheresql, $params] = self::get_active_enrolment_conditions("e.courseid", "ue.userid", $courseids, "ca", $userids, "ua");
 
         $sql = "
              SELECT DISTINCT e.courseid, u.id, u.username, u.email
@@ -159,7 +159,7 @@ class report_helper {
             return [];
         }
 
-        [$wheresql, $params] = self::get_active_enrolment_conditions('e.courseid', 'ue.userid', $courseids, 'ce');
+        [$wheresql, $params] = self::get_active_enrolment_conditions("e.courseid", "ue.userid", $courseids, "ce");
 
         $sql = "
              SELECT e.courseid, COUNT(DISTINCT ue.userid) AS total
@@ -191,7 +191,7 @@ class report_helper {
             return [];
         }
 
-        [$wheresql, $params] = self::get_active_enrolment_conditions('e.courseid', 'ue.userid', $courseids, 'cc');
+        [$wheresql, $params] = self::get_active_enrolment_conditions("e.courseid", "ue.userid", $courseids, "cc");
 
         $sql = "
              SELECT e.courseid, COUNT(DISTINCT ue.userid) AS total
@@ -227,8 +227,8 @@ class report_helper {
             return [];
         }
 
-        [$subquerysql, $subqueryparams] = self::get_active_enrolment_subquery($courseids, 'cg', null, 'ug', 'nowgradeavg');
-        [$courseinsql, $courseparams] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED, 'gic');
+        [$subquerysql, $subqueryparams] = self::get_active_enrolment_subquery($courseids, "cg", null, "ug", "nowgradeavg");
+        [$courseinsql, $courseparams] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED, "gic");
         $params = array_merge($subqueryparams, $courseparams);
 
         $sql = "
@@ -268,8 +268,8 @@ class report_helper {
             return [];
         }
 
-        [$subquerysql, $subqueryparams] = self::get_active_enrolment_subquery($courseids, 'cp', $userids, 'up', 'nowgradeuser');
-        [$courseinsql, $courseparams] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED, 'gupc');
+        [$subquerysql, $subqueryparams] = self::get_active_enrolment_subquery($courseids, "cp", $userids, "up", "nowgradeuser");
+        [$courseinsql, $courseparams] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED, "gupc");
         $params = array_merge($subqueryparams, $courseparams);
 
         $sql = "
@@ -309,7 +309,7 @@ class report_helper {
             return [];
         }
 
-        $records = $DB->get_records_list('course', 'id', $courseids, '', 'id,fullname');
+        $records = $DB->get_records_list("course", "id", $courseids, "", "id,fullname");
         $names = [];
         foreach ($records as $record) {
             $names[(int) $record->id] = $record->fullname;

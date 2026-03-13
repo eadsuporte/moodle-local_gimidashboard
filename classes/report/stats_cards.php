@@ -43,11 +43,11 @@ class stats_cards {
         global $DB;
 
         if (!$selection->is_allowed() || empty($courseids)) {
-            return ['show' => false];
+            return ["show" => false];
         }
 
         [$activewheresql, $activeparams] = report_helper::get_active_enrolment_conditions(
-            'e.courseid', 'ue.userid', $courseids, 'cstats', null, 'ustats', 'nowstats'
+            "e.courseid", "ue.userid", $courseids, "cstats", null, "ustats", "nowstats"
         );
         $activesubquery = "
            SELECT DISTINCT e.courseid, ue.userid
@@ -56,7 +56,7 @@ class stats_cards {
              JOIN {user} u ON u.id = ue.userid
             WHERE {$activewheresql}";
 
-        $combo = $DB->sql_concat('ae.userid', "'-'", 'ae.courseid');
+        $combo = $DB->sql_concat("ae.userid", "'-'", "ae.courseid");
 
         // Total distinct learners across the selected scope with active enrolments only.
         $sql = "SELECT COUNT(DISTINCT ae.userid) FROM ({$activesubquery}) ae";
@@ -107,7 +107,7 @@ class stats_cards {
 
         // Feedback responses restricted to active enrolments only.
         $feedbackusers = 0;
-        if ($DB->get_manager()->table_exists('feedback') && $DB->get_manager()->table_exists('feedback_completed')) {
+        if ($DB->get_manager()->table_exists("feedback") && $DB->get_manager()->table_exists("feedback_completed")) {
             $sql = "
                  SELECT COUNT(DISTINCT fc.userid)
                    FROM {feedback_completed} fc
@@ -119,26 +119,26 @@ class stats_cards {
         }
 
         return [
-            'cards' => [
+            "cards" => [
                 [
-                    'value' => $learners,
-                    'label' => 'Learners Enrolled',
+                    "value" => $learners,
+                    "label" => "Learners Enrolled",
                 ],
                 [
-                    'value' => $completionpct . '%',
-                    'label' => 'Completion',
+                    "value" =>   "{$completionpct}%",
+                    "label" => "Completion",
                 ],
                 [
-                    'value' => $neveraccessed,
-                    'label' => 'Never Accessed',
+                    "value" => $neveraccessed,
+                    "label" => "Never Accessed",
                 ],
                 [
-                    'value' => $gradeavg,
-                    'label' => 'Grade Average',
+                    "value" => $gradeavg,
+                    "label" => "Grade Average",
                 ],
                 [
-                    'value' => $feedbackusers,
-                    'label' => 'User Feedback',
+                    "value" => $feedbackusers,
+                    "label" => "User Feedback",
                 ],
             ],
         ];

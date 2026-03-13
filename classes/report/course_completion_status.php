@@ -43,7 +43,7 @@ class course_completion_status {
      */
     public static function get_template_context(selection $selection, array $courseids): array {
         if (!$selection->is_allowed() || empty($courseids)) {
-            return ['show' => false];
+            return ["show" => false];
         }
 
         $coursenames = report_helper::get_course_names($courseids);
@@ -74,65 +74,65 @@ class course_completion_status {
         }
 
         if (!$labels) {
-            return ['show' => false];
+            return ["show" => false];
         }
 
-        $chartid = 'gimidashboard_course_completion_status';
+        $chartid = "gimidashboard_course_completion_status";
 
         $payload = [
-            'labels' => $labels,
-            'datasets' => [
+            "labels" => $labels,
+            "datasets" => [
                 [
-                    'type' => 'bar',
-                    'label' => 'Learners enrolled',
-                    'data' => $enrolled,
-                    'yAxisID' => 'y',
+                    "type" => "bar",
+                    "label" => "Learners enrolled",
+                    "data" => $enrolled,
+                    "yAxisID" => "y",
                 ],
                 [
-                    'type' => 'line',
-                    'label' => 'Course completion',
-                    'data' => $completionpct,
-                    'yAxisID' => 'y1',
-                    'tension' => 0.3,
+                    "type" => "line",
+                    "label" => "Course completion",
+                    "data" => $completionpct,
+                    "yAxisID" => "y1",
+                    "tension" => 0.3,
                 ],
                 [
-                    'type' => 'line',
-                    'label' => 'Grade average',
-                    'data' => $gradeavg,
-                    'yAxisID' => 'y1',
-                    'tension' => 0.3,
+                    "type" => "line",
+                    "label" => "Grade average",
+                    "data" => $gradeavg,
+                    "yAxisID" => "y1",
+                    "tension" => 0.3,
                 ],
             ],
-            'options' => [
-                'responsive' => true,
-                'plugins' => [
-                    'legend' => ['display' => true],
-                    'title' => ['display' => false],
+            "options" => [
+                "responsive" => true,
+                "plugins" => [
+                    "legend" => ["display" => true],
+                    "title" => ["display" => false],
                 ],
-                'scales' => [
-                    'y' => [
-                        'beginAtZero' => true,
-                        'title' => ['display' => true, 'text' => 'Learners'],
+                "scales" => [
+                    "y" => [
+                        "beginAtZero" => true,
+                        "title" => ["display" => true, "text" => "Learners"],
                     ],
-                    'y1' => [
-                        'beginAtZero' => true,
-                        'position' => 'right',
-                        'min' => 0,
-                        'max' => 100,
-                        'grid' => ['drawOnChartArea' => false],
-                        'title' => ['display' => true, 'text' => '%'],
+                    "y1" => [
+                        "beginAtZero" => true,
+                        "position" => "right",
+                        "min" => 0,
+                        "max" => 100,
+                        "grid" => ["drawOnChartArea" => false],
+                        "title" => ["display" => true, "text" => "%"],
                     ],
                 ],
             ],
-            'shortenxlabels' => true,
-            'xlabellimit' => 15,
+            "shortenxlabels" => true,
+            "xlabellimit" => 15,
         ];
 
         return [
-            'show' => true,
-            'title' => 'Course completion status',
-            'chartid' => $chartid,
-            'chartjson' => json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+            "show" => true,
+            "title" => "Course completion status",
+            "chartid" => $chartid,
+            "chartjson" => json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
         ];
     }
 }

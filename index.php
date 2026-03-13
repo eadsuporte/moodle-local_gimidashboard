@@ -22,7 +22,7 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require_once(__DIR__ . '/../../config.php');
+require_once(__DIR__ . "/../../config.php");
 
 use local_gimidashboard\permission;
 use local_gimidashboard\selection;
@@ -34,23 +34,23 @@ use local_gimidashboard\report\cohorts_report;
 require_login();
 permission::require_capability();
 
-$courseparam = optional_param('course', '', PARAM_RAW_TRIMMED);
+$courseparam = optional_param("course", "", PARAM_RAW_TRIMMED);
 $sel = selection::from_param($courseparam);
 
 // If user tries to force an unauthorized selection, ignore it.
 if (!$sel->is_allowed()) {
-    $sel = selection::from_param('');
-    $courseparam = '';
+    $sel = selection::from_param("");
+    $courseparam = "";
 }
 
 $PAGE->set_context(context_system::instance());
-$PAGE->set_url(new moodle_url('/local/gimidashboard/index.php', ['course' => $courseparam]));
-$PAGE->set_title('Academy Dashboard');
-$PAGE->set_heading('Academy Dashboard');
+$PAGE->set_url(new moodle_url("/local/gimidashboard/index.php", ["course" => $courseparam]));
+$PAGE->set_title("Academy Dashboard");
+$PAGE->set_heading("Academy Dashboard");
 $PAGE->add_body_class("gimidashboard");
 
-$PAGE->requires->js_call_amd('local_gimidashboard/dashboard', 'chart');
-$PAGE->requires->js_call_amd('local_gimidashboard/dashboard', 'search');
+$PAGE->requires->js_call_amd("local_gimidashboard/dashboard", "chart");
+$PAGE->requires->js_call_amd("local_gimidashboard/dashboard", "search");
 
 echo $OUTPUT->header();
 
@@ -67,41 +67,32 @@ if ($sel->is_course()) {
                FROM {course} c
                JOIN {course_categories} cc ON cc.id = c.category
               WHERE c.id <> 1
-                AND (cc.id = :categoryid OR " . $DB->sql_like('cc.path', ':categorypath') . ")
+                AND (cc.id = :categoryid OR " . $DB->sql_like("cc.path", ":categorypath") . ")
            ORDER BY c.fullname ASC";
-        $params =  [
-            'categoryid' => $cat->id,
-            'categorypath' => $cat->path . '/%',
+        $params = [
+            "categoryid" => $cat->id,
+            "categorypath" => $cat->path . "/%",
         ];
         $courseids = $DB->get_fieldset_sql($sql, $params);
     }
 }
 
-if (is_siteadmin()) {
-    $param = ['course' => $courseparam];
-    $templatecontext = [
-        "cohort_register_url" => (new \moodle_url('/local/gimidashboard/cohort_register.php', $param))->out(false),
-        "cohort_import_url" => (new \moodle_url('/local/gimidashboard/cohort_import.php', $param))->out(false),
-    ];
-    echo $OUTPUT->render_from_template('local_gimidashboard/index', $templatecontext);
-}
-
 $templatecontext = filter_options::get_template_context($courseparam);
-echo $OUTPUT->render_from_template('local_gimidashboard/filter_select', $templatecontext);
+echo $OUTPUT->render_from_template("local_gimidashboard/filter_select", $templatecontext);
 
 if (!$sel->is_course() && !$sel->is_category()) {
     echo "<div class=\"gimidashboard-empty\">Select a category or course to start.</div>";
 } else {
     if ($sel->is_category()) {
         $templatecontext = course_completion_status::get_template_context($sel, $courseids);
-        echo $OUTPUT->render_from_template('local_gimidashboard/course_completion_status', $templatecontext);
+        echo $OUTPUT->render_from_template("local_gimidashboard/course_completion_status", $templatecontext);
     }
 
     $templatecontext = stats_cards::get_template_context($sel, $courseids);
-    echo $OUTPUT->render_from_template('local_gimidashboard/stats_cards', $templatecontext);
+    echo $OUTPUT->render_from_template("local_gimidashboard/stats_cards", $templatecontext);
 
     $templatecontext = cohorts_report::get_template_context($sel, $courseids);
-    echo $OUTPUT->render_from_template('local_gimidashboard/cohorts_tables', $templatecontext);
+    echo $OUTPUT->render_from_template("local_gimidashboard/cohorts_tables", $templatecontext);
 }
 
 echo $OUTPUT->footer();

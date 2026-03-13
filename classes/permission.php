@@ -44,12 +44,12 @@ class permission {
 
         $systemcontext = context_system::instance();
 
-        $courseparam = optional_param('course', '', PARAM_RAW_TRIMMED);
+        $courseparam = optional_param("course", "", PARAM_RAW_TRIMMED);
         $sel = selection::from_param($courseparam);
 
         // If user tries to force an unauthorized selection, ignore it.
         if (!$sel->is_allowed()) {
-            $sel = selection::from_param('');
+            $sel = selection::from_param("");
         }
 
         // Set page context to system (dashboard is global), but validate permissions by selection.
@@ -57,19 +57,19 @@ class permission {
 
         if ($sel->is_course()) {
             $coursectx = context_course::instance($sel->courseid, IGNORE_MISSING);
-            require_capability('moodle/course:viewparticipants', $coursectx);
+            require_capability("moodle/course:viewparticipants", $coursectx);
         } else if ($sel->is_category()) {
             // Category is allowed only if the user can manage at least one internal course in that category subtree.
             $allowed = false;
             $cat = core_course_category::get($sel->categoryid, IGNORE_MISSING, true);
 
             if ($cat) {
-                foreach ($cat->get_courses(['recursive' => true]) as $c) {
+                foreach ($cat->get_courses(["recursive" => true]) as $c) {
                     if ( $c->id == 1) {
                         continue;
                     }
                     $cctx = context_course::instance( $c->id, IGNORE_MISSING);
-                    if ($cctx && has_capability('moodle/course:viewparticipants', $cctx)) {
+                    if ($cctx && has_capability("moodle/course:viewparticipants", $cctx)) {
                         $allowed = true;
                         break;
                     }
@@ -77,7 +77,7 @@ class permission {
             }
 
             if (!$allowed) {
-                throw new required_capability_exception($systemcontext, 'moodle/course:viewparticipants', 'nopermissions', '');
+                throw new required_capability_exception($systemcontext, "moodle/course:viewparticipants", "nopermissions", "");
             }
         }
     }

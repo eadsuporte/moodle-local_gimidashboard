@@ -44,10 +44,10 @@ class cohorts_report {
         global $DB;
 
         if (!$selection->is_allowed() || empty($courseids)) {
-            return ['show' => false];
+            return ["show" => false];
         }
 
-        [$insql, $params] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED, 'c');
+        [$insql, $params] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED, "c");
 
         // Cohort-course mapping from enrol='cohort' (customint1 = cohortid).
         $pairs = $DB->get_records_sql(
@@ -64,9 +64,9 @@ class cohorts_report {
 
         if (!$pairs) {
             return [
-                'show' => true,
-                'cohorts' => [],
-                'message' => 'No cohorts found for the selected scope.',
+                "show" => true,
+                "cohorts" => [],
+                "message" => "No cohorts found for the selected scope.",
             ];
         }
 
@@ -84,13 +84,13 @@ class cohorts_report {
         $cohortids = array_values($cohortids);
         $linkedcourseids = array_values($linkedcourseids);
 
-        $cohorts = $DB->get_records_list('cohort', 'id', $cohortids, '', 'id,name');
+        $cohorts = $DB->get_records_list("cohort", "id", $cohortids, "", "id,name");
         $coursenames = report_helper::get_course_names($linkedcourseids);
 
         // Load all valid cohort members once.
         $membersbycohort = [];
         if ($cohortids) {
-            [$cohortinsql, $cohortparams] = $DB->get_in_or_equal($cohortids, SQL_PARAMS_NAMED, 'coh');
+            [$cohortinsql, $cohortparams] = $DB->get_in_or_equal($cohortids, SQL_PARAMS_NAMED, "coh");
             $sql = "
                  SELECT cm.cohortid, u.id, u.username, u.email
                    FROM {cohort_members} cm
@@ -126,8 +126,8 @@ class cohorts_report {
 
         $groupnames = [];
         if ($linkedcourseids && $activeuserids) {
-            [$courseinsql, $courseparams] = $DB->get_in_or_equal($linkedcourseids, SQL_PARAMS_NAMED, 'gc');
-            [$userinsql, $userparams] = $DB->get_in_or_equal($activeuserids, SQL_PARAMS_NAMED, 'gu');
+            [$courseinsql, $courseparams] = $DB->get_in_or_equal($linkedcourseids, SQL_PARAMS_NAMED, "gc");
+            [$userinsql, $userparams] = $DB->get_in_or_equal($activeuserids, SQL_PARAMS_NAMED, "gu");
             $sql = "
                  SELECT g.courseid, gm.userid, g.name
                    FROM {groups_members} gm
@@ -147,7 +147,7 @@ class cohorts_report {
 
         $totalcompletable = [];
         if ($linkedcourseids) {
-            [$moduleinsql, $moduleparams] = $DB->get_in_or_equal($linkedcourseids, SQL_PARAMS_NAMED, 'mc');
+            [$moduleinsql, $moduleparams] = $DB->get_in_or_equal($linkedcourseids, SQL_PARAMS_NAMED, "mc");
             $sql = "
                  SELECT cm.course, COUNT(1) AS total
                    FROM {course_modules} cm
@@ -164,8 +164,8 @@ class cohorts_report {
 
         $completedbycourseanduser = [];
         if ($linkedcourseids && $activeuserids) {
-            [$modulecourseinsql, $modulecourseparams] = $DB->get_in_or_equal($linkedcourseids, SQL_PARAMS_NAMED, 'pc');
-            [$moduleuserinsql, $moduleuserparams] = $DB->get_in_or_equal($activeuserids, SQL_PARAMS_NAMED, 'pu');
+            [$modulecourseinsql, $modulecourseparams] = $DB->get_in_or_equal($linkedcourseids, SQL_PARAMS_NAMED, "pc");
+            [$moduleuserinsql, $moduleuserparams] = $DB->get_in_or_equal($activeuserids, SQL_PARAMS_NAMED, "pu");
             $sql = "
                  SELECT cm.course, cmc.userid, COUNT(1) AS donecount
                    FROM {course_modules_completion} cmc
@@ -189,16 +189,16 @@ class cohorts_report {
         $gradepct = report_helper::get_active_grade_percentages_by_course_and_user($linkedcourseids, $activeuserids);
 
         $certissued = [];
-        $hascoursecertificate = $DB->get_manager()->table_exists('coursecertificate')
-            && ($DB->get_manager()->table_exists('coursecertificate_issues')
-                || $DB->get_manager()->table_exists('coursecertificate_issue'));
+        $hascoursecertificate = $DB->get_manager()->table_exists("coursecertificate")
+            && ($DB->get_manager()->table_exists("coursecertificate_issues")
+                || $DB->get_manager()->table_exists("coursecertificate_issue"));
 
         if ($hascoursecertificate && $linkedcourseids && $activeuserids) {
-            $issuestable = $DB->get_manager()->table_exists('coursecertificate_issues')
-                ? 'coursecertificate_issues'
-                : 'coursecertificate_issue';
+            $issuestable = $DB->get_manager()->table_exists("coursecertificate_issues")
+                ? "coursecertificate_issues"
+                : "coursecertificate_issue";
 
-            [$instanceinsql, $instanceparams] = $DB->get_in_or_equal($linkedcourseids, SQL_PARAMS_NAMED, 'ci');
+            [$instanceinsql, $instanceparams] = $DB->get_in_or_equal($linkedcourseids, SQL_PARAMS_NAMED, "ci");
             $sql = "
                  SELECT id, course
                    FROM {coursecertificate}
@@ -214,8 +214,8 @@ class cohorts_report {
                     $instancetocourse[$instanceid] = (int) $instance->course;
                 }
 
-                [$issueinsql, $issueparams] = $DB->get_in_or_equal(array_values($instanceids), SQL_PARAMS_NAMED, 'ii');
-                [$issueuserinsql, $issueuserparams] = $DB->get_in_or_equal($activeuserids, SQL_PARAMS_NAMED, 'iu');
+                [$issueinsql, $issueparams] = $DB->get_in_or_equal(array_values($instanceids), SQL_PARAMS_NAMED, "ii");
+                [$issueuserinsql, $issueuserparams] = $DB->get_in_or_equal($activeuserids, SQL_PARAMS_NAMED, "iu");
                 $sql = "
                      SELECT coursecertificateid, userid
                        FROM {{$issuestable}}
@@ -257,7 +257,7 @@ class cohorts_report {
                         }
 
                         $groups = $groupnames[$courseid][$userid] ?? [];
-                        $grouptext = $groups ? implode(', ', $groups) : '-';
+                        $grouptext = $groups ? implode(", ", $groups) : "-";
 
                         $progresspct = 0;
                         $total = $totalcompletable[$courseid] ?? 0;
@@ -267,27 +267,27 @@ class cohorts_report {
                         }
 
                         $rows[] = [
-                            'username' => $members[$userid]->username,
-                            'email' => $members[$userid]->email,
-                            'course' => $coursenames[$courseid] ?? ('Course #' . $courseid),
-                            'group' => $grouptext,
-                            'progress' => $progresspct . '%',
-                            'grade' => $gradepct[$courseid][$userid] ?? 0,
-                            'certificate_yes' => !empty($certissued[$courseid][$userid]),
-                            'certificate_no' => empty($certissued[$courseid][$userid]),
+                            "username" => $members[$userid]->username,
+                            "email" => $members[$userid]->email,
+                            "course" => $coursenames[$courseid] ?? ("Course #" . $courseid),
+                            "group" => $grouptext,
+                            "progress" =>  "{$progresspct}%",
+                            "grade" => $gradepct[$courseid][$userid] ?? 0,
+                            "certificate_yes" => !empty($certissued[$courseid][$userid]),
+                            "certificate_no" => empty($certissued[$courseid][$userid]),
                         ];
                     }
                 }
             }
 
             $outcohorts[] = [
-                'name' => $cohorts[$cohortid]->name,
-                'rows' => $rows,
+                "name" => $cohorts[$cohortid]->name,
+                "rows" => $rows,
             ];
         }
 
         return [
-            'cohorts' => $outcohorts,
+            "cohorts" => $outcohorts,
         ];
     }
 }
