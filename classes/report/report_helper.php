@@ -53,15 +53,16 @@ class report_helper {
 
         [$courseinsql, $params] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED, $courseprefix);
 
-        $params[$nowprefix] = time();
+        $params["{$nowprefix}1"] = time();
+        $params["{$nowprefix}2"] = time();
 
         $sql = " {$coursefield} {$courseinsql}
                   AND e.status = 0
                   AND ue.status = 0
                   AND u.deleted = 0
                   AND u.suspended = 0
-                  AND (ue.timestart = 0 OR ue.timestart <= :{$nowprefix})
-                  AND (ue.timeend = 0 OR ue.timeend > :{$nowprefix})";
+                  AND (ue.timestart = 0 OR ue.timestart <= :{$nowprefix}1)
+                  AND (ue.timeend = 0 OR ue.timeend > :{$nowprefix}2)";
 
         if ($userids !== null) {
             if (empty($userids)) {
