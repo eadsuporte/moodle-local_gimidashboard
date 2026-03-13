@@ -57,7 +57,7 @@ class permission {
 
         if ($sel->is_course()) {
             $coursectx = context_course::instance($sel->courseid, IGNORE_MISSING);
-            require_capability('moodle/course:update', $coursectx);
+            require_capability('moodle/course:viewparticipants', $coursectx);
         } else if ($sel->is_category()) {
             // Category is allowed only if the user can manage at least one internal course in that category subtree.
             $allowed = false;
@@ -69,7 +69,7 @@ class permission {
                         continue;
                     }
                     $cctx = context_course::instance( $c->id, IGNORE_MISSING);
-                    if ($cctx && has_capability('moodle/course:update', $cctx)) {
+                    if ($cctx && has_capability('moodle/course:viewparticipants', $cctx)) {
                         $allowed = true;
                         break;
                     }
@@ -77,7 +77,7 @@ class permission {
             }
 
             if (!$allowed) {
-                throw new required_capability_exception($systemcontext, 'moodle/course:update', 'nopermissions', '');
+                throw new required_capability_exception($systemcontext, 'moodle/course:viewparticipants', 'nopermissions', '');
             }
         }
     }

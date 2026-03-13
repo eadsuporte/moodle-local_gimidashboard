@@ -69,7 +69,7 @@ class selection {
      *
      * Rule used:
      * - Category: moodle/category:manage in that category context
-     * - Course: moodle/course:viewparticipants OR moodle/course:update in that course context
+     * - Course: moodle/course:viewparticipants in that course context
      *
      * @return bool
      * @throws Exception
@@ -87,8 +87,7 @@ class selection {
             if (!$ctx) {
                 return false;
             }
-            return has_capability('moodle/course:viewparticipants', $ctx, $USER)
-                || has_capability('moodle/course:update', $ctx, $USER);
+            return has_capability('moodle/course:viewparticipants', $ctx, $USER);
         }
 
         return true;

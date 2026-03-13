@@ -78,8 +78,7 @@ class filter_options {
         $courseselectable = [];
         foreach ($courses as $course) {
             $ctx = context_course::instance($course->id, IGNORE_MISSING);
-            if ($ctx && (has_capability('moodle/course:viewparticipants', $ctx, $USER)
-                    || has_capability('moodle/course:update', $ctx, $USER))) {
+            if ($ctx && (has_capability('moodle/course:viewparticipants', $ctx, $USER))) {
                 $courseselectable[$course->id] = true;
             }
         }
