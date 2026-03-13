@@ -9,9 +9,6 @@
     --dt-header-vertical-align: middle;
     --dt-html-background: white;
 }
-:root.dark {
-    --dt-html-background: rgb(33, 37, 41);
-}
 table.dataTable tbody td.dt-control {
     text-align: center;
     cursor: pointer;
@@ -23,168 +20,171 @@ table.dataTable tbody td.dt-control:before {
     border-top: 5px solid transparent;
     border-left: 10px solid rgba(0, 0, 0, 0.5);
     border-bottom: 5px solid transparent;
-    border-right: 0px solid transparent;
+    border-right: 0 solid transparent;
 }
 table.dataTable tbody tr.dt-hasChild td.dt-control:before {
     border-top: 10px solid rgba(0, 0, 0, 0.5);
     border-left: 5px solid transparent;
-    border-bottom: 0px solid transparent;
+    border-bottom: 0 solid transparent;
     border-right: 5px solid transparent;
 }
 table.dataTable tfoot:empty {
     display: none;
 }
-html.dark table.dataTable td.dt-control:before,
-:root[data-bs-theme=dark] table.dataTable td.dt-control:before,
-:root[data-theme=dark] table.dataTable td.dt-control:before {
-    border-left-color: rgba(255, 255, 255, 0.5);
-}
-html.dark table.dataTable tr.dt-hasChild td.dt-control:before,
-:root[data-bs-theme=dark] table.dataTable tr.dt-hasChild td.dt-control:before,
-:root[data-theme=dark] table.dataTable tr.dt-hasChild td.dt-control:before {
-    border-top-color: rgba(255, 255, 255, 0.5);
-    border-left-color: transparent;
-}
 div.dt-scroll {
     width: 100%;
 }
-div.dt-scroll-body thead tr,
-div.dt-scroll-body tfoot tr {
-    height: 0;
+div.dt-scroll-body {
+    border: 1px solid rgba(47, 67, 86, .3);
+    border-top: 0;
+    thead tr,
+    tfoot tr {
+        height: 0;
+    }
+    thead tr th,
+    thead tr td,
+    tfoot tr th,
+    tfoot tr td {
+        height: 0 !important;
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+        border-top-width: 0 !important;
+        border-bottom-width: 0 !important;
+    }
+    thead tr th div.dt-scroll-sizing,
+    thead tr td div.dt-scroll-sizing,
+    tfoot tr th div.dt-scroll-sizing,
+    tfoot tr td div.dt-scroll-sizing {
+        height: 0 !important;
+        overflow: hidden !important;
+    }
 }
-div.dt-scroll-body thead tr th, div.dt-scroll-body thead tr td,
-div.dt-scroll-body tfoot tr th,
-div.dt-scroll-body tfoot tr td {
-    height: 0 !important;
-    padding-top: 0px !important;
-    padding-bottom: 0px !important;
-    border-top-width: 0px !important;
-    border-bottom-width: 0px !important;
-}
-div.dt-scroll-body thead tr th div.dt-scroll-sizing, div.dt-scroll-body thead tr td div.dt-scroll-sizing,
-div.dt-scroll-body tfoot tr th div.dt-scroll-sizing,
-div.dt-scroll-body tfoot tr td div.dt-scroll-sizing {
-    height: 0 !important;
-    overflow: hidden !important;
-}
-table.dataTable thead > tr > th:active,
-table.dataTable thead > tr > td:active {
-    outline: none;
-}
-table.dataTable thead > tr > th.dt-orderable-asc .dt-column-order:before, table.dataTable thead > tr > th.dt-ordering-asc .dt-column-order:before,
-table.dataTable thead > tr > td.dt-orderable-asc .dt-column-order:before,
-table.dataTable thead > tr > td.dt-ordering-asc .dt-column-order:before {
-    position: absolute;
-    display: block;
-    bottom: 50%;
-    content: "\25B2";
-    content: "\25B2"/"";
-}
-table.dataTable thead > tr > th.dt-orderable-desc .dt-column-order:after, table.dataTable thead > tr > th.dt-ordering-desc .dt-column-order:after,
-table.dataTable thead > tr > td.dt-orderable-desc .dt-column-order:after,
-table.dataTable thead > tr > td.dt-ordering-desc .dt-column-order:after {
-    position: absolute;
-    display: block;
-    top: 50%;
-    content: "\25BC";
-    content: "\25BC"/"";
-}
-table.dataTable thead > tr > th.dt-orderable-asc .dt-column-order, table.dataTable thead > tr > th.dt-orderable-desc .dt-column-order, table.dataTable thead > tr > th.dt-ordering-asc .dt-column-order, table.dataTable thead > tr > th.dt-ordering-desc .dt-column-order,
-table.dataTable thead > tr > td.dt-orderable-asc .dt-column-order,
-table.dataTable thead > tr > td.dt-orderable-desc .dt-column-order,
-table.dataTable thead > tr > td.dt-ordering-asc .dt-column-order,
-table.dataTable thead > tr > td.dt-ordering-desc .dt-column-order {
-    position: relative;
-    width: 12px;
-    height: 20px;
-}
-table.dataTable thead > tr > th.dt-orderable-asc .dt-column-order:before, table.dataTable thead > tr > th.dt-orderable-asc .dt-column-order:after, table.dataTable thead > tr > th.dt-orderable-desc .dt-column-order:before, table.dataTable thead > tr > th.dt-orderable-desc .dt-column-order:after, table.dataTable thead > tr > th.dt-ordering-asc .dt-column-order:before, table.dataTable thead > tr > th.dt-ordering-asc .dt-column-order:after, table.dataTable thead > tr > th.dt-ordering-desc .dt-column-order:before, table.dataTable thead > tr > th.dt-ordering-desc .dt-column-order:after,
-table.dataTable thead > tr > td.dt-orderable-asc .dt-column-order:before,
-table.dataTable thead > tr > td.dt-orderable-asc .dt-column-order:after,
-table.dataTable thead > tr > td.dt-orderable-desc .dt-column-order:before,
-table.dataTable thead > tr > td.dt-orderable-desc .dt-column-order:after,
-table.dataTable thead > tr > td.dt-ordering-asc .dt-column-order:before,
-table.dataTable thead > tr > td.dt-ordering-asc .dt-column-order:after,
-table.dataTable thead > tr > td.dt-ordering-desc .dt-column-order:before,
-table.dataTable thead > tr > td.dt-ordering-desc .dt-column-order:after {
-    left: 0;
-    opacity: 0.125;
-    line-height: 9px;
-    font-size: 0.8em;
-}
-table.dataTable thead > tr > th.dt-orderable-asc, table.dataTable thead > tr > th.dt-orderable-desc,
-table.dataTable thead > tr > td.dt-orderable-asc,
-table.dataTable thead > tr > td.dt-orderable-desc {
-    cursor: pointer;
-}
-table.dataTable thead > tr > th.dt-orderable-asc:hover, table.dataTable thead > tr > th.dt-orderable-desc:hover,
-table.dataTable thead > tr > td.dt-orderable-asc:hover,
-table.dataTable thead > tr > td.dt-orderable-desc:hover {
-    outline: 2px solid rgba(0, 0, 0, 0.05);
-    outline-offset: -2px;
-}
-table.dataTable thead > tr > th.dt-ordering-asc .dt-column-order:before, table.dataTable thead > tr > th.dt-ordering-desc .dt-column-order:after,
-table.dataTable thead > tr > td.dt-ordering-asc .dt-column-order:before,
-table.dataTable thead > tr > td.dt-ordering-desc .dt-column-order:after {
-    opacity: 0.6;
-}
-table.dataTable thead > tr > th.dt-orderable-none:not(.dt-ordering-asc,
-.dt-ordering-desc) .dt-column-order:empty, table.dataTable thead > tr > th.sorting_desc_disabled .dt-column-order:after, table.dataTable thead > tr > th.sorting_asc_disabled .dt-column-order:before,
-table.dataTable thead > tr > td.dt-orderable-none:not(.dt-ordering-asc,
-.dt-ordering-desc) .dt-column-order:empty,
-table.dataTable thead > tr > td.sorting_desc_disabled .dt-column-order:after,
-table.dataTable thead > tr > td.sorting_asc_disabled .dt-column-order:before {
-    display: none;
-}
-table.dataTable thead > tr > th:active,
-table.dataTable thead > tr > td:active {
-    outline: none;
-}
-table.dataTable thead > tr > th div.dt-column-header,
-table.dataTable thead > tr > th div.dt-column-footer,
-table.dataTable thead > tr > td div.dt-column-header,
-table.dataTable thead > tr > td div.dt-column-footer,
-table.dataTable tfoot > tr > th div.dt-column-header,
-table.dataTable tfoot > tr > th div.dt-column-footer,
-table.dataTable tfoot > tr > td div.dt-column-header,
-table.dataTable tfoot > tr > td div.dt-column-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: var(--dt-header-align-items);
-    gap: 4px;
-}
-table.dataTable thead > tr > th div.dt-column-header .dt-column-title,
-table.dataTable thead > tr > th div.dt-column-footer .dt-column-title,
-table.dataTable thead > tr > td div.dt-column-header .dt-column-title,
-table.dataTable thead > tr > td div.dt-column-footer .dt-column-title,
-table.dataTable tfoot > tr > th div.dt-column-header .dt-column-title,
-table.dataTable tfoot > tr > th div.dt-column-footer .dt-column-title,
-table.dataTable tfoot > tr > td div.dt-column-header .dt-column-title,
-table.dataTable tfoot > tr > td div.dt-column-footer .dt-column-title {
-    flex-grow: 1;
-}
-table.dataTable thead > tr > th div.dt-column-header .dt-column-title:empty,
-table.dataTable thead > tr > th div.dt-column-footer .dt-column-title:empty,
-table.dataTable thead > tr > td div.dt-column-header .dt-column-title:empty,
-table.dataTable thead > tr > td div.dt-column-footer .dt-column-title:empty,
-table.dataTable tfoot > tr > th div.dt-column-header .dt-column-title:empty,
-table.dataTable tfoot > tr > th div.dt-column-footer .dt-column-title:empty,
-table.dataTable tfoot > tr > td div.dt-column-header .dt-column-title:empty,
-table.dataTable tfoot > tr > td div.dt-column-footer .dt-column-title:empty {
-    display: none;
+table.dataTable {
+     thead > tr > th:active,
+     thead > tr > td:active {
+        outline: none;
+    }
+     thead > tr > th.dt-orderable-asc .dt-column-order:before,
+     thead > tr > th.dt-ordering-asc .dt-column-order:before,
+     thead > tr > td.dt-orderable-asc .dt-column-order:before,
+     thead > tr > td.dt-ordering-asc .dt-column-order:before {
+        position: absolute;
+        display: block;
+        bottom: 50%;
+        content: "\25B2";
+        content: "\25B2"/"";
+    }
+     thead > tr > th.dt-orderable-desc .dt-column-order:after,
+     thead > tr > th.dt-ordering-desc .dt-column-order:after,
+     thead > tr > td.dt-orderable-desc .dt-column-order:after,
+     thead > tr > td.dt-ordering-desc .dt-column-order:after {
+        position: absolute;
+        display: block;
+        top: 50%;
+        content: "\25BC";
+        content: "\25BC"/"";
+    }
+     thead > tr > th.dt-orderable-asc .dt-column-order,
+     thead > tr > th.dt-orderable-desc .dt-column-order,
+     thead > tr > th.dt-ordering-asc .dt-column-order,
+     thead > tr > th.dt-ordering-desc .dt-column-order,
+     thead > tr > td.dt-orderable-asc .dt-column-order,
+     thead > tr > td.dt-orderable-desc .dt-column-order,
+     thead > tr > td.dt-ordering-asc .dt-column-order,
+     thead > tr > td.dt-ordering-desc .dt-column-order {
+        position: relative;
+        width: 12px;
+        height: 20px;
+    }
+     thead > tr > th.dt-orderable-asc .dt-column-order:before,
+     thead > tr > th.dt-orderable-asc .dt-column-order:after,
+     thead > tr > th.dt-orderable-desc .dt-column-order:before,
+     thead > tr > th.dt-orderable-desc .dt-column-order:after,
+     thead > tr > th.dt-ordering-asc .dt-column-order:before,
+     thead > tr > th.dt-ordering-asc .dt-column-order:after,
+     thead > tr > th.dt-ordering-desc .dt-column-order:before,
+     thead > tr > th.dt-ordering-desc .dt-column-order:after,
+     thead > tr > td.dt-orderable-asc .dt-column-order:before,
+     thead > tr > td.dt-orderable-asc .dt-column-order:after,
+     thead > tr > td.dt-orderable-desc .dt-column-order:before,
+     thead > tr > td.dt-orderable-desc .dt-column-order:after,
+     thead > tr > td.dt-ordering-asc .dt-column-order:before,
+     thead > tr > td.dt-ordering-asc .dt-column-order:after,
+     thead > tr > td.dt-ordering-desc .dt-column-order:before,
+     thead > tr > td.dt-ordering-desc .dt-column-order:after {
+        left: 0;
+        opacity: 0.125;
+        line-height: 9px;
+        font-size: 0.8em;
+    }
+     thead > tr > th.dt-orderable-asc,
+     thead > tr > th.dt-orderable-desc,
+     thead > tr > td.dt-orderable-asc,
+     thead > tr > td.dt-orderable-desc {
+        cursor: pointer;
+    }
+     thead > tr > th.dt-orderable-asc:hover,
+     thead > tr > th.dt-orderable-desc:hover,
+     thead > tr > td.dt-orderable-asc:hover,
+     thead > tr > td.dt-orderable-desc:hover {
+        outline: 2px solid rgba(0, 0, 0, 0.05);
+        outline-offset: -2px;
+    }
+     thead > tr > th.dt-ordering-asc .dt-column-order:before,
+     thead > tr > th.dt-ordering-desc .dt-column-order:after,
+     thead > tr > td.dt-ordering-asc .dt-column-order:before,
+     thead > tr > td.dt-ordering-desc .dt-column-order:after {
+        opacity: 0.6;
+    }
+     thead > tr > th.dt-orderable-none:not(.dt-ordering-asc,.dt-ordering-desc) .dt-column-order:empty,
+     thead > tr > th.sorting_desc_disabled .dt-column-order:after,
+     thead > tr > th.sorting_asc_disabled .dt-column-order:before,
+     thead > tr > td.dt-orderable-none:not(.dt-ordering-asc,.dt-ordering-desc) .dt-column-order:empty,
+     thead > tr > td.sorting_desc_disabled .dt-column-order:after,
+     thead > tr > td.sorting_asc_disabled .dt-column-order:before {
+        display: none;
+    }
+     thead > tr > th:active,
+     thead > tr > td:active {
+        outline: none;
+    }
+     thead > tr > th div.dt-column-header,
+     thead > tr > th div.dt-column-footer,
+     thead > tr > td div.dt-column-header,
+     thead > tr > td div.dt-column-footer,
+     tfoot > tr > th div.dt-column-header,
+     tfoot > tr > th div.dt-column-footer,
+     tfoot > tr > td div.dt-column-header,
+     tfoot > tr > td div.dt-column-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: var(--dt-header-align-items);
+        gap: 4px;
+    }
+     thead > tr > th div.dt-column-header .dt-column-title,
+     thead > tr > th div.dt-column-footer .dt-column-title,
+     thead > tr > td div.dt-column-header .dt-column-title,
+     thead > tr > td div.dt-column-footer .dt-column-title,
+     tfoot > tr > th div.dt-column-header .dt-column-title,
+     tfoot > tr > th div.dt-column-footer .dt-column-title,
+     tfoot > tr > td div.dt-column-header .dt-column-title,
+     tfoot > tr > td div.dt-column-footer .dt-column-title {
+        flex-grow: 1;
+    }
+     thead > tr > th div.dt-column-header .dt-column-title:empty,
+     thead > tr > th div.dt-column-footer .dt-column-title:empty,
+     thead > tr > td div.dt-column-header .dt-column-title:empty,
+     thead > tr > td div.dt-column-footer .dt-column-title:empty,
+     tfoot > tr > th div.dt-column-header .dt-column-title:empty,
+     tfoot > tr > th div.dt-column-footer .dt-column-title:empty,
+     tfoot > tr > td div.dt-column-header .dt-column-title:empty,
+     tfoot > tr > td div.dt-column-footer .dt-column-title:empty {
+        display: none;
+    }
 }
 div.dt-scroll-body > table.dataTable > thead > tr > th,
 div.dt-scroll-body > table.dataTable > thead > tr > td {
     overflow: hidden;
-}
-:root.dark table.dataTable thead > tr > th.dt-orderable-asc:hover, :root.dark table.dataTable thead > tr > th.dt-orderable-desc:hover,
-:root.dark table.dataTable thead > tr > td.dt-orderable-asc:hover,
-:root.dark table.dataTable thead > tr > td.dt-orderable-desc:hover,
-:root[data-bs-theme=dark] table.dataTable thead > tr > th.dt-orderable-asc:hover,
-:root[data-bs-theme=dark] table.dataTable thead > tr > th.dt-orderable-desc:hover,
-:root[data-bs-theme=dark] table.dataTable thead > tr > td.dt-orderable-asc:hover,
-:root[data-bs-theme=dark] table.dataTable thead > tr > td.dt-orderable-desc:hover {
-    outline: 2px solid rgba(255, 255, 255, 0.05);
 }
 div.dt-processing {
     position: absolute;
@@ -665,48 +665,6 @@ div.dt-container {
     select.dt-input {
         padding: 4px;
     }
-    .dt-paging .dt-paging-button {
-        box-sizing: border-box;
-        display: inline-block;
-        min-width: 1.5em;
-        padding: 0.5em 1em;
-        margin-left: 2px;
-        text-align: center;
-        text-decoration: none !important;
-        cursor: pointer;
-        color: inherit !important;
-        border: 1px solid transparent;
-        border-radius: 2px;
-        background: transparent;
-    }
-    .dt-paging .dt-paging-button.current,
-    .dt-paging .dt-paging-button.current:hover {
-        color: inherit !important;
-        border: 1px solid rgba(0, 0, 0, 0.3);
-        background-color: rgba(0, 0, 0, 0.05);
-        background: linear-gradient(to bottom, rgba(229.5, 229.5, 229.5, 0.05) 0%, rgba(0, 0, 0, 0.05) 100%); /* W3C */
-    }
-    .dt-paging .dt-paging-button.disabled,
-    .dt-paging .dt-paging-button.disabled:hover,
-    .dt-paging .dt-paging-button.disabled:active {
-        cursor: default;
-        color: rgba(0, 0, 0, 0.5) !important;
-        border: 1px solid transparent;
-        background: transparent;
-        box-shadow: none;
-    }
-    .dt-paging .dt-paging-button:hover {
-        color: white !important;
-        border: 1px solid #111111;
-        background-color: #111111;
-        background: linear-gradient(to bottom, rgb(88.4, 88.4, 88.4) 0%, #111111 100%); /* W3C */
-    }
-    .dt-paging .dt-paging-button:active {
-        outline: none;
-        background-color: rgb(11.9, 11.9, 11.9);
-        background: linear-gradient(to bottom, rgb(42.5, 42.5, 42.5) 0%, rgb(11.9, 11.9, 11.9) 100%); /* W3C */
-        box-shadow: inset 0 0 3px #111111;
-    }
     .dt-paging .ellipsis {
         padding: 0 1em;
     }
@@ -864,7 +822,6 @@ div.dt-container {
     .dt-paging nav {
         display: flex;
         align-items: center;
-        gap: 6px;
         &-button {
             min-width: 36px;
             height: 36px;
