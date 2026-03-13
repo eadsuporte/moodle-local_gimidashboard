@@ -15,9 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Builds the cohort tables:
- *  - For each cohort linked to a course (enrol method "cohort"),
- *    list members with one line per course.
+ * Builds the cohorts report tables.
  *
  * @package   local_gimidashboard
  * @copyright 2026
@@ -30,9 +28,7 @@ use Exception;
 use local_gimidashboard\selection;
 
 /**
- * Builds the cohort tables:
- * - For each cohort linked to a course (enrol method "cohort"),
- *   list members with one line per course.
+ * Builds the cohorts report tables.
  */
 class cohorts_report {
 
@@ -40,7 +36,7 @@ class cohorts_report {
      * Build template context.
      *
      * @param selection $selection
-     * @param int[] $courseids
+     * @param int[] $courseids Scope course ids
      * @return array
      * @throws Exception
      */
@@ -54,7 +50,8 @@ class cohorts_report {
         [$insql, $params] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED, 'c');
 
         // Cohort-course mapping from enrol='cohort' (customint1 = cohortid).
-        $pairs = $DB->get_records_sql("
+        $pairs = $DB->get_records_sql(
+            "
              SELECT CONCAT(e.courseid, e.customint1) AS id, e.courseid, e.customint1 AS cohortid
                FROM {enrol} e
               WHERE e.enrol = 'cohort'
@@ -75,225 +72,216 @@ class cohorts_report {
 
         $cohorttocourses = [];
         $cohortids = [];
-        foreach ($pairs as $p) {
-            $cohortid = $p->cohortid;
-            $courseid = $p->courseid;
-            $cohorttocourses[$cohortid][] = $courseid;
+        $linkedcourseids = [];
+        foreach ($pairs as $pair) {
+            $cohortid = (int) $pair->cohortid;
+            $linkedcourseid = (int) $pair->courseid;
+            $cohorttocourses[$cohortid][$linkedcourseid] = $linkedcourseid;
             $cohortids[$cohortid] = $cohortid;
+            $linkedcourseids[$linkedcourseid] = $linkedcourseid;
         }
+
         $cohortids = array_values($cohortids);
+        $linkedcourseids = array_values($linkedcourseids);
 
         $cohorts = $DB->get_records_list('cohort', 'id', $cohortids, '', 'id,name');
+        $coursenames = report_helper::get_course_names($linkedcourseids);
 
-        // Preload courses names.
-        $courserecs = $DB->get_records_list('course', 'id', $courseids, '', 'id,fullname');
-        $coursenames = [];
-        foreach ($courserecs as $c) {
-            $coursenames[$c->id] = $c->fullname;
+        // Load all valid cohort members once.
+        $membersbycohort = [];
+        if ($cohortids) {
+            [$cohortinsql, $cohortparams] = $DB->get_in_or_equal($cohortids, SQL_PARAMS_NAMED, 'coh');
+            $sql = "
+                 SELECT cm.cohortid, u.id, u.username, u.email
+                   FROM {cohort_members} cm
+                   JOIN {user} u ON u.id = cm.userid
+                  WHERE cm.cohortid {$cohortinsql}
+                    AND u.deleted = 0
+                    AND u.suspended = 0
+               ORDER BY cm.cohortid ASC, u.username ASC, u.email ASC";
+            $memberrecordset = $DB->get_recordset_sql($sql, $cohortparams);
+
+            foreach ($memberrecordset as $member) {
+                $membersbycohort[(int) $member->cohortid][(int) $member->id] = $member;
+            }
+            $memberrecordset->close();
         }
 
-        // Detect mod_coursecertificate tables (best-effort).
-        $hascoursecertificate = $DB->get_manager()->table_exists('coursecertificate')
-            && ($DB->get_manager()->table_exists('coursecertificate_issues') ||
-                $DB->get_manager()->table_exists('coursecertificate_issue'));
+        $allmemberids = [];
+        foreach ($membersbycohort as $members) {
+            foreach ($members as $memberid => $member) {
+                $allmemberids[$memberid] = $memberid;
+            }
+        }
+        $allmemberids = array_values($allmemberids);
 
-        $issuestable = null;
-        if ($hascoursecertificate) {
+        $activeusersbycourse = report_helper::get_active_enrolled_users_by_course($linkedcourseids, $allmemberids);
+        $activeuserids = [];
+        foreach ($activeusersbycourse as $users) {
+            foreach ($users as $userid => $user) {
+                $activeuserids[$userid] = $userid;
+            }
+        }
+        $activeuserids = array_values($activeuserids);
+
+        $groupnames = [];
+        if ($linkedcourseids && $activeuserids) {
+            [$courseinsql, $courseparams] = $DB->get_in_or_equal($linkedcourseids, SQL_PARAMS_NAMED, 'gc');
+            [$userinsql, $userparams] = $DB->get_in_or_equal($activeuserids, SQL_PARAMS_NAMED, 'gu');
+            $sql = "
+                 SELECT g.courseid, gm.userid, g.name
+                   FROM {groups_members} gm
+                   JOIN {groups} g ON g.id = gm.groupid
+                  WHERE g.courseid {$courseinsql}
+                    AND gm.userid {$userinsql}
+               ORDER BY g.courseid ASC, gm.userid ASC, g.name ASC";
+            $grouprecordset = $DB->get_recordset_sql($sql, array_merge($courseparams, $userparams));
+
+            foreach ($grouprecordset as $grouprecord) {
+                $courseid = (int) $grouprecord->courseid;
+                $userid = (int) $grouprecord->userid;
+                $groupnames[$courseid][$userid][] = $grouprecord->name;
+            }
+            $grouprecordset->close();
+        }
+
+        $totalcompletable = [];
+        if ($linkedcourseids) {
+            [$moduleinsql, $moduleparams] = $DB->get_in_or_equal($linkedcourseids, SQL_PARAMS_NAMED, 'mc');
+            $sql = "
+                 SELECT cm.course, COUNT(1) AS total
+                   FROM {course_modules} cm
+                  WHERE cm.course {$moduleinsql}
+                    AND cm.deletioninprogress = 0
+                    AND cm.completion > 0
+               GROUP BY cm.course";
+            $modulerecords = $DB->get_records_sql($sql, $moduleparams);
+
+            foreach ($modulerecords as $modulerecord) {
+                $totalcompletable[(int) $modulerecord->course] = (int) $modulerecord->total;
+            }
+        }
+
+        $completedbycourseanduser = [];
+        if ($linkedcourseids && $activeuserids) {
+            [$modulecourseinsql, $modulecourseparams] = $DB->get_in_or_equal($linkedcourseids, SQL_PARAMS_NAMED, 'pc');
+            [$moduleuserinsql, $moduleuserparams] = $DB->get_in_or_equal($activeuserids, SQL_PARAMS_NAMED, 'pu');
+            $sql = "
+                 SELECT cm.course, cmc.userid, COUNT(1) AS donecount
+                   FROM {course_modules_completion} cmc
+                   JOIN {course_modules} cm
+                     ON cm.id = cmc.coursemoduleid
+                  WHERE cm.course {$modulecourseinsql}
+                    AND cm.deletioninprogress = 0
+                    AND cm.completion > 0
+                    AND cmc.userid {$moduleuserinsql}
+                    AND cmc.completionstate > 0
+               GROUP BY cm.course, cmc.userid";
+            $progressrecordset = $DB->get_recordset_sql($sql, array_merge($modulecourseparams, $moduleuserparams));
+
+            foreach ($progressrecordset as $progressrecord) {
+                $completedbycourseanduser[(int) $progressrecord->course][(int) $progressrecord->userid] =
+                    (int) $progressrecord->donecount;
+            }
+            $progressrecordset->close();
+        }
+
+        $gradepct = report_helper::get_active_grade_percentages_by_course_and_user($linkedcourseids, $activeuserids);
+
+        $certissued = [];
+        $hascoursecertificate = $DB->get_manager()->table_exists('coursecertificate')
+            && ($DB->get_manager()->table_exists('coursecertificate_issues')
+                || $DB->get_manager()->table_exists('coursecertificate_issue'));
+
+        if ($hascoursecertificate && $linkedcourseids && $activeuserids) {
             $issuestable = $DB->get_manager()->table_exists('coursecertificate_issues')
                 ? 'coursecertificate_issues'
                 : 'coursecertificate_issue';
+
+            [$instanceinsql, $instanceparams] = $DB->get_in_or_equal($linkedcourseids, SQL_PARAMS_NAMED, 'ci');
+            $sql = "
+                 SELECT id, course
+                   FROM {coursecertificate}
+                  WHERE course {$instanceinsql}";
+            $instances = $DB->get_records_sql($sql, $instanceparams);
+
+            if ($instances) {
+                $instancetocourse = [];
+                $instanceids = [];
+                foreach ($instances as $instance) {
+                    $instanceid = (int) $instance->id;
+                    $instanceids[$instanceid] = $instanceid;
+                    $instancetocourse[$instanceid] = (int) $instance->course;
+                }
+
+                [$issueinsql, $issueparams] = $DB->get_in_or_equal(array_values($instanceids), SQL_PARAMS_NAMED, 'ii');
+                [$issueuserinsql, $issueuserparams] = $DB->get_in_or_equal($activeuserids, SQL_PARAMS_NAMED, 'iu');
+                $sql = "
+                     SELECT coursecertificateid, userid
+                       FROM {{$issuestable}}
+                      WHERE coursecertificateid {$issueinsql}
+                        AND userid {$issueuserinsql}";
+                $issuerecordset = $DB->get_recordset_sql($sql, array_merge($issueparams, $issueuserparams));
+
+                foreach ($issuerecordset as $issuerecord) {
+                    $courseid = $instancetocourse[(int) $issuerecord->coursecertificateid] ?? null;
+                    $userid = (int) $issuerecord->userid;
+                    if ($courseid) {
+                        $certissued[$courseid][$userid] = true;
+                    }
+                }
+                $issuerecordset->close();
+            }
         }
 
         $outcohorts = [];
-
-        foreach ($cohorts as $cohort) {
-            $cohortid = $cohort->id;
-            $linkedcourses = $cohorttocourses[$cohortid] ?? [];
-            if (!$linkedcourses) {
+        foreach ($cohortids as $cohortid) {
+            if (empty($cohorts[$cohortid])) {
                 continue;
             }
 
-            // Members of cohort.
-            $members = $DB->get_records_sql(
-                "SELECT u.id, u.username, u.email
-                   FROM {cohort_members} cm
-                   JOIN {user} u ON u.id = cm.userid
-                  WHERE cm.cohortid = :cohortid
-                    AND u.deleted = 0
-                    AND u.suspended = 0
-               ORDER BY u.username ASC",
-                ['cohortid' => $cohortid]
-            );
-
-            if (!$members) {
-                $outcohorts[] = [
-                    'name' => $cohort->name,
-                    'rows' => [],
-                ];
-                continue;
-            }
-
-            $memberids = array_map(static fn($u) => $u->id, $members);
-
-            // Preload per-course helpers (groups, progress, grades, certificate issues).
-            $percourse = [];
-
-            foreach ($linkedcourses as $courseid) {
-                $useridsforthiscourse = $memberids;
-
-                // Groups: get all group memberships for these users.
-                $groupnames = [];
-                if ($useridsforthiscourse) {
-                    [$uinsql, $uparams] = $DB->get_in_or_equal($useridsforthiscourse, SQL_PARAMS_NAMED, 'u');
-                    $uparams['courseid'] = $courseid;
-
-                    $grouprecs = $DB->get_records_sql(
-                        "SELECT gm.userid, g.name
-                           FROM {groups_members} gm
-                           JOIN {groups} g ON g.id = gm.groupid
-                          WHERE g.courseid = :courseid
-                            AND gm.userid $uinsql",
-                        $uparams
-                    );
-
-                    foreach ($grouprecs as $gr) {
-                        $uid = $gr->userid;
-                        $groupnames[$uid][] = $gr->name;
-                    }
-                }
-
-                // Progress: total completable modules and completed per user.
-                $totalcompletable = $DB->get_field_sql(
-                    "SELECT COUNT(1)
-                       FROM {course_modules} cm
-                      WHERE cm.course = :courseid
-                        AND cm.deletioninprogress = 0
-                        AND cm.completion > 0",
-                    ['courseid' => $courseid]
-                );
-
-                $completedcount = [];
-                if ($totalcompletable > 0 && $useridsforthiscourse) {
-                    [$uinsql, $uparams] = $DB->get_in_or_equal($useridsforthiscourse, SQL_PARAMS_NAMED, 'u');
-                    $uparams['courseid'] = $courseid;
-
-                    $done = $DB->get_records_sql(
-                        "SELECT cmc.userid, COUNT(1) AS donecount
-                           FROM {course_modules_completion} cmc
-                           JOIN {course_modules} cm
-                             ON cm.id = cmc.coursemoduleid
-                            AND cm.course = :courseid
-                            AND cm.deletioninprogress = 0
-                            AND cm.completion > 0
-                          WHERE cmc.userid $uinsql
-                            AND cmc.completionstate > 0
-                       GROUP BY cmc.userid",
-                        $uparams
-                    );
-
-                    foreach ($done as $d) {
-                        $completedcount[$d->userid] = $d->donecount;
-                    }
-                }
-
-                // Grades: course total grade item.
-                $gradepct = [];
-                if ($useridsforthiscourse) {
-                    [$uinsql, $uparams] = $DB->get_in_or_equal($useridsforthiscourse, SQL_PARAMS_NAMED, 'u');
-                    $uparams['courseid'] = $courseid;
-
-                    $graderecs = $DB->get_records_sql(
-                        "SELECT gg.userid, gg.finalgrade, gi.grademax
-                           FROM {grade_items} gi
-                           JOIN {grade_grades} gg ON gg.itemid = gi.id
-                          WHERE gi.courseid = :courseid
-                            AND gi.itemtype = 'course'
-                            AND gi.grademax > 0
-                            AND gg.finalgrade IS NOT NULL
-                            AND gg.userid $uinsql",
-                        $uparams
-                    );
-
-                    foreach ($graderecs as $g) {
-                        $uid = $g->userid;
-                        $pct = ($g->finalgrade / $g->grademax) * 100.0;
-                        $gradepct[$uid] = round($pct);
-                    }
-                }
-
-                // Certificate issues: best-effort for mod_coursecertificate.
-                $certissued = [];
-                if ($hascoursecertificate && $issuestable) {
-                    $instances = $DB->get_records('coursecertificate', ['course' => $courseid], '', 'id');
-                    $instanceids = array_keys($instances);
-
-                    if ($instanceids && $useridsforthiscourse) {
-                        [$iinsql, $iparams] = $DB->get_in_or_equal($instanceids, SQL_PARAMS_NAMED, 'i');
-                        [$uinsql, $uparams] = $DB->get_in_or_equal($useridsforthiscourse, SQL_PARAMS_NAMED, 'u');
-                        $sqlparams = array_merge($iparams, $uparams);
-
-                        $issuerecs = $DB->get_records_sql(
-                            "SELECT userid
-                               FROM {{$issuestable}}
-                              WHERE coursecertificateid $iinsql
-                                AND userid $uinsql",
-                            $sqlparams
-                        );
-
-                        foreach ($issuerecs as $ir) {
-                            $certissued[$ir->userid] = true;
-                        }
-                    }
-                }
-
-                $percourse[$courseid] = [
-                    'groups' => $groupnames,
-                    'totalcompletable' => $totalcompletable,
-                    'completed' => $completedcount,
-                    'gradepct' => $gradepct,
-                    'certissued' => $certissued,
-                ];
-            }
-
-            // Build rows: one line per (user, course).
+            $linkedcourses = array_values($cohorttocourses[$cohortid] ?? []);
+            $members = $membersbycohort[$cohortid] ?? [];
             $rows = [];
-            foreach ($members as $m) {
-                $userid = $m->id;
 
+            if ($linkedcourses && $members) {
                 foreach ($linkedcourses as $courseid) {
-                    $helpers = $percourse[$courseid] ?? null;
-                    if (!$helpers) {
+                    $usersincourse = $activeusersbycourse[$courseid] ?? [];
+                    if (!$usersincourse) {
                         continue;
                     }
 
-                    $groups = $helpers['groups'][$userid] ?? [];
-                    $grouptext = $groups ? implode(', ', $groups) : '-';
+                    foreach ($usersincourse as $userid => $user) {
+                        if (empty($members[$userid])) {
+                            continue;
+                        }
 
-                    $progresspct = 0;
-                    $total = $helpers['totalcompletable'];
-                    if ($total > 0) {
-                        $done = ($helpers['completed'][$userid] ?? 0);
-                        $progresspct = round(($done / $total) * 100.0);
+                        $groups = $groupnames[$courseid][$userid] ?? [];
+                        $grouptext = $groups ? implode(', ', $groups) : '-';
+
+                        $progresspct = 0;
+                        $total = $totalcompletable[$courseid] ?? 0;
+                        if ($total > 0) {
+                            $done = $completedbycourseanduser[$courseid][$userid] ?? 0;
+                            $progresspct = round(($done / $total) * 100.0);
+                        }
+
+                        $rows[] = [
+                            'username' => $members[$userid]->username,
+                            'email' => $members[$userid]->email,
+                            'course' => $coursenames[$courseid] ?? ('Course #' . $courseid),
+                            'group' => $grouptext,
+                            'progress' => $progresspct . '%',
+                            'grade' => $gradepct[$courseid][$userid] ?? 0,
+                            'certificate_yes' => !empty($certissued[$courseid][$userid]),
+                            'certificate_no' => empty($certissued[$courseid][$userid]),
+                        ];
                     }
-
-                    $grade = ($helpers['gradepct'][$userid] ?? 0);
-                    $issued = !empty($helpers['certissued'][$userid]);
-
-                    $rows[] = [
-                        'username' => $m->username,
-                        'email' => $m->email,
-                        'course' => $coursenames[$courseid] ?? ('Course #' . $courseid),
-                        'group' => $grouptext,
-                        'progress' => $progresspct . '%',
-                        'grade' => $grade,
-                        'certificate_yes' => $issued,
-                        'certificate_no' => !$issued,
-                    ];
                 }
             }
 
             $outcohorts[] = [
-                'name' => $cohort->name,
+                'name' => $cohorts[$cohortid]->name,
                 'rows' => $rows,
             ];
         }

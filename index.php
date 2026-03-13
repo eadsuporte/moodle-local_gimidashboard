@@ -59,16 +59,21 @@ $courseids = [];
 if ($sel->is_course()) {
     $courseids = [$sel->courseid];
 } else if ($sel->is_category()) {
-    // Get all courses under the selected category (including subcategories).
+    // Load only course ids for the selected category tree.
     $cat = core_course_category::get($sel->categoryid, IGNORE_MISSING, true);
     if ($cat) {
-        $courses = $cat->get_courses(['recursive' => true]);
-        foreach ($courses as $c) {
-            if ($c->id === 1) {
-                continue;
-            }
-            $courseids[] = $c->id;
-        }
+        $sql = "
+             SELECT c.id
+               FROM {course} c
+               JOIN {course_categories} cc ON cc.id = c.category
+              WHERE c.id <> 1
+                AND (cc.id = :categoryid OR " . $DB->sql_like('cc.path', ':categorypath') . ")
+           ORDER BY c.fullname ASC";
+        $params =  [
+            'categoryid' => $cat->id,
+            'categorypath' => $cat->path . '/%',
+        ];
+        $courseids = $DB->get_fieldset_sql($sql, $params);
     }
 }
 

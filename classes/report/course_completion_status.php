@@ -42,11 +42,14 @@ class course_completion_status {
      * @throws Exception
      */
     public static function get_template_context(selection $selection, array $courseids): array {
-        global $DB;
-
         if (!$selection->is_allowed() || empty($courseids)) {
             return ['show' => false];
         }
+
+        $coursenames = report_helper::get_course_names($courseids);
+        $enrolledcounts = report_helper::get_active_enrolled_counts_by_course($courseids);
+        $completedcounts = report_helper::get_active_completion_counts_by_course($courseids);
+        $gradeaverages = report_helper::get_active_grade_average_by_course($courseids);
 
         $labels = [];
         $enrolled = [];
@@ -54,60 +57,20 @@ class course_completion_status {
         $gradeavg = [];
 
         foreach ($courseids as $courseid) {
-            $course = $DB->get_record('course', ['id' => $courseid], 'id,fullname');
-            if (!$course) {
+            if (empty($coursenames[$courseid])) {
                 continue;
             }
 
-            $labels[] = $course->fullname;
-
-            // Enrolled users (distinct).
-            $enrolledcount = $DB->get_field_sql("
-                 SELECT COUNT(DISTINCT ue.userid)
-                   FROM {user_enrolments} ue
-                   JOIN {enrol} e ON e.id = ue.enrolid
-                   JOIN {user} u ON u.id = ue.userid
-                  WHERE e.courseid = :courseid
-                    AND e.status = 0
-                    AND ue.status = 0
-                    AND u.deleted = 0
-                    AND u.suspended = 0",
-                ['courseid' => $courseid]
-            );
-            $enrolled[] = $enrolledcount;
-
-            // Completion % (course_completions).
-            $completedcount = $DB->get_field_sql("
-                 SELECT COUNT(DISTINCT cc.userid)
-                   FROM {course_completions} cc
-                   JOIN {user} u ON u.id = cc.userid
-                  WHERE cc.course = :courseid
-                    AND cc.timecompleted IS NOT NULL
-                    AND u.deleted = 0
-                    AND u.suspended = 0",
-                ['courseid' => $courseid]
-            );
-            $pct = 0.0;
-            if ($enrolledcount > 0) {
-                $pct = ($completedcount / $enrolledcount) * 100.0;
+            $enrolledcount = $enrolledcounts[$courseid] ?? 0;
+            if ($enrolledcount === 0) {
+                continue;
             }
-            $completionpct[] = round($pct, 1);
 
-            // Grade average % (course grade item).
-            $avg = $DB->get_field_sql("
-                 SELECT AVG((gg.finalgrade / gi.grademax) * 100)
-                   FROM {grade_items} gi
-                   JOIN {grade_grades} gg ON gg.itemid = gi.id
-                   JOIN {user} u ON u.id = gg.userid
-                  WHERE gi.courseid = :courseid
-                    AND gi.itemtype = 'course'
-                    AND gg.finalgrade IS NOT NULL
-                    AND gi.grademax > 0
-                    AND u.deleted = 0
-                    AND u.suspended = 0",
-                ['courseid' => $courseid]
-            );
-            $gradeavg[] = $avg === null ? 0 : round($avg, 1);
+            $completedcount = $completedcounts[$courseid] ?? 0;
+            $labels[] = $coursenames[$courseid];
+            $enrolled[] = $enrolledcount;
+            $completionpct[] = round(($completedcount / $enrolledcount) * 100.0, 1);
+            $gradeavg[] = $gradeaverages[$courseid] ?? 0;
         }
 
         if (!$labels) {

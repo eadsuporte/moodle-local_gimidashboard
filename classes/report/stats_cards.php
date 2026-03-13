@@ -46,105 +46,76 @@ class stats_cards {
             return ['show' => false];
         }
 
-        [$insql, $params] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED, 'c');
-
-        $combo = $DB->sql_concat('ue.userid', "'-'", 'e.courseid');
-
-        // Total distinct learners (unique users across all courses).
-        $learners = $DB->get_field_sql("
-             SELECT COUNT(DISTINCT ue.userid)
-               FROM {user_enrolments} ue
-               JOIN {enrol} e ON e.id = ue.enrolid
-               JOIN {user} u ON u.id = ue.userid
-              WHERE e.courseid {$insql}
-                AND e.status = 0
-                AND ue.status = 0
-                AND u.deleted = 0
-                AND u.suspended = 0",
-            $params
+        [$activewheresql, $activeparams] = report_helper::get_active_enrolment_conditions(
+            'e.courseid', 'ue.userid', $courseids, 'cstats', null, 'ustats', 'nowstats'
         );
+        $activesubquery = "
+           SELECT DISTINCT e.courseid, ue.userid
+             FROM {user_enrolments} ue
+             JOIN {enrol} e ON e.id = ue.enrolid
+             JOIN {user} u ON u.id = ue.userid
+            WHERE {$activewheresql}";
 
-        // Total enrolments (unique user-course pairs).
-        $totalpairs = $DB->get_field_sql("
-             SELECT COUNT(DISTINCT {$combo})
-               FROM {user_enrolments} ue
-               JOIN {enrol} e ON e.id = ue.enrolid
-               JOIN {user} u ON u.id = ue.userid
-              WHERE e.courseid {$insql}
-                AND e.status = 0
-                AND ue.status = 0
-                AND u.deleted = 0
-                AND u.suspended = 0",
-            $params
-        );
+        $combo = $DB->sql_concat('ae.userid', "'-'", 'ae.courseid');
 
-        // Completed pairs.
-        $completedpairs = $DB->get_field_sql("
+        // Total distinct learners across the selected scope with active enrolments only.
+        $sql = "SELECT COUNT(DISTINCT ae.userid) FROM ({$activesubquery}) ae";
+        $learners = $DB->get_field_sql($sql, $activeparams);
+
+        // Total enrolments (unique user-course pairs) with active enrolments only.
+        $sql = "SELECT COUNT(DISTINCT {$combo}) FROM ({$activesubquery}) ae";
+        $totalpairs = $DB->get_field_sql($sql, $activeparams);
+
+        // Completed pairs restricted to active enrolments only.
+        $sql = "
              SELECT COUNT(DISTINCT {$combo})
-               FROM {user_enrolments} ue
-               JOIN {enrol} e ON e.id = ue.enrolid
-               JOIN {user} u ON u.id = ue.userid
+               FROM ({$activesubquery}) ae
                JOIN {course_completions} cc
-                 ON cc.course = e.courseid
-                AND cc.userid = ue.userid
-                AND cc.timecompleted IS NOT NULL
-              WHERE e.courseid {$insql}
-                AND e.status = 0
-                AND ue.status = 0
-                AND u.deleted = 0
-                AND u.suspended = 0",
-            $params
-        );
+                 ON cc.course = ae.courseid
+                AND cc.userid = ae.userid
+                AND cc.timecompleted IS NOT NULL";
+        $completedpairs = $DB->get_field_sql($sql, $activeparams);
 
         $completionpct = 0;
         if ($totalpairs > 0) {
             $completionpct = round(($completedpairs / $totalpairs) * 100.0);
         }
 
-        // Never accessed pairs (user_lastaccess missing/0).
-        $neveraccessed = $DB->get_field_sql("
-             SELECT COUNT(DISTINCT $combo)
-               FROM {user_enrolments} ue
-               JOIN {enrol} e ON e.id = ue.enrolid
-               JOIN {user} u ON u.id = ue.userid
+        // Never accessed pairs restricted to active enrolments only.
+        $sql = "
+             SELECT COUNT(DISTINCT {$combo})
+               FROM ({$activesubquery}) ae
           LEFT JOIN {user_lastaccess} ula
-                 ON ula.courseid = e.courseid
-                AND ula.userid = ue.userid
-              WHERE e.courseid {$insql}
-                AND e.status = 0
-                AND ue.status = 0
-                AND u.deleted = 0
-                AND u.suspended = 0
-                AND (ula.timeaccess IS NULL OR ula.timeaccess = 0)",
-            $params
-        );
+                 ON ula.courseid = ae.courseid
+                AND ula.userid = ae.userid
+              WHERE ula.timeaccess IS NULL OR ula.timeaccess = 0";
+        $neveraccessed = $DB->get_field_sql($sql, $activeparams);
 
-        // Grade average % for enrolled users (course total grade item).
-        $gradeavg = $DB->get_field_sql("
+        // Grade average restricted to active enrolments only.
+        $sql = "
              SELECT AVG((gg.finalgrade / gi.grademax) * 100)
                FROM {grade_items} gi
                JOIN {grade_grades} gg ON gg.itemid = gi.id
-               JOIN {user} u ON u.id = gg.userid
-              WHERE gi.courseid {$insql}
-                AND gi.itemtype = 'course'
-                AND gg.finalgrade IS NOT NULL
+               JOIN ({$activesubquery}) ae
+                 ON ae.courseid = gi.courseid
+                AND ae.userid = gg.userid
+              WHERE gi.itemtype = 'course'
                 AND gi.grademax > 0
-                AND u.deleted = 0
-                AND u.suspended = 0",
-            $params
-        );
+                AND gg.finalgrade IS NOT NULL";
+        $gradeavg = $DB->get_field_sql($sql, $activeparams);
         $gradeavg = $gradeavg === null ? 0 : round($gradeavg);
 
-        // Feedback responses (distinct users who completed any feedback in these courses).
+        // Feedback responses restricted to active enrolments only.
         $feedbackusers = 0;
         if ($DB->get_manager()->table_exists('feedback') && $DB->get_manager()->table_exists('feedback_completed')) {
-            $feedbackusers = $DB->get_field_sql("
+            $sql = "
                  SELECT COUNT(DISTINCT fc.userid)
                    FROM {feedback_completed} fc
                    JOIN {feedback} f ON f.id = fc.feedback
-                  WHERE f.course {$insql}",
-                $params
-            );
+                   JOIN ({$activesubquery}) ae
+                     ON ae.courseid = f.course
+                    AND ae.userid = fc.userid";
+            $feedbackusers = $DB->get_field_sql($sql, $activeparams);
         }
 
         return [
