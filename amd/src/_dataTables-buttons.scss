@@ -19,7 +19,7 @@ div.dt-paging {
     .dt-button,
     .dt-paging-button {
         position: relative;
-        display: inline-flex !important;
+        display: inline-flex;
         align-items: center;
         justify-content: center;
         width: 52px;
@@ -72,6 +72,9 @@ div.dt-paging {
         &.current {
             background: linear-gradient(180deg, #dbeafe 0%, #bfdbfe 100%) !important;
             color: #1e40af !important;
+        }
+        &.disabled {
+            display: none !important;
         }
     }
     .dt-button {

@@ -60,125 +60,125 @@ div.dt-scroll-body {
     }
 }
 table.dataTable {
-     thead > tr > th:active,
-     thead > tr > td:active {
+    thead > tr > th:active,
+    thead > tr > td:active {
         outline: none;
     }
-     thead > tr > th.dt-orderable-asc .dt-column-order:before,
-     thead > tr > th.dt-ordering-asc .dt-column-order:before,
-     thead > tr > td.dt-orderable-asc .dt-column-order:before,
-     thead > tr > td.dt-ordering-asc .dt-column-order:before {
+    thead > tr > th.dt-orderable-asc .dt-column-order:before,
+    thead > tr > th.dt-ordering-asc .dt-column-order:before,
+    thead > tr > td.dt-orderable-asc .dt-column-order:before,
+    thead > tr > td.dt-ordering-asc .dt-column-order:before {
         position: absolute;
         display: block;
         bottom: 50%;
         content: "\25B2";
         content: "\25B2"/"";
     }
-     thead > tr > th.dt-orderable-desc .dt-column-order:after,
-     thead > tr > th.dt-ordering-desc .dt-column-order:after,
-     thead > tr > td.dt-orderable-desc .dt-column-order:after,
-     thead > tr > td.dt-ordering-desc .dt-column-order:after {
+    thead > tr > th.dt-orderable-desc .dt-column-order:after,
+    thead > tr > th.dt-ordering-desc .dt-column-order:after,
+    thead > tr > td.dt-orderable-desc .dt-column-order:after,
+    thead > tr > td.dt-ordering-desc .dt-column-order:after {
         position: absolute;
         display: block;
         top: 50%;
         content: "\25BC";
         content: "\25BC"/"";
     }
-     thead > tr > th.dt-orderable-asc .dt-column-order,
-     thead > tr > th.dt-orderable-desc .dt-column-order,
-     thead > tr > th.dt-ordering-asc .dt-column-order,
-     thead > tr > th.dt-ordering-desc .dt-column-order,
-     thead > tr > td.dt-orderable-asc .dt-column-order,
-     thead > tr > td.dt-orderable-desc .dt-column-order,
-     thead > tr > td.dt-ordering-asc .dt-column-order,
-     thead > tr > td.dt-ordering-desc .dt-column-order {
+    thead > tr > th.dt-orderable-asc .dt-column-order,
+    thead > tr > th.dt-orderable-desc .dt-column-order,
+    thead > tr > th.dt-ordering-asc .dt-column-order,
+    thead > tr > th.dt-ordering-desc .dt-column-order,
+    thead > tr > td.dt-orderable-asc .dt-column-order,
+    thead > tr > td.dt-orderable-desc .dt-column-order,
+    thead > tr > td.dt-ordering-asc .dt-column-order,
+    thead > tr > td.dt-ordering-desc .dt-column-order {
         position: relative;
         width: 12px;
         height: 20px;
     }
-     thead > tr > th.dt-orderable-asc .dt-column-order:before,
-     thead > tr > th.dt-orderable-asc .dt-column-order:after,
-     thead > tr > th.dt-orderable-desc .dt-column-order:before,
-     thead > tr > th.dt-orderable-desc .dt-column-order:after,
-     thead > tr > th.dt-ordering-asc .dt-column-order:before,
-     thead > tr > th.dt-ordering-asc .dt-column-order:after,
-     thead > tr > th.dt-ordering-desc .dt-column-order:before,
-     thead > tr > th.dt-ordering-desc .dt-column-order:after,
-     thead > tr > td.dt-orderable-asc .dt-column-order:before,
-     thead > tr > td.dt-orderable-asc .dt-column-order:after,
-     thead > tr > td.dt-orderable-desc .dt-column-order:before,
-     thead > tr > td.dt-orderable-desc .dt-column-order:after,
-     thead > tr > td.dt-ordering-asc .dt-column-order:before,
-     thead > tr > td.dt-ordering-asc .dt-column-order:after,
-     thead > tr > td.dt-ordering-desc .dt-column-order:before,
-     thead > tr > td.dt-ordering-desc .dt-column-order:after {
+    thead > tr > th.dt-orderable-asc .dt-column-order:before,
+    thead > tr > th.dt-orderable-asc .dt-column-order:after,
+    thead > tr > th.dt-orderable-desc .dt-column-order:before,
+    thead > tr > th.dt-orderable-desc .dt-column-order:after,
+    thead > tr > th.dt-ordering-asc .dt-column-order:before,
+    thead > tr > th.dt-ordering-asc .dt-column-order:after,
+    thead > tr > th.dt-ordering-desc .dt-column-order:before,
+    thead > tr > th.dt-ordering-desc .dt-column-order:after,
+    thead > tr > td.dt-orderable-asc .dt-column-order:before,
+    thead > tr > td.dt-orderable-asc .dt-column-order:after,
+    thead > tr > td.dt-orderable-desc .dt-column-order:before,
+    thead > tr > td.dt-orderable-desc .dt-column-order:after,
+    thead > tr > td.dt-ordering-asc .dt-column-order:before,
+    thead > tr > td.dt-ordering-asc .dt-column-order:after,
+    thead > tr > td.dt-ordering-desc .dt-column-order:before,
+    thead > tr > td.dt-ordering-desc .dt-column-order:after {
         left: 0;
         opacity: 0.125;
         line-height: 9px;
         font-size: 0.8em;
     }
-     thead > tr > th.dt-orderable-asc,
-     thead > tr > th.dt-orderable-desc,
-     thead > tr > td.dt-orderable-asc,
-     thead > tr > td.dt-orderable-desc {
+    thead > tr > th.dt-orderable-asc,
+    thead > tr > th.dt-orderable-desc,
+    thead > tr > td.dt-orderable-asc,
+    thead > tr > td.dt-orderable-desc {
         cursor: pointer;
     }
-     thead > tr > th.dt-orderable-asc:hover,
-     thead > tr > th.dt-orderable-desc:hover,
-     thead > tr > td.dt-orderable-asc:hover,
-     thead > tr > td.dt-orderable-desc:hover {
+    thead > tr > th.dt-orderable-asc:hover,
+    thead > tr > th.dt-orderable-desc:hover,
+    thead > tr > td.dt-orderable-asc:hover,
+    thead > tr > td.dt-orderable-desc:hover {
         outline: 2px solid rgba(0, 0, 0, 0.05);
         outline-offset: -2px;
     }
-     thead > tr > th.dt-ordering-asc .dt-column-order:before,
-     thead > tr > th.dt-ordering-desc .dt-column-order:after,
-     thead > tr > td.dt-ordering-asc .dt-column-order:before,
-     thead > tr > td.dt-ordering-desc .dt-column-order:after {
+    thead > tr > th.dt-ordering-asc .dt-column-order:before,
+    thead > tr > th.dt-ordering-desc .dt-column-order:after,
+    thead > tr > td.dt-ordering-asc .dt-column-order:before,
+    thead > tr > td.dt-ordering-desc .dt-column-order:after {
         opacity: 0.6;
     }
-     thead > tr > th.dt-orderable-none:not(.dt-ordering-asc,.dt-ordering-desc) .dt-column-order:empty,
-     thead > tr > th.sorting_desc_disabled .dt-column-order:after,
-     thead > tr > th.sorting_asc_disabled .dt-column-order:before,
-     thead > tr > td.dt-orderable-none:not(.dt-ordering-asc,.dt-ordering-desc) .dt-column-order:empty,
-     thead > tr > td.sorting_desc_disabled .dt-column-order:after,
-     thead > tr > td.sorting_asc_disabled .dt-column-order:before {
+    thead > tr > th.dt-orderable-none:not(.dt-ordering-asc,.dt-ordering-desc) .dt-column-order:empty,
+    thead > tr > th.sorting_desc_disabled .dt-column-order:after,
+    thead > tr > th.sorting_asc_disabled .dt-column-order:before,
+    thead > tr > td.dt-orderable-none:not(.dt-ordering-asc,.dt-ordering-desc) .dt-column-order:empty,
+    thead > tr > td.sorting_desc_disabled .dt-column-order:after,
+    thead > tr > td.sorting_asc_disabled .dt-column-order:before {
         display: none;
     }
-     thead > tr > th:active,
-     thead > tr > td:active {
+    thead > tr > th:active,
+    thead > tr > td:active {
         outline: none;
     }
-     thead > tr > th div.dt-column-header,
-     thead > tr > th div.dt-column-footer,
-     thead > tr > td div.dt-column-header,
-     thead > tr > td div.dt-column-footer,
-     tfoot > tr > th div.dt-column-header,
-     tfoot > tr > th div.dt-column-footer,
-     tfoot > tr > td div.dt-column-header,
-     tfoot > tr > td div.dt-column-footer {
+    thead > tr > th div.dt-column-header,
+    thead > tr > th div.dt-column-footer,
+    thead > tr > td div.dt-column-header,
+    thead > tr > td div.dt-column-footer,
+    tfoot > tr > th div.dt-column-header,
+    tfoot > tr > th div.dt-column-footer,
+    tfoot > tr > td div.dt-column-header,
+    tfoot > tr > td div.dt-column-footer {
         display: flex;
         justify-content: space-between;
         align-items: var(--dt-header-align-items);
         gap: 4px;
     }
-     thead > tr > th div.dt-column-header .dt-column-title,
-     thead > tr > th div.dt-column-footer .dt-column-title,
-     thead > tr > td div.dt-column-header .dt-column-title,
-     thead > tr > td div.dt-column-footer .dt-column-title,
-     tfoot > tr > th div.dt-column-header .dt-column-title,
-     tfoot > tr > th div.dt-column-footer .dt-column-title,
-     tfoot > tr > td div.dt-column-header .dt-column-title,
-     tfoot > tr > td div.dt-column-footer .dt-column-title {
+    thead > tr > th div.dt-column-header .dt-column-title,
+    thead > tr > th div.dt-column-footer .dt-column-title,
+    thead > tr > td div.dt-column-header .dt-column-title,
+    thead > tr > td div.dt-column-footer .dt-column-title,
+    tfoot > tr > th div.dt-column-header .dt-column-title,
+    tfoot > tr > th div.dt-column-footer .dt-column-title,
+    tfoot > tr > td div.dt-column-header .dt-column-title,
+    tfoot > tr > td div.dt-column-footer .dt-column-title {
         flex-grow: 1;
     }
-     thead > tr > th div.dt-column-header .dt-column-title:empty,
-     thead > tr > th div.dt-column-footer .dt-column-title:empty,
-     thead > tr > td div.dt-column-header .dt-column-title:empty,
-     thead > tr > td div.dt-column-footer .dt-column-title:empty,
-     tfoot > tr > th div.dt-column-header .dt-column-title:empty,
-     tfoot > tr > th div.dt-column-footer .dt-column-title:empty,
-     tfoot > tr > td div.dt-column-header .dt-column-title:empty,
-     tfoot > tr > td div.dt-column-footer .dt-column-title:empty {
+    thead > tr > th div.dt-column-header .dt-column-title:empty,
+    thead > tr > th div.dt-column-footer .dt-column-title:empty,
+    thead > tr > td div.dt-column-header .dt-column-title:empty,
+    thead > tr > td div.dt-column-footer .dt-column-title:empty,
+    tfoot > tr > th div.dt-column-header .dt-column-title:empty,
+    tfoot > tr > th div.dt-column-footer .dt-column-title:empty,
+    tfoot > tr > td div.dt-column-header .dt-column-title:empty,
+    tfoot > tr > td div.dt-column-footer .dt-column-title:empty {
         display: none;
     }
 }
@@ -582,40 +582,42 @@ div.dt-container {
         justify-content: space-between;
         align-items: center;
         width: 100%;
-        margin: 0.75em 0;
-    }
-    div.dt-layout-row div.dt-layout-cell {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-    div.dt-layout-row div.dt-layout-cell.dt-layout-start {
-        justify-content: flex-start;
-        margin-right: auto;
-    }
-    div.dt-layout-row div.dt-layout-cell.dt-layout-end {
-        justify-content: flex-end;
-        margin-left: auto;
-    }
-    div.dt-layout-row div.dt-layout-cell:empty {
-        display: none;
-    }
-    @media screen and (max-width: 767px) {
-        div.dt-layout-row:not(.dt-layout-table) {
-            display: block;
+        &:last-child {
+            margin-bottom: 0;
         }
-        div.dt-layout-row:not(.dt-layout-table) div.dt-layout-cell {
-            display: block;
-            text-align: center;
+        div.dt-layout-cell {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            &.dt-layout-start {
+                justify-content: flex-start;
+                margin-right: auto;
+            }
+            &.dt-layout-end {
+                justify-content: flex-end;
+                margin-left: auto;
+            }
+            &:empty {
+                display: none;
+            }
         }
-        div.dt-layout-row:not(.dt-layout-table) div.dt-layout-cell > * {
-            margin: 0.5em 0;
-        }
-        div.dt-layout-row:not(.dt-layout-table) div.dt-layout-cell.dt-layout-start {
-            margin-right: 0;
-        }
-        div.dt-layout-row:not(.dt-layout-table) div.dt-layout-cell.dt-layout-end {
-            margin-left: 0;
+        @media screen and (max-width: 767px) {
+            &:not(.dt-layout-table) {
+                display: block;
+                div.dt-layout-cell {
+                    display: block;
+                    text-align: center;
+                    > * {
+                        margin: 0.5em 0;
+                    }
+                    &.dt-layout-start {
+                        margin-right: 0;
+                    }
+                    &.dt-layout-end {
+                        margin-left: 0;
+                    }
+                }
+            }
         }
     }
     div.dt-layout-start > *:not(:last-child) {
@@ -626,10 +628,10 @@ div.dt-container {
     }
     div.dt-layout-full {
         width: 100%;
-    }
-    div.dt-layout-full > *:only-child {
-        margin-left: auto;
-        margin-right: auto;
+        > *:only-child {
+            margin-left: auto;
+            margin-right: auto;
+        }
     }
     div.dt-layout-table > div {
         display: block !important;

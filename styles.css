@@ -875,7 +875,9 @@ div.dt-container div.dt-layout-row {
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  margin: 0.75em 0;
+}
+div.dt-container div.dt-layout-row:last-child {
+  margin-bottom: 0;
 }
 div.dt-container div.dt-layout-row div.dt-layout-cell {
   display: flex;
@@ -1181,7 +1183,7 @@ div.dt-buttons .dt-paging-button,
 div.dt-paging .dt-button,
 div.dt-paging .dt-paging-button {
   position: relative;
-  display: inline-flex !important;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 52px;
@@ -1265,6 +1267,12 @@ div.dt-paging .dt-paging-button:focus,
 div.dt-paging .dt-paging-button.current {
   background: linear-gradient(180deg, #dbeafe 0%, #bfdbfe 100%) !important;
   color: #1e40af !important;
+}
+div.dt-buttons .dt-button.disabled,
+div.dt-buttons .dt-paging-button.disabled,
+div.dt-paging .dt-button.disabled,
+div.dt-paging .dt-paging-button.disabled {
+  display: none !important;
 }
 div.dt-buttons .dt-button,
 div.dt-paging .dt-button {
