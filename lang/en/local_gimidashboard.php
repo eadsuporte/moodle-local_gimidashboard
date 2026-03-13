@@ -24,6 +24,6 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+$string['gimidashboard:view'] = 'Gimi View';
 $string['pluginname'] = 'Academy Dashboard';
 $string['privacy:metadata'] = 'The Academy Dashboard plugin does not store any personal data.';
-$string['gimidashboard:view'] = 'Gimi View';
