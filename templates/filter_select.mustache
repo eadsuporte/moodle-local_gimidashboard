@@ -19,6 +19,7 @@
 
     Example context (json):
     {
+        "action": "https://mumoodle.com/",
         "groups": [
             {
                 "label": "Categories",
@@ -54,7 +55,7 @@
     }
 }}
 
-<form class="gimidashboard-filter" method="get" action="">
+<form class="gimidashboard-filter" method="get" action="{{action}}">
     <label class="gimidashboard-filter-label" for="course">Category or course</label>
 
     <select name="course" id="course" class="gimidashboard-select">
