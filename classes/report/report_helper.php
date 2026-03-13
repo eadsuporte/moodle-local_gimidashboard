@@ -130,12 +130,13 @@ class report_helper {
         [$wheresql, $params] = self::get_active_enrolment_conditions("e.courseid", "ue.userid", $courseids, "ca", $userids, "ua");
 
         $sql = "
-             SELECT DISTINCT e.courseid, u.id, u.username, u.email
+             SELECT DISTINCT e.courseid, u.id, u.firstname, u.lastname, u.email,
+                             u.firstnamephonetic, u.lastnamephonetic, u.middlename, u.alternatename
                FROM {user_enrolments} ue
                JOIN {enrol} e ON e.id = ue.enrolid
                JOIN {user} u ON u.id = ue.userid
               WHERE {$wheresql}
-           ORDER BY e.courseid ASC, u.username ASC, u.email ASC";
+           ORDER BY e.courseid ASC, u.firstname ASC, u.lastname ASC";
         $recordset = $DB->get_recordset_sql($sql, $params);
 
         $indexed = [];

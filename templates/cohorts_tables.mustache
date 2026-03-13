@@ -25,7 +25,7 @@
                 "name": "Cohort A",
                 "rows": [
                     {
-                        "username": "jdoe",
+                        "user_fullname": "Jhon Doe",
                         "email": "jdoe@example.com",
                         "course": "Math 101",
                         "group": "Group 1",
@@ -35,7 +35,7 @@
                         "certificate_no": false
                     },
                     {
-                        "username": "asmith",
+                        "user_fullname": "Asmith Doe",
                         "email": "asmith@example.com",
                         "course": "Science 202",
                         "group": "Group 2",
@@ -66,7 +66,7 @@
             <table class="gimidashboard-table">
                 <thead>
                 <tr>
-                    <th>Username</th>
+                    <th>Name</th>
                     <th>Email</th>
                     <th>Course</th>
                     <th>Group</th>
@@ -78,7 +78,7 @@
                 <tbody>
                 {{#rows}}
                     <tr>
-                        <td>{{username}}</td>
+                        <td>{{user_fullname}}</td>
                         <td>{{email}}</td>
                         <td>{{course}}</td>
                         <td>{{group}}</td>

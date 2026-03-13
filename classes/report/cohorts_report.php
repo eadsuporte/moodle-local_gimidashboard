@@ -92,13 +92,14 @@ class cohorts_report {
         if ($cohortids) {
             [$cohortinsql, $cohortparams] = $DB->get_in_or_equal($cohortids, SQL_PARAMS_NAMED, "coh");
             $sql = "
-                 SELECT cm.cohortid, u.id, u.username, u.email
+                 SELECT cm.cohortid, u.id, u.firstname, u.lastname, u.email,
+                        u.firstnamephonetic, u.lastnamephonetic, u.middlename, u.alternatename
                    FROM {cohort_members} cm
                    JOIN {user} u ON u.id = cm.userid
                   WHERE cm.cohortid {$cohortinsql}
                     AND u.deleted = 0
                     AND u.suspended = 0
-               ORDER BY cm.cohortid ASC, u.username ASC, u.email ASC";
+               ORDER BY cm.cohortid ASC, u.firstname ASC, u.lastname ASC";
             $memberrecordset = $DB->get_recordset_sql($sql, $cohortparams);
 
             foreach ($memberrecordset as $member) {
@@ -267,7 +268,7 @@ class cohorts_report {
                         }
 
                         $rows[] = [
-                            "username" => $members[$userid]->username,
+                            "user_fullname" => fullname($members[$userid]),
                             "email" => $members[$userid]->email,
                             "course" => $coursenames[$courseid] ?? ("Course #" . $courseid),
                             "group" => $grouptext,
