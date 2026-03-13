@@ -45,9 +45,16 @@ class filter_options {
         global $DB, $USER;
 
         // Fetch categories.
-        $categories = $DB->get_records('course_categories', null, 'sortorder ASC', 'id,name,parent,depth,path');
+        $categories = $DB->get_records("course_categories", null, "sortorder ASC", "id,name,parent,depth,path");
+
         // Fetch courses (exclude site course id=1).
-        $courses = $DB->get_records_select('course', 'id <> 1 AND visible = 1', [], 'sortorder ASC', 'id,fullname,category,visible');
+        $courses = $DB->get_records_select(
+            "course",
+            "id <> 1 AND visible = 1",
+            [],
+            "sortorder ASC",
+            "id,fullname,category,visible"
+        );
 
         // Index categories by id.
         $catbyid = [];
@@ -57,19 +64,20 @@ class filter_options {
 
         // Helper: get top/root category id from path "/1/2/3".
         $getrootid = static function(string $path): int {
-            $path = trim($path, '/');
-            if ($path === '') {
+            $path = trim($path, "/");
+            if ($path === "") {
                 return 0;
             }
-            $parts = explode('/', $path);
-            return ($parts[0] ?? 0);
+
+            $parts = explode("/", $path);
+            return (int)($parts[0] ?? 0);
         };
 
-        // Determine which categories are selectable (privileged).
+        // Determine which categories are selectable.
         $catselectable = [];
         foreach ($categories as $cat) {
             $ctx = context_coursecat::instance($cat->id, IGNORE_MISSING);
-            if ($ctx && has_capability('moodle/category:manage', $ctx, $USER)) {
+            if ($ctx && has_capability("moodle/category:manage", $ctx, $USER)) {
                 $catselectable[$cat->id] = true;
             }
         }
@@ -78,7 +86,10 @@ class filter_options {
         $courseselectable = [];
         foreach ($courses as $course) {
             $ctx = context_course::instance($course->id, IGNORE_MISSING);
-            if ($ctx && (has_capability('moodle/course:viewparticipants', $ctx, $USER))) {
+            if ($ctx && (
+                    has_capability("moodle/course:viewparticipants", $ctx, $USER) ||
+                    has_capability("moodle/course:update", $ctx, $USER)
+                )) {
                 $courseselectable[$course->id] = true;
             }
         }
@@ -110,8 +121,6 @@ class filter_options {
 
             $optgroupitems = [];
 
-            // Sort catids by category sortorder already implied by fetched order,
-            // but keep consistent.
             foreach ($catids as $catid) {
                 $cat = $catbyid[$catid] ?? null;
                 if (!$cat) {
@@ -120,47 +129,50 @@ class filter_options {
 
                 // Add category option if selectable.
                 if (!empty($catselectable[$catid])) {
-                    $indent = str_repeat('&nbsp;&nbsp;&nbsp;&nbsp;', max(0, ($cat->depth - $catbyid[$rootid]->depth)));
+                    $indent = str_repeat("&nbsp;&nbsp;&nbsp;&nbsp;", max(0, ($cat->depth - $catbyid[$rootid]->depth)));
                     $optgroupitems[] = [
-                        'value' => 'cat-' . $catid,
-                        'text' => $indent . 'Category: ' . htmlspecialchars($cat->name),
-                        'selected' => ($selectedraw === 'cat-' . $catid),
+                        "value" => "cat-" . $catid,
+                        "text" => $indent . "Category: " . htmlspecialchars($cat->name),
+                        "selected" => ($selectedraw === "cat-" . $catid),
                     ];
                 }
 
                 // Add courses for this category if selectable.
                 if (!empty($coursesbycat[$catid])) {
                     foreach ($coursesbycat[$catid] as $course) {
-                        $cid = $course->id;
+                        $cid = (int)$course->id;
+
                         if (empty($courseselectable[$cid]) && empty($catselectable[$catid])) {
-                            // If user cannot view the course, and also cannot manage the category, skip.
                             continue;
                         }
 
-                        $indent = str_repeat('&nbsp;&nbsp;&nbsp;&nbsp;', max(0, ($cat->depth - $catbyid[$rootid]->depth + 1)));
+                        $indent = str_repeat(
+                            "&nbsp;&nbsp;&nbsp;&nbsp;",
+                            max(0, ($cat->depth - $catbyid[$rootid]->depth + 1))
+                        );
+
                         $optgroupitems[] = [
-                            'value' => $cid,
-                            'text' => $indent . htmlspecialchars($course->fullname),
-                            'selected' => ($selectedraw === $cid),
+                            "value" => (string)$cid,
+                            "text" => $indent . htmlspecialchars($course->fullname),
+                            "selected" => ($selectedraw === (string)$cid),
                         ];
                     }
                 }
             }
 
-            // Skip empty groups.
             if (!$optgroupitems) {
                 continue;
             }
 
             $groups[] = [
-                'label' => $catbyid[$rootid]->name,
-                'options' => $optgroupitems,
+                "label" => $catbyid[$rootid]->name,
+                "options" => $optgroupitems,
             ];
         }
 
         return [
-            'selectedraw' => $selectedraw,
-            'groups' => $groups,
+            "selectedraw" => $selectedraw,
+            "groups" => $groups,
         ];
     }
 }

@@ -5,9 +5,11 @@
         <option value="">Choose...</option>
 
         {{#groups}}
-            {{#options}}
-                <option value="{{value}}" {{#selected}}selected{{/selected}}>{{{text}}}</option>
-            {{/options}}
+            <optgroup label="{{label}}">
+                {{#options}}
+                    <option value="{{value}}" {{#selected}}selected{{/selected}}>{{{text}}}</option>
+                {{/options}}
+            </optgroup>
         {{/groups}}
     </select>
 </form>
