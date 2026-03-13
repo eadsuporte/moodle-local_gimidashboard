@@ -125,7 +125,7 @@ class stats_cards {
                     "label" => "Learners Enrolled",
                 ],
                 [
-                    "value" =>   "{$completionpct}%",
+                    "value" => "{$completionpct}%",
                     "label" => "Completion",
                 ],
                 [

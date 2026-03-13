@@ -271,7 +271,7 @@ class cohorts_report {
                             "email" => $members[$userid]->email,
                             "course" => $coursenames[$courseid] ?? ("Course #" . $courseid),
                             "group" => $grouptext,
-                            "progress" =>  "{$progresspct}%",
+                            "progress" => "{$progresspct}%",
                             "grade" => $gradepct[$courseid][$userid] ?? 0,
                             "certificate_yes" => !empty($certissued[$courseid][$userid]),
                             "certificate_no" => empty($certissued[$courseid][$userid]),
