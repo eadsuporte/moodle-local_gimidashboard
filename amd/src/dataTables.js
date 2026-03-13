@@ -6603,7 +6603,7 @@
             }
 
             if ( type == 'alert' ) {
-                alert( msg );
+                console.error( msg );
             }
             else if ( type == 'throw' ) {
                 throw new Error(msg);
@@ -12617,7 +12617,7 @@
         }
         else {
             if (! __mlWarning) {
-                alert('DataTables warning: Formatted date without Moment.js or Luxon - https://datatables.net/tn/17');
+                console.error('DataTables warning: Formatted date without Moment.js or Luxon - https://datatables.net/tn/17');
             }
 
             __mlWarning = true;
