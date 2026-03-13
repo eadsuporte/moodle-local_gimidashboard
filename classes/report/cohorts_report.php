@@ -55,12 +55,13 @@ class cohorts_report {
 
         // Cohort-course mapping from enrol='cohort' (customint1 = cohortid).
         $pairs = $DB->get_records_sql("
-             SELECT DISTINCT e.courseid, e.customint1 AS cohortid
+             SELECT CONCAT(e.courseid, e.customint1) AS id, e.courseid, e.customint1 AS cohortid
                FROM {enrol} e
               WHERE e.enrol = 'cohort'
                 AND e.status = 0
                 AND e.customint1 IS NOT NULL
-                AND e.courseid {$insql}",
+                AND e.courseid {$insql}
+           GROUP BY e.courseid, e.customint1",
             $params
         );
 
