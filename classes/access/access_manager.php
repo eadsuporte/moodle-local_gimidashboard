@@ -1,0 +1,286 @@
+<?php
+
+namespace local_gimidashboard\access;
+
+use coding_exception;
+use context_course;
+use context_system;
+use dml_exception;
+
+/**
+ * Resolves the courses and categories visible to the current user.
+ *
+ * @package   local_gimidashboard
+ */
+class access_manager {
+    /**
+     * Returns true when the user can access the plugin for a specific course.
+     *
+     * @param int $courseid Course id.
+     * @param int|null $userid User id.
+     * @return bool
+     * @throws coding_exception
+     */
+    public static function user_has_course_access(int $courseid, ?int $userid = null): bool {
+        global $USER;
+
+        $userid = $userid ?: $USER->id;
+        $context = context_course::instance($courseid);
+
+        if (!has_capability("local/gimidashboard:view", $context, $userid)) {
+            return false;
+        }
+
+        $roleids = array_map("intval", config::get_report_capabilities());
+        if (empty($roleids)) {
+            return false;
+        }
+
+        if (is_siteadmin($userid)) {
+            return true;
+        }
+
+        $userroles = get_user_roles($context, $userid, true, "ra.roleid");
+        foreach ($userroles as $userrole) {
+            if (in_array((int) $userrole->roleid, $roleids, true)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Returns the list of courses the user can access based on the configured role IDs.
+     *
+     * The configuration stores role IDs, not capabilities. A user can access a course when:
+     * - They are a site admin
+     * - They have one of the configured roles in system context
+     * - They have one of the configured roles in a course category context
+     * - They have one of the configured roles directly in the course context
+     *
+     * @param int|null $userid The user ID. When null, the current user is used.
+     * @return array The accessible course records indexed by course ID.
+     * @throws coding_exception
+     * @throws dml_exception
+     */
+    public static function get_accessible_courses(?int $userid = null): array {
+        global $DB, $USER;
+
+        $userid = $userid ?: $USER->id;
+        $roleids = array_map("intval", config::get_report_capabilities());
+
+        if (!$roleids) {
+            return [];
+        }
+
+        if (is_siteadmin($userid)) {
+            return $DB->get_records_sql(
+                "
+            SELECT c.*
+              FROM {course} c
+             WHERE c.id <> :siteid
+          ORDER BY c.sortorder ASC, c.fullname ASC
+        ", [
+                    "siteid" => SITEID,
+                ]
+            );
+        }
+
+        [$rolesql, $roleparams] = $DB->get_in_or_equal($roleids, SQL_PARAMS_NAMED, "role");
+
+        $params = [
+                "userid" => $userid,
+            ] + $roleparams;
+
+        $assignments = $DB->get_records_sql(
+            "
+        SELECT ra.contextid, ctx.contextlevel, ctx.instanceid
+          FROM {role_assignments} ra
+          JOIN {context} ctx
+            ON ctx.id = ra.contextid
+         WHERE ra.userid = :userid
+           AND ra.roleid {$rolesql}
+    ", $params
+        );
+
+        if (!$assignments) {
+            return [];
+        }
+
+        $hasystemrole = false;
+        $courseids = [];
+        $categorycontextids = [];
+
+        foreach ($assignments as $assignment) {
+            if ($assignment->contextlevel === CONTEXT_SYSTEM) {
+                $hasystemrole = true;
+                break;
+            }
+
+            if ($assignment->contextlevel === CONTEXT_COURSE) {
+                $courseids[$assignment->instanceid] = $assignment->instanceid;
+                continue;
+            }
+
+            if ($assignment->contextlevel === CONTEXT_COURSECAT) {
+                $categorycontextids[$assignment->contextid] = $assignment->contextid;
+            }
+        }
+
+        if ($hasystemrole) {
+            return $DB->get_records_sql(
+                "
+            SELECT c.*
+              FROM {course} c
+             WHERE c.id <> :siteid
+          ORDER BY c.sortorder ASC, c.fullname ASC
+        ", [
+                    "siteid" => SITEID,
+                ]
+            );
+        }
+
+        if ($categorycontextids) {
+            $likeparts = [];
+            $likeparams = [
+                "courselevel" => CONTEXT_COURSE,
+                "siteid" => SITEID,
+            ];
+
+            $index = 0;
+            foreach ($categorycontextids as $contextid) {
+                $paramname = "path{$index}";
+                $likeparts[] = $DB->sql_like("ctxcourse.path", ":{$paramname}");
+                $likeparams[$paramname] = "%/" . $contextid . "/%";
+                $index++;
+            }
+
+            $sql = "
+            SELECT DISTINCT c.id
+              FROM {course} c
+              JOIN {context} ctxcourse
+                ON ctxcourse.contextlevel = :courselevel
+               AND ctxcourse.instanceid = c.id
+             WHERE c.id <> :siteid
+               AND (" . implode(" OR ", $likeparts) . ")
+        ";
+
+            $categorycourses = $DB->get_records_sql($sql, $likeparams);
+
+            foreach ($categorycourses as $course) {
+                $courseids[$course->id] = $course->id;
+            }
+        }
+
+        if (!$courseids) {
+            return [];
+        }
+
+        [$coursesql, $courseparams] = $DB->get_in_or_equal(array_values($courseids), SQL_PARAMS_NAMED, "course");
+
+        $sql = "
+            SELECT c.*
+              FROM {course} c
+             WHERE c.id {$coursesql}
+               AND c.id <> :siteid
+          ORDER BY c.sortorder ASC, c.fullname ASC";
+        $courseparams += ["siteid" => SITEID];
+        return $DB->get_records_sql($sql, $courseparams);
+    }
+
+    /**
+     * Returns the accessible courses inside a selected category tree.
+     *
+     * @param int $categoryid Category id.
+     * @param int|null $userid User id.
+     * @return array
+     * @throws coding_exception
+     * @throws dml_exception
+     */
+    public static function get_accessible_courses_for_category(int $categoryid, ?int $userid = null): array {
+        global $DB;
+
+        $courses = self::get_accessible_courses($userid);
+        if (empty($courses)) {
+            return [];
+        }
+
+        $categoryids = array_values(array_unique(array_map(static function($course): int {
+            return $course->category;
+        }, $courses)));
+
+        [$insql, $params] = $DB->get_in_or_equal($categoryids, SQL_PARAMS_NAMED);
+        $categories = $DB->get_records_select("course_categories", "id {$insql}", $params, "", "id, path");
+
+        $filtered = [];
+        foreach ($courses as $course) {
+            $coursecategoryid = $course->category;
+            if (empty($categories[$coursecategoryid])) {
+                continue;
+            }
+
+            $path = "/" . trim($categories[$coursecategoryid]->path, "/") . "/";
+            if (strpos($path, "/{$categoryid}/") === false) {
+                continue;
+            }
+
+            $filtered[$course->id] = $course;
+        }
+
+        return $filtered;
+    }
+
+    /**
+     * Returns grouped select options for categories and courses.
+     *
+     * @param int|null $userid User id.
+     * @return array
+     * @throws coding_exception
+     */
+    public static function get_selector_groups(?int $userid = null): array {
+        $courses = self::get_accessible_courses($userid);
+        if (empty($courses)) {
+            return [];
+        }
+
+        $categoryids = array_values(array_unique(array_map(static function($course): int {
+            return $course->category;
+        }, $courses)));
+        $categorylabels = category_path_formatter::get_labels($categoryids);
+
+        $groups = [];
+        foreach ($courses as $course) {
+            $categoryid = $course->category;
+            if (!isset($groups[$categoryid])) {
+                $label = $categorylabels[$categoryid] ?? $categoryid;
+                $groups[$categoryid] = [
+                    "label" => $label,
+                    "options" => [
+                        [
+                            "value" => "category-{$categoryid}",
+                            "name" => get_string("selectioncategory", "local_gimidashboard") . ": " . $label,
+                            "selected" => false,
+                        ],
+                    ],
+                ];
+            }
+
+            $groups[$categoryid]["options"][] = [
+                "value" => "course-{$course->id}",
+                "name" => "&nbsp;&nbsp;&nbsp;&nbsp;" .
+                    format_string($course->fullname, true, ["context" => context_course::instance($course->id)]),
+                "selected" => false,
+            ];
+        }
+
+        usort($courses, static function(\stdClass $a, \stdClass $b): int {
+            return strcmp(
+                strtolower($a->fullname),
+                strtolower($b->fullname)
+            );
+        });
+
+        return array_values($groups);
+    }
+}

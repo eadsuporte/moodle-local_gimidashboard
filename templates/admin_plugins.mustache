@@ -1,0 +1,19 @@
+<div class="local-gimidashboard-admin py-3">
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-center">
+            <div>
+                <h4 class="mb-1">{{#str}}adminplugins, local_gimidashboard{{/str}}</h4>
+                <div class="text-muted">{{description}}</div>
+            </div>
+            <div>
+                <a class="btn btn-outline-primary" href="{{dashboardurl}}">{{dashboardlabel}}</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            {{{tablehtml}}}
+        </div>
+    </div>
+</div>

@@ -1,0 +1,30 @@
+<div class="local-gimidashboard py-3">
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" class="align-items-end">
+                <label class="form-label fw-semibold" for="local-gimidashboard-target"
+                >{{#str}}selectorlabel, local_gimidashboard{{/str}}</label>
+                <select id="local-gimidashboard-target" name="target" class="form-select"
+                        onchange="this.form.submit()">
+                    {{#groups}}
+                        <optgroup label="{{{label}}}">
+                            {{#options}}
+                                <option value="{{value}}" {{#selected}}selected{{/selected}}>{{{name}}}</option>
+                            {{/options}}
+                        </optgroup>
+                    {{/groups}}
+                </select>
+                <div class="form-text">{{#str}}selectorhelp, local_gimidashboard{{/str}}</div>
+                <input type="submit" style="display:none;">
+            </form>
+        </div>
+    </div>
+
+    {{#reports}}
+        {{{html}}}
+    {{/reports}}
+
+    {{^reports}}
+        <div class="alert alert-warning">{{#str}}noreportsavailable, local_gimidashboard{{/str}}</div>
+    {{/reports}}
+</div>

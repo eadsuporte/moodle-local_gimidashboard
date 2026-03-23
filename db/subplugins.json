@@ -1,0 +1,8 @@
+{
+  "subplugintypes": {
+    "gimidashboardreports": "gimidashboardreports"
+  },
+  "plugintypes": {
+    "gimidashboardreports": "local/gimidashboard/reports"
+  }
+}
