@@ -1,0 +1,47 @@
+<div class="gimi-full-academy-dashboard">
+    <div class="gimi-full-dashboard-header">
+        <div class="gimi-full-dashboard-header-main">
+            <h3>{{academyname}} <span class="gimi-full-dashboard-plugin-name">— {{pluginname}}</span></h3>
+        </div>
+        <div class="gimi-full-dashboard-header-sub">{{subtitle}}</div>
+    </div>
+
+    {{#hasfilters}}
+        <div class="gimi-filter-bar">
+            {{#filters}}
+                <div class="gimi-filter-pill">
+                    <strong>{{label}}:</strong>
+                    <span>{{value}}</span>
+                    <a href="{{clearurl}}">×</a>
+                </div>
+            {{/filters}}
+            <div class="gimi-filter-pill">
+                <a href="{{reseturl}}">{{#str}}resetfilters, gimidashboardreports_fullacademydashboard{{/str}}</a>
+            </div>
+        </div>
+    {{/hasfilters}}
+
+    <div class="gimi-kpi-grid">
+        {{#kpis}}
+            <div class="gimi-kpi-card">
+                <div class="gimi-kpi-card-label">{{label}}</div>
+                <div class="gimi-kpi-card-value">{{value}}</div>
+            </div>
+        {{/kpis}}
+    </div>
+
+    <div class="gimi-dashboard-note">{{#str}}detailhelp, gimidashboardreports_fullacademydashboard{{/str}}</div>
+
+    {{#hasrows}}
+        {{{summarytablehtml}}}
+    {{/hasrows}}
+
+    {{^hasrows}}
+        <div class="gimi-empty-state">{{#str}}nolearners, gimidashboardreports_fullacademydashboard{{/str}}</div>
+    {{/hasrows}}
+
+    {{#hasdetailtable}}
+        <div class="gimi-detail-heading">{{#str}}coursebreakdown, gimidashboardreports_fullacademydashboard{{/str}}</div>
+        {{{detailtablehtml}}}
+    {{/hasdetailtable}}
+</div>

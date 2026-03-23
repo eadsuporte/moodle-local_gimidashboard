@@ -1,0 +1,37 @@
+<table class="generaltable table-sm">
+    <thead>
+    <tr>
+        {{#headers}}
+            <th>{{label}}</th>
+        {{/headers}}
+    </tr>
+    </thead>
+    <tbody>
+    {{#hasrows}}
+        {{#rows}}
+            <tr>
+                <td><a href="{{learnerurl}}">{{firstname}}</a></td>
+                <td><a href="{{learnerurl}}">{{lastname}}</a></td>
+                <td><a href="{{learnerurl}}">{{email}}</a></td>
+                <td>{{{pathwayshtml}}}</td>
+                <td>{{courses}}</td>
+                <td>{{avgprogress}}</td>
+                <td>{{avggrade}}</td>
+                <td>{{delta}}</td>
+                <td>{{completed}}</td>
+                <td>{{certs}}</td>
+                <td>{{exams}}</td>
+                <td>{{lastaccess}}</td>
+                <td>{{daysinactive}}</td>
+                <td>{{status}}</td>
+            </tr>
+        {{/rows}}
+    {{/hasrows}}
+
+    {{^hasrows}}
+        <tr>
+            <td colspan="14">{{emptymessage}}</td>
+        </tr>
+    {{/hasrows}}
+    </tbody>
+</table>
