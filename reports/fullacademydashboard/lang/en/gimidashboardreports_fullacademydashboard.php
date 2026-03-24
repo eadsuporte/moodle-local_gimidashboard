@@ -40,3 +40,4 @@ $string['dash'] = '–';
 $string['coursebreakdown'] = 'Selected learner course breakdown';
 $string['coursename'] = 'Course';
 $string['nodata'] = 'No Data';
+$string['exportexcel'] = 'Export to Excel';

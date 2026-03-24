@@ -6,6 +6,7 @@ use coding_exception;
 use context_course;
 use context_system;
 use core\exception\moodle_exception;
+use core\dataformat;
 use core_text;
 use dml_exception;
 use Exception;
@@ -61,11 +62,133 @@ class report implements report_interface {
      * @throws \Exception
      */
     public static function render(array $courses): string {
-        global $OUTPUT, $USER;
+        global $OUTPUT;
+
+        $reportdata = self::prepare_report_data($courses);
+        if (empty($reportdata->courseids)) {
+            return "";
+        }
+
+        $academyname = core_text::strtoupper(strip_tags(
+            $reportdata->selection->label !== "" ? $reportdata->selection->label : self::get_title()
+        ));
+
+        $subtitleparts = [];
+        if ($reportdata->pathwaycount === 1) {
+            $subtitleparts[] = get_string("allpathwayssingle", "gimidashboardreports_fullacademydashboard");
+        } else {
+            $subtitleparts[] = get_string(
+                "allpathways",
+                "gimidashboardreports_fullacademydashboard",
+                $reportdata->pathwaycount
+            );
+        }
+        $subtitleparts[] = get_string("learnerscount", "gimidashboardreports_fullacademydashboard", count($reportdata->rows));
+        $subtitleparts[] = get_string("snapshotlabel", "gimidashboardreports_fullacademydashboard", userdate(time(), "%Y-%m-%d"));
+        $subtitleparts[] = get_string("poweredby", "gimidashboardreports_fullacademydashboard");
+
+        return $OUTPUT->render_from_template("gimidashboardreports_fullacademydashboard/content", [
+            "academyname" => $academyname,
+            "pluginname" => core_text::strtoupper(get_string("pluginname", "gimidashboardreports_fullacademydashboard")),
+            "subtitle" => implode(" • ", $subtitleparts),
+            "kpis" => [
+                [
+                    "label" => get_string("totallearners", "gimidashboardreports_fullacademydashboard"),
+                    "value" => $reportdata->summary->totallearners,
+                ],
+                [
+                    "label" => get_string("avgprogress", "gimidashboardreports_fullacademydashboard"),
+                    "value" => self::format_percent($reportdata->summary->avgprogress),
+                ],
+                [
+                    "label" => get_string("avggrade", "gimidashboardreports_fullacademydashboard"),
+                    "value" => self::format_grade($reportdata->summary->avggrade),
+                ],
+                [
+                    "label" => get_string("neveraccessed", "gimidashboardreports_fullacademydashboard"),
+                    "value" => $reportdata->summary->neveraccessed,
+                ],
+                [
+                    "label" => get_string("certsearned", "gimidashboardreports_fullacademydashboard"),
+                    "value" => $reportdata->summary->certsearned,
+                ],
+                [
+                    "label" => get_string("coursescomplete", "gimidashboardreports_fullacademydashboard"),
+                    "value" => $reportdata->summary->coursescomplete,
+                ],
+            ],
+            "summarytablehtml" => self::render_summary_table($reportdata->rows, $reportdata->selection),
+            "detailtablehtml" => !empty($reportdata->detailrows)
+                ? self::render_detail_table($reportdata->detailrows, $reportdata->selection)
+                : "",
+            "hasdetailtable" => !empty($reportdata->detailrows),
+            "hasrows" => !empty($reportdata->rows),
+            "hasfilters" => !empty($reportdata->filters),
+            "filters" => $reportdata->filters,
+            "reseturl" => self::build_url($reportdata->selection->target)->out(false),
+            "exporturl" => self::build_export_url(
+                $reportdata->selection->target,
+                $reportdata->learnerid,
+                $reportdata->cohortid
+            )->out(false),
+        ]);
+    }
+
+    /**
+     * Downloads the current summary data using the selected dataformat.
+     *
+     * @param array $courses Accessible course records.
+     * @param string $dataformat Data format name.
+     * @return void
+     * @throws coding_exception
+     * @throws dml_exception
+     * @throws moodle_exception
+     */
+    public static function export(array $courses, string $dataformat = "excel"): void {
+        $reportdata = self::prepare_report_data($courses);
+        if (empty($reportdata->courseids)) {
+            throw new moodle_exception("invaliddata");
+        }
+
+        $columns = self::get_export_columns();
+        $iterator = new \ArrayIterator(array_values($reportdata->rows));
+
+        dataformat::download_data(
+            self::build_export_filename($reportdata->selection),
+            $dataformat,
+            $columns,
+            $iterator,
+            static function(object $row, bool $supportshtml): array {
+                return self::format_export_record($row, $supportshtml);
+            }
+        );
+    }
+
+    /**
+     * Prepares the report data for rendering and export.
+     *
+     * @param array $courses Accessible course records.
+     * @return object
+     * @throws coding_exception
+     * @throws dml_exception
+     * @throws moodle_exception
+     */
+    protected static function prepare_report_data(array $courses): object {
+        global $USER;
 
         $courseids = self::extract_course_ids($courses);
         if (empty($courseids)) {
-            return "";
+            return (object) [
+                "courseids" => [],
+                "selection" => (object) ["target" => "", "label" => ""],
+                "learnerid" => 0,
+                "cohortid" => 0,
+                "rows" => [],
+                "detailrows" => [],
+                "filters" => [],
+                "summary" => self::build_summary([]),
+                "pathwaycount" => 0,
+            ];
         }
 
         $selection = selection_resolver::resolve(optional_param("target", "", PARAM_TEXT), $USER->id);
@@ -137,66 +260,17 @@ class report implements report_interface {
             }
         }
 
-        $summary = self::build_summary($rows);
-        $pathwaycount = self::count_pathways($rows);
-        $academyname = core_text::strtoupper(strip_tags($selection->label !== "" ? $selection->label : self::get_title()));
-
-        $subtitleparts = [];
-        if ($pathwaycount === 1) {
-            $subtitleparts[] = get_string("allpathwayssingle", "gimidashboardreports_fullacademydashboard");
-        } else {
-            $subtitleparts[] = get_string("allpathways", "gimidashboardreports_fullacademydashboard", $pathwaycount);
-        }
-        $subtitleparts[] = get_string("learnerscount", "gimidashboardreports_fullacademydashboard", count($rows));
-        $subtitleparts[] = get_string("snapshotlabel", "gimidashboardreports_fullacademydashboard", userdate(time(), "%Y-%m-%d"));
-        $subtitleparts[] = get_string("poweredby", "gimidashboardreports_fullacademydashboard");
-
-        return $OUTPUT->render_from_template("gimidashboardreports_fullacademydashboard/content", [
-            "academyname" => $academyname,
-            "pluginname" => core_text::strtoupper(get_string("pluginname", "gimidashboardreports_fullacademydashboard")),
-            "subtitle" => implode(" • ", $subtitleparts),
-            "kpis" => [
-                [
-                    "label" => get_string(
-                        "totallearners", "gimidashboardreports_fullacademydashboard"
-                    ), "value" => $summary->totallearners,
-                ],
-                [
-                    "label" => get_string(
-                        "avgprogress", "gimidashboardreports_fullacademydashboard"
-                    ), "value" => self::format_percent(
-                    $summary->avgprogress
-                ),
-                ],
-                [
-                    "label" => get_string("avggrade", "gimidashboardreports_fullacademydashboard"), "value" => self::format_grade(
-                    $summary->avggrade
-                ),
-                ],
-                [
-                    "label" => get_string(
-                        "neveraccessed", "gimidashboardreports_fullacademydashboard"
-                    ), "value" => $summary->neveraccessed,
-                ],
-                [
-                    "label" => get_string(
-                        "certsearned", "gimidashboardreports_fullacademydashboard"
-                    ), "value" => $summary->certsearned,
-                ],
-                [
-                    "label" => get_string(
-                        "coursescomplete", "gimidashboardreports_fullacademydashboard"
-                    ), "value" => $summary->coursescomplete,
-                ],
-            ],
-            "summarytablehtml" => self::render_summary_table($rows, $selection),
-            "detailtablehtml" => !empty($detailrows) ? self::render_detail_table($detailrows, $selection) : "",
-            "hasdetailtable" => !empty($detailrows),
-            "hasrows" => !empty($rows),
-            "hasfilters" => !empty($filters),
+        return (object) [
+            "courseids" => $courseids,
+            "selection" => $selection,
+            "learnerid" => $learnerid,
+            "cohortid" => $cohortid,
+            "rows" => $rows,
+            "detailrows" => $detailrows,
             "filters" => $filters,
-            "reseturl" => self::build_url($selection->target)->out(false),
-        ]);
+            "summary" => self::build_summary($rows),
+            "pathwaycount" => self::count_pathways($rows),
+        ];
     }
 
     /**
@@ -938,6 +1012,73 @@ class report implements report_interface {
     }
 
     /**
+     * Returns the export column definitions.
+     *
+     * @return array
+     * @throws coding_exception
+     */
+    protected static function get_export_columns(): array {
+        return [
+            "firstname" => get_string("firstname", "gimidashboardreports_fullacademydashboard"),
+            "lastname" => get_string("lastname", "gimidashboardreports_fullacademydashboard"),
+            "email" => get_string("email", "gimidashboardreports_fullacademydashboard"),
+            "pathway" => get_string("pathway", "gimidashboardreports_fullacademydashboard"),
+            "courses" => get_string("courses", "gimidashboardreports_fullacademydashboard"),
+            "avgprogress" => get_string("avgscoreprogress", "gimidashboardreports_fullacademydashboard"),
+            "avggrade" => get_string("avgscoregrade", "gimidashboardreports_fullacademydashboard"),
+            "delta" => get_string("deltavsday1", "gimidashboardreports_fullacademydashboard"),
+            "completed" => get_string("completed", "gimidashboardreports_fullacademydashboard"),
+            "certs" => get_string("certs", "gimidashboardreports_fullacademydashboard"),
+            "exams" => get_string("exams", "gimidashboardreports_fullacademydashboard"),
+            "lastaccess" => get_string("lastaccess", "gimidashboardreports_fullacademydashboard"),
+            "daysinactive" => get_string("daysinactive", "gimidashboardreports_fullacademydashboard"),
+            "status" => get_string("status", "gimidashboardreports_fullacademydashboard"),
+        ];
+    }
+
+    /**
+     * Formats a summary row for export.
+     *
+     * @param object $row Learner row.
+     * @param bool $supportshtml Whether the selected format supports HTML.
+     * @return array
+     * @throws coding_exception
+     */
+    protected static function format_export_record(object $row, bool $supportshtml): array {
+        return [
+            "firstname" => $row->firstname,
+            "lastname" => $row->lastname,
+            "email" => $row->email,
+            "pathway" => self::format_pathways_for_export($row->pathways),
+            "courses" => $row->coursecount,
+            "avgprogress" => self::format_percent($row->avgprogress),
+            "avggrade" => self::format_grade($row->avggrade),
+            "delta" => self::format_percent($row->delta),
+            "completed" => $row->completed,
+            "certs" => $row->certs,
+            "exams" => $row->exams,
+            "lastaccess" => self::format_date($row->lastaccess),
+            "daysinactive" => self::format_days_inactive($row->daysinactive),
+            "status" => $row->status,
+        ];
+    }
+
+    /**
+     * Returns a plain text list of pathways for export.
+     *
+     * @param array $pathways Pathways.
+     * @return string
+     * @throws coding_exception
+     */
+    protected static function format_pathways_for_export(array $pathways): string {
+        if (empty($pathways)) {
+            return get_string("dash", "gimidashboardreports_fullacademydashboard");
+        }
+
+        return implode(" | ", array_values($pathways));
+    }
+
+    /**
      * Formats a percentage value.
      *
      * @param float|null $value Value.
@@ -1018,6 +1159,40 @@ class report implements report_interface {
         }
 
         return new moodle_url("/local/gimidashboard/view.php", $params);
+    }
+
+    /**
+     * Builds the export URL preserving active filters.
+     *
+     * @param string $target Target.
+     * @param int $learnerid Learner id.
+     * @param int $cohortid Cohort id.
+     * @return moodle_url
+     */
+    protected static function build_export_url(string $target, int $learnerid = 0, int $cohortid = 0): moodle_url {
+        $params = [
+            "target" => $target,
+            "dataformat" => "excel",
+        ];
+        if ($learnerid > 0) {
+            $params["learnerid"] = $learnerid;
+        }
+        if ($cohortid > 0) {
+            $params["cohortid"] = $cohortid;
+        }
+
+        return new moodle_url("/local/gimidashboard/reports/fullacademydashboard/export.php", $params);
+    }
+
+    /**
+     * Builds the export filename.
+     *
+     * @param object $selection Selection payload.
+     * @return string
+     */
+    protected static function build_export_filename(object $selection): string {
+        $label = $selection->label !== "" ? $selection->label : self::get_title();
+        return clean_filename("full-academy-dashboard-" . $label . "-" . userdate(time(), "%Y%m%d-%H%M"));
     }
 
     /**
