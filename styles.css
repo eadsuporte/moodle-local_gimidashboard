@@ -35,7 +35,6 @@
   border-color: var(--gimi-border-strong) !important;
 }
 .local-gimidashboard > .card:first-child {
-  position: sticky;
   top: 1rem;
   z-index: 5;
   backdrop-filter: blur(10px);
