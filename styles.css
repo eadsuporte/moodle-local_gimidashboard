@@ -378,26 +378,6 @@
 .local-gimidashboard .gimi-filter-pill a:hover, .local-gimidashboard .gimi-filter-pill a:focus {
   text-decoration: underline;
 }
-.local-gimidashboard .gimi-pathway-links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-}
-.local-gimidashboard .gimi-pathway-links a {
-  display: inline-flex;
-  align-items: center;
-  border-radius: 999px;
-  padding: 0.2rem 0.6rem;
-  background: rgba(37, 99, 235, 0.09);
-  color: #1d4ed8;
-  font-size: 0.82rem;
-  font-weight: 700;
-  text-decoration: none;
-}
-.local-gimidashboard .gimi-pathway-links a:hover, .local-gimidashboard .gimi-pathway-links a:focus {
-  background: rgba(37, 99, 235, 0.15);
-  text-decoration: none;
-}
 .local-gimidashboard .gimi-detail-heading {
   margin: 1.2rem 0 0.8rem;
   font-size: 1rem;

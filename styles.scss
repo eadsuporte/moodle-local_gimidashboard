@@ -394,27 +394,6 @@
              }
         }
     }
-    .gimi-pathway-links {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.35rem;
-         a {
-            display: inline-flex;
-            align-items: center;
-            border-radius: 999px;
-            padding: 0.2rem 0.6rem;
-            background: rgba(37, 99, 235, 0.09);
-            color: #1d4ed8;
-            font-size: 0.82rem;
-            font-weight: 700;
-            text-decoration: none;
-             &:hover,
-             &:focus {
-                 background: rgba(37, 99, 235, 0.15);
-                 text-decoration: none;
-             }
-        }
-    }
     .gimi-detail-heading {
         margin: 1.2rem 0 0.8rem;
         font-size: 1rem;
