@@ -1,7 +1,30 @@
 <?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * report.php
+ *
+ * @package   gimidashboardreports_fullacademydashboard
+ * @copyright 2026 Eduardo Kraus {@link https://eduardokraus.com}
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 
 namespace gimidashboardreports_fullacademydashboard;
 
+use ArrayIterator;
 use coding_exception;
 use context_course;
 use context_system;
@@ -59,7 +82,7 @@ class report implements report_interface {
      * @throws coding_exception
      * @throws moodle_exception
      * @throws dml_exception
-     * @throws \Exception
+     * @throws Exception
      */
     public static function render(array $courses): string {
         global $OUTPUT;
@@ -151,7 +174,7 @@ class report implements report_interface {
         }
 
         $columns = self::get_export_columns();
-        $iterator = new \ArrayIterator(array_values($reportdata->rows));
+        $iterator = new ArrayIterator(array_values($reportdata->rows));
 
         dataformat::download_data(
             self::build_export_filename($reportdata->selection),
@@ -684,7 +707,7 @@ class report implements report_interface {
      * @param array $pathways Pathways.
      * @param object $selection Selection payload.
      * @return object
-     * @throws \coding_exception
+     * @throws coding_exception
      */
     protected static function build_user_row(
         stdClass $user,
@@ -885,7 +908,7 @@ class report implements report_interface {
      * @param array $rows Learner rows.
      * @param object $selection Selection.
      * @return string
-     * @throws \Exception
+     * @throws Exception
      */
     protected static function render_summary_table(array $rows, object $selection): string {
         global $OUTPUT;
@@ -949,7 +972,7 @@ class report implements report_interface {
      * @param object $selection Selection.
      * @return string
      * @throws coding_exception
-     * @throws \Exception
+     * @throws Exception
      */
     protected static function render_detail_table(array $rows, object $selection): string {
         $table = new flexible_table("gimi-full-dashboard-detail-" . md5($selection->target . ":detail"));
