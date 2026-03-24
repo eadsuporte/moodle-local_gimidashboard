@@ -27,13 +27,13 @@
         <div class="gimi-filter-bar">
             {{#filters}}
                 <div class="gimi-filter-pill">
-                    <strong>{{label}}:</strong>
-                    <span>{{value}}</span>
-                    <a href="{{clearurl}}">×</a>
+                    <strong>{{{label}}}:</strong>
+                    <span>{{{value}}}</span>
+                    <a href="{{{clearurl}}}">×</a>
                 </div>
             {{/filters}}
             <div class="gimi-filter-pill">
-                <a href="{{reseturl}}">{{#str}}resetfilters, gimidashboardreports_fullacademydashboard{{/str}}</a>
+                <a href="{{{reseturl}}}">{{#str}}resetfilters, gimidashboardreports_fullacademydashboard{{/str}}</a>
             </div>
         </div>
     {{/hasfilters}}
@@ -41,8 +41,8 @@
     <div class="gimi-kpi-grid">
         {{#kpis}}
             <div class="gimi-kpi-card">
-                <div class="gimi-kpi-card-label">{{label}}</div>
-                <div class="gimi-kpi-card-value">{{value}}</div>
+                <div class="gimi-kpi-card-label">{{{label}}}</div>
+                <div class="gimi-kpi-card-value">{{{value}}}</div>
             </div>
         {{/kpis}}
     </div>

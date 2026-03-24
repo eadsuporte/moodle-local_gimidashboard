@@ -15,7 +15,7 @@
     along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
-    @template gimidashboardreports_fullacademydashboard/summary_table
+    @template gimidashboardreports_fullacademydashboard/detail_table
 
     Example context (json):
     {
@@ -35,27 +35,21 @@
         {{#hasrows}}
             {{#rows}}
                 <tr>
-                    <td><a href="{{{learnerurl}}}">{{{firstname}}}</a></td>
-                    <td><a href="{{{learnerurl}}}">{{{lastname}}}</a></td>
-                    <td><a href="{{{learnerurl}}}">{{{email}}}</a></td>
-                    <td class="text-center text-nowrap">{{{pathwayshtml}}}</td>
-                    <td class="text-center text-nowrap">{{{courses}}}</td>
-                    <td class="text-center text-nowrap">{{{avgprogress}}}</td>
-                    <td class="text-center text-nowrap">{{{avggrade}}}</td>
-                    <td class="text-center text-nowrap">{{{delta}}}</td>
-                    <td class="text-center text-nowrap">{{{completed}}}</td>
-                    <td class="text-center text-nowrap">{{{certs}}}</td>
-                    <td class="text-center text-nowrap">{{{exams}}}</td>
-                    <td class="text-center text-nowrap">{{{lastaccess}}}</td>
-                    <td class="text-center text-nowrap">{{{daysinactive}}}</td>
-                    <td class="text-center text-nowrap">{{{status}}}</td>
+                    <td>{{{coursehtml}}}</td>
+                    <td>{{{pathwayhtml}}}</td>
+                    <td>{{{progress}}}</td>
+                    <td>{{{grade}}}</td>
+                    <td>{{{completed}}}</td>
+                    <td>{{{exams}}}</td>
+                    <td>{{{lastaccess}}}</td>
+                    <td>{{{status}}}</td>
                 </tr>
             {{/rows}}
         {{/hasrows}}
 
         {{^hasrows}}
             <tr>
-                <td colspan="14">{{{emptymessage}}}</td>
+                <td colspan="8">{{{emptymessage}}}</td>
             </tr>
         {{/hasrows}}
         </tbody>

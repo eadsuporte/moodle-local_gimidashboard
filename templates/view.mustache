@@ -34,13 +34,13 @@
                     {{#groups}}
                         <optgroup label="{{{label}}}">
                             {{#options}}
-                                <option value="{{value}}" {{#selected}}selected{{/selected}}>{{{name}}}</option>
+                                <option value="{{{value}}}" {{#selected}}selected{{/selected}}>{{{name}}}</option>
                             {{/options}}
                         </optgroup>
                     {{/groups}}
                 </select>
                 {{#existingparams}}
-                    <input type="hidden" name="{{name}}" value="{{value}}">
+                    <input type="hidden" name="{{{name}}}" value="{{{value}}}">
                 {{/existingparams}}
                 <div class="form-text">{{#str}}selectorhelp, local_gimidashboard{{/str}}</div>
                 <input type="submit" style="display:none;">

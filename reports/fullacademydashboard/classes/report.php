@@ -25,15 +25,11 @@
 namespace gimidashboardreports_fullacademydashboard;
 
 use ArrayIterator;
-use coding_exception;
 use context_course;
 use context_system;
-use core\exception\moodle_exception;
 use core\dataformat;
 use core_text;
-use dml_exception;
 use Exception;
-use flexible_table;
 use html_writer;
 use local_gimidashboard\page\selection_resolver;
 use local_gimidashboard\report\report_interface;
@@ -50,10 +46,9 @@ class report implements report_interface {
      * Returns the report title.
      *
      * @param array $courses
+     * @param string $extra
      * @return string
-     * @throws coding_exception
-     * @throws moodle_exception
-     * @throws dml_exception
+     * @throws Exception
      */
     public static function get_header(array $courses, $extra = ""): string {
         global $OUTPUT;
@@ -116,9 +111,6 @@ class report implements report_interface {
      *
      * @param array $courses Accessible course records.
      * @return string
-     * @throws coding_exception
-     * @throws moodle_exception
-     * @throws dml_exception
      * @throws Exception
      */
     public static function render(array $courses): string {
@@ -175,14 +167,12 @@ class report implements report_interface {
      * @param array $courses Accessible course records.
      * @param string $dataformat Data format name.
      * @return void
-     * @throws coding_exception
-     * @throws dml_exception
-     * @throws moodle_exception
+     * @throws Exception
      */
     public static function export(array $courses, string $dataformat = "excel"): void {
         $reportdata = self::prepare_report_data($courses);
         if (empty($reportdata->courseids)) {
-            throw new moodle_exception("invaliddata");
+            throw new Exception("invaliddata");
         }
 
         $columns = self::get_export_columns();
@@ -204,12 +194,15 @@ class report implements report_interface {
      *
      * @param array $courses Accessible course records.
      * @return object
-     * @throws coding_exception
-     * @throws dml_exception
-     * @throws moodle_exception
+     * @throws Exception
      */
     protected static function prepare_report_data(array $courses): object {
         global $USER;
+
+        static $returndata = null;
+        if ($returndata) {
+            return $returndata;
+        }
 
         $courseids = self::extract_course_ids($courses);
         if (empty($courseids)) {
@@ -295,7 +288,7 @@ class report implements report_interface {
             }
         }
 
-        return (object) [
+        $returndata = (object) [
             "courseids" => $courseids,
             "selection" => $selection,
             "learnerid" => $learnerid,
@@ -306,6 +299,7 @@ class report implements report_interface {
             "summary" => self::build_summary($rows),
             "pathwaycount" => self::count_pathways($rows),
         ];
+        return $returndata;
     }
 
     /**
@@ -327,8 +321,7 @@ class report implements report_interface {
      * @param int $learnerid Learner filter.
      * @param int $cohortid Cohort filter.
      * @return array
-     * @throws coding_exception
-     * @throws dml_exception
+     * @throws Exception
      */
     protected static function get_learners(array $courseids, int $learnerid = 0, int $cohortid = 0): array {
         global $DB;
@@ -354,7 +347,8 @@ class report implements report_interface {
             $joins .= " JOIN {cohort_members} cm ON cm.userid = u.id AND cm.cohortid = :cohortid";
         }
 
-        $sql = "SELECT DISTINCT u.id, u.firstname, u.lastname, u.email, u.suspended, u.deleted
+        $sql = "SELECT DISTINCT u.id, u.firstname, u.lastname, u.email, u.suspended, u.deleted,
+                                u.firstnamephonetic, u.lastnamephonetic, u.middlename, u.alternatename
                   FROM {user} u
                   JOIN {user_enrolments} ue
                     ON ue.userid = u.id
@@ -373,8 +367,7 @@ class report implements report_interface {
      * @param array $courseids Course ids.
      * @param array $userids User ids.
      * @return array
-     * @throws coding_exception
-     * @throws dml_exception
+     * @throws Exception
      */
     protected static function get_user_courses(array $courseids, array $userids): array {
         global $DB;
@@ -409,8 +402,7 @@ class report implements report_interface {
      *
      * @param array $courseids Course ids.
      * @return array
-     * @throws coding_exception
-     * @throws dml_exception
+     * @throws Exception
      */
     protected static function get_trackable_module_totals(array $courseids): array {
         global $DB;
@@ -439,8 +431,7 @@ class report implements report_interface {
      * @param array $courseids Course ids.
      * @param array $userids User ids.
      * @return array
-     * @throws coding_exception
-     * @throws dml_exception
+     * @throws Exception
      */
     protected static function get_completed_module_totals(array $courseids, array $userids): array {
         global $DB;
@@ -479,8 +470,7 @@ class report implements report_interface {
      * @param array $courseids Course ids.
      * @param array $userids User ids.
      * @return array
-     * @throws coding_exception
-     * @throws dml_exception
+     * @throws Exception
      */
     protected static function get_course_grade_percentages(array $courseids, array $userids): array {
         global $DB;
@@ -524,8 +514,7 @@ class report implements report_interface {
      * @param array $courseids Course ids.
      * @param array $userids User ids.
      * @return array
-     * @throws coding_exception
-     * @throws dml_exception
+     * @throws Exception
      */
     protected static function get_course_completions(array $courseids, array $userids): array {
         global $DB;
@@ -558,8 +547,7 @@ class report implements report_interface {
      * @param array $courseids Course ids.
      * @param array $userids User ids.
      * @return array
-     * @throws coding_exception
-     * @throws dml_exception
+     * @throws Exception
      */
     protected static function get_exam_counts(array $courseids, array $userids): array {
         global $DB;
@@ -595,8 +583,7 @@ class report implements report_interface {
      * @param array $courseids Course ids.
      * @param array $userids User ids.
      * @return array
-     * @throws coding_exception
-     * @throws dml_exception
+     * @throws Exception
      */
     protected static function get_last_access_by_course(array $courseids, array $userids): array {
         global $DB;
@@ -629,8 +616,7 @@ class report implements report_interface {
      * @param array $courseids Course ids.
      * @param array $userids User ids.
      * @return array
-     * @throws coding_exception
-     * @throws dml_exception
+     * @throws Exception
      */
     protected static function get_user_pathways(array $courseids, array $userids): array {
         global $DB;
@@ -681,8 +667,7 @@ class report implements report_interface {
      *
      * @param array $courseids Course ids.
      * @return array
-     * @throws coding_exception
-     * @throws dml_exception
+     * @throws Exception
      */
     protected static function get_linked_cohort_ids(array $courseids): array {
         global $DB;
@@ -719,7 +704,7 @@ class report implements report_interface {
      * @param array $pathways Pathways.
      * @param object $selection Selection payload.
      * @return object
-     * @throws coding_exception
+     * @throws Exception
      */
     protected static function build_user_row(
         stdClass $user,
@@ -807,7 +792,7 @@ class report implements report_interface {
      * @param array $pathways Pathways.
      * @param object $selection Selection payload.
      * @return array
-     * @throws coding_exception
+     * @throws Exception
      */
     protected static function build_detail_rows(
         stdClass $user,
@@ -953,9 +938,9 @@ class report implements report_interface {
             $learnerurl = self::build_url($selection->target, $row->userid, $cohortid);
 
             $templatecontext["rows"][] = [
-                "firstname" => s($row->firstname),
-                "lastname" => s($row->lastname),
-                "email" => s($row->email),
+                "firstname" => $row->firstname,
+                "lastname" => $row->lastname,
+                "email" => $row->email,
                 "learnerurl" => $learnerurl,
                 "pathwayshtml" => self::render_pathway_links($row->pathways, $selection),
                 "courses" => $row->coursecount,
@@ -967,7 +952,7 @@ class report implements report_interface {
                 "exams" => $row->exams,
                 "lastaccess" => self::format_date($row->lastaccess),
                 "daysinactive" => self::format_days_inactive($row->daysinactive),
-                "status" => s($row->status),
+                "status" => $row->status,
             ];
         }
 
@@ -983,44 +968,44 @@ class report implements report_interface {
      * @param array $rows Detail rows.
      * @param object $selection Selection.
      * @return string
-     * @throws coding_exception
      * @throws Exception
      */
     protected static function render_detail_table(array $rows, object $selection): string {
-        $table = new flexible_table("gimi-full-dashboard-detail-" . md5($selection->target . ":detail"));
-        $table->define_columns(["course", "pathway", "progress", "grade", "completed", "exams", "lastaccess", "status"]);
-        $table->define_headers([
-            get_string("coursename", "gimidashboardreports_fullacademydashboard"),
-            get_string("pathway", "gimidashboardreports_fullacademydashboard"),
-            get_string("avgscoreprogress", "gimidashboardreports_fullacademydashboard"),
-            get_string("avgscoregrade", "gimidashboardreports_fullacademydashboard"),
-            get_string("completed", "gimidashboardreports_fullacademydashboard"),
-            get_string("exams", "gimidashboardreports_fullacademydashboard"),
-            get_string("lastaccess", "gimidashboardreports_fullacademydashboard"),
-            get_string("status", "gimidashboardreports_fullacademydashboard"),
-        ]);
-        $table->define_baseurl(
-            self::build_url($selection->target, optional_param("learnerid", 0, PARAM_INT), optional_param("cohortid", 0, PARAM_INT))
-        );
-        $table->set_attribute("class", "generaltable table-sm");
-        $table->setup();
+        global $OUTPUT;
+
+        $templatecontext = [
+            "headers" => [
+                ["label" => get_string("coursename", "gimidashboardreports_fullacademydashboard")],
+                ["label" => get_string("pathway", "gimidashboardreports_fullacademydashboard")],
+                ["label" => get_string("avgscoreprogress", "gimidashboardreports_fullacademydashboard")],
+                ["label" => get_string("avgscoregrade", "gimidashboardreports_fullacademydashboard")],
+                ["label" => get_string("completed", "gimidashboardreports_fullacademydashboard")],
+                ["label" => get_string("exams", "gimidashboardreports_fullacademydashboard")],
+                ["label" => get_string("lastaccess", "gimidashboardreports_fullacademydashboard")],
+                ["label" => get_string("status", "gimidashboardreports_fullacademydashboard")],
+            ],
+            "rows" => [],
+            "hasrows" => !empty($rows),
+            "emptymessage" => get_string("nodata", "gimidashboardreports_fullacademydashboard"),
+        ];
 
         foreach ($rows as $row) {
-            $table->add_data([
-                $row["course"],
-                $row["pathway"],
-                $row["progress"],
-                $row["grade"],
-                $row["completed"],
-                $row["exams"],
-                $row["lastaccess"],
-                $row["status"],
-            ]);
+            $templatecontext["rows"][] = [
+                "coursehtml" => $row["course"],
+                "pathwayhtml" => $row["pathway"],
+                "progress" => $row["progress"],
+                "grade" => $row["grade"],
+                "completed" => $row["completed"],
+                "exams" => $row["exams"],
+                "lastaccess" => $row["lastaccess"],
+                "status" => s($row["status"]),
+            ];
         }
 
-        ob_start();
-        $table->finish_output();
-        return ob_get_clean();
+        return $OUTPUT->render_from_template(
+            "gimidashboardreports_fullacademydashboard/detail_table",
+            $templatecontext
+        );
     }
 
     /**
@@ -1029,7 +1014,6 @@ class report implements report_interface {
      * @param array $pathways Pathways.
      * @param object $selection Selection.
      * @return string
-     * @throws coding_exception
      * @throws Exception
      */
     protected static function render_pathway_links(array $pathways, object $selection): string {
@@ -1050,7 +1034,7 @@ class report implements report_interface {
      * Returns the export column definitions.
      *
      * @return array
-     * @throws coding_exception
+     * @throws Exception
      */
     protected static function get_export_columns(): array {
         return [
@@ -1077,7 +1061,7 @@ class report implements report_interface {
      * @param object $row Learner row.
      * @param bool $supportshtml Whether the selected format supports HTML.
      * @return array
-     * @throws coding_exception
+     * @throws Exception
      */
     protected static function format_export_record(object $row, bool $supportshtml): array {
         return [
@@ -1103,7 +1087,7 @@ class report implements report_interface {
      *
      * @param array $pathways Pathways.
      * @return string
-     * @throws coding_exception
+     * @throws Exception
      */
     protected static function format_pathways_for_export(array $pathways): string {
         if (empty($pathways)) {
@@ -1119,7 +1103,7 @@ class report implements report_interface {
      * @param float|null $value Value.
      * @param bool $appendpercent Append percent sign.
      * @return string
-     * @throws coding_exception
+     * @throws Exception
      */
     protected static function format_percent(?float $value, bool $appendpercent = true): string {
         if ($value === null) {
@@ -1135,7 +1119,7 @@ class report implements report_interface {
      *
      * @param float|null $value Value.
      * @return string
-     * @throws coding_exception
+     * @throws Exception
      */
     protected static function format_grade(?float $value): string {
         if ($value === null) {
@@ -1150,7 +1134,7 @@ class report implements report_interface {
      *
      * @param int $timestamp Timestamp.
      * @return string
-     * @throws coding_exception
+     * @throws Exception
      */
     protected static function format_date(int $timestamp): string {
         if ($timestamp <= 0) {
@@ -1165,7 +1149,7 @@ class report implements report_interface {
      *
      * @param int|null $days Days.
      * @return string
-     * @throws coding_exception
+     * @throws Exception
      */
     protected static function format_days_inactive(?int $days): string {
         if ($days === null) {
@@ -1185,7 +1169,10 @@ class report implements report_interface {
      * @throws Exception
      */
     protected static function build_url(string $target, int $learnerid = 0, int $cohortid = 0): moodle_url {
-        $params = ["target" => $target];
+        $params = [
+            "target" => $target,
+            "plugin" => "fullacademydashboard",
+        ];
         if ($learnerid > 0) {
             $params["learnerid"] = $learnerid;
         }
@@ -1203,6 +1190,7 @@ class report implements report_interface {
      * @param int $learnerid Learner id.
      * @param int $cohortid Cohort id.
      * @return moodle_url
+     * @throws Exception
      */
     protected static function build_export_url(string $target, int $learnerid = 0, int $cohortid = 0): moodle_url {
         $params = [
@@ -1224,6 +1212,7 @@ class report implements report_interface {
      *
      * @param object $selection Selection payload.
      * @return string
+     * @throws Exception
      */
     protected static function build_export_filename(object $selection): string {
         $title = get_string("pluginname", "gimidashboardreports_fullacademydashboard");
@@ -1236,7 +1225,7 @@ class report implements report_interface {
      *
      * @param int $cohortid Cohort id.
      * @return string
-     * @throws dml_exception
+     * @throws Exception
      */
     protected static function get_cohort_name(int $cohortid): string {
         global $DB;
