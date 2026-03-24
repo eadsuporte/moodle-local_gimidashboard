@@ -102,7 +102,7 @@ class selection_resolver {
     protected static function find_default_target(array $groups): string {
         foreach ($groups as $group) {
             foreach ($group["options"] as $option) {
-                if (strpos($option["value"], "course:") == 0) {
+                if (strpos($option["value"], "course-") == 0) {
                     return $option["value"];
                 }
             }
