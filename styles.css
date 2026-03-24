@@ -1,8 +1,4 @@
 .local-gimidashboard {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding-top: 1rem;
-  padding-bottom: 1.5rem;
   --gimi-radius-lg: 18px;
   --gimi-radius-md: 14px;
   --gimi-radius-sm: 10px;
@@ -62,6 +58,7 @@
 }
 .local-gimidashboard #local-gimidashboard-target,
 .local-gimidashboard .form-select {
+  width: 100%;
   min-height: 52px;
   border-radius: var(--gimi-radius-md);
   border: 1px solid var(--gimi-border-strong);
@@ -406,6 +403,13 @@
   .local-gimidashboard .gimi-kpi-card-value {
     font-size: 1.45rem;
   }
+}
+
+#page-footer .copyright,
+#page-footer .copyright .madeby,
+a[href="https://conecti.me"] {
+  display: none !important;
+  visibility: hidden !important;
 }
 
 /*# sourceMappingURL=styles.css.map */
