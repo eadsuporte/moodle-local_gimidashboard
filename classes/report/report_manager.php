@@ -1,32 +1,10 @@
 <?php
-// This file is part of Moodle - http://moodle.org/
-//
-// Moodle is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// Moodle is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
-
-/**
- * report_manager.php
- *
- * @package   local_gimidashboard
- * @copyright 2026 Eduardo Kraus {@link https://eduardokraus.com}
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
 namespace local_gimidashboard\report;
 
 
 use core_plugin_manager;
 use local_gimidashboard\access\config;
+use moodle_url;
 
 /**
  * Discovers, orders and renders dashboard report subplugins.
@@ -49,7 +27,7 @@ class report_manager {
                 "component" => $component,
                 "name" => $name,
                 "displayname" => get_string("pluginname", $component),
-                "classname" => "\\" . $component . "\\report",
+                "classname" => "\\{$component}\\report",
             ];
         }
 
@@ -135,7 +113,7 @@ class report_manager {
      * @return bool
      */
     public static function supports_selection(string $component, string $selectiontype): bool {
-        $classname = "\\" . $component . "\\report";
+        $classname = "\\{$component}\\report";
         if (!class_exists($classname)) {
             return false;
         }
@@ -156,9 +134,18 @@ class report_manager {
      *
      * @param string $selectiontype Selection type.
      * @param array $courses Accessible courses for the selection.
+     * @param string $target Current selected target.
+     * @param array $currentparams Current view parameters.
+     * @param string $selectedplugin Selected report component.
      * @return array
      */
-    public static function render_reports(string $selectiontype, array $courses): array {
+    public static function render_reports(
+        string $selectiontype,
+        array $courses,
+        string $target,
+        array $currentparams = [],
+        string $selectedplugin = ""
+    ): array {
         global $OUTPUT;
 
         $reports = [];
@@ -174,12 +161,21 @@ class report_manager {
                 continue;
             }
 
+            if ($selectedplugin !== "" && $selectedplugin !== $component) {
+                continue;
+            }
+
             $content = $classname::render($courses);
+            $reportparams = $currentparams;
+            $reportparams["target"] = $target;
+            $reportparams["plugin"] = $component;
+
             $reports[] = [
                 "component" => $component,
                 "html" => $OUTPUT->render_from_template("local_gimidashboard/report_card", [
                     "title" => $classname::get_title(),
                     "content" => $content,
+                    "onlyreporturl" => (new moodle_url("/local/gimidashboard/view.php", $reportparams))->out(false),
                 ]),
             ];
         }

@@ -26,8 +26,8 @@ namespace local_gimidashboard\access;
 
 use coding_exception;
 use context_course;
-use context_system;
 use dml_exception;
+use stdClass;
 
 /**
  * Resolves the courses and categories visible to the current user.
@@ -296,7 +296,7 @@ class access_manager {
             ];
         }
 
-        usort($courses, static function(\stdClass $a, \stdClass $b): int {
+        usort($courses, static function(stdClass $a, stdClass $b): int {
             return strcmp(
                 strtolower($a->fullname),
                 strtolower($b->fullname)

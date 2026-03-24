@@ -22,6 +22,8 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use local_gimidashboard\navigation\course_navigation;
+
 /**
  * Extends the course navigation with a dashboard entry.
  *
@@ -29,11 +31,13 @@
  * @param stdClass $course The course record.
  * @param context_course $context The course context.
  * @return void
+ * @throws \coding_exception
+ * @throws \core\exception\moodle_exception
  */
 function local_gimidashboard_extend_navigation_course(
     navigation_node $navigation,
     stdClass $course,
     context_course $context
 ): void {
-    \local_gimidashboard\navigation\course_navigation::extend($navigation, $course, $context);
+    course_navigation::extend($navigation, $course, $context);
 }

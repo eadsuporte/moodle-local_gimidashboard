@@ -25,6 +25,8 @@
 namespace local_gimidashboard\access;
 
 
+use context_system;
+
 /**
  * Formats category names including their full path.
  *
@@ -70,7 +72,7 @@ class category_path_formatter {
             foreach (explode("/", trim( $category->path, "/")) as $pathid) {
                 $pathid =  $pathid;
                 if (!empty($allcategories[$pathid])) {
-                    $parts[] = format_string($allcategories[$pathid]->name, true, ["context" => \context_system::instance()]);
+                    $parts[] = format_string($allcategories[$pathid]->name, true, ["context" => context_system::instance()]);
                 }
             }
             $labels[ $category->id] = implode(" / ", $parts);
