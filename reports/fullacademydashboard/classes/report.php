@@ -386,7 +386,7 @@ class report implements report_interface {
         [$coursesql, $courseparams] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED, "course");
         [$usersql, $userparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, "user");
 
-        $sql = "SELECT DISTINCT CONCAT(ue.userid, e.courseid) as unik, ue.userid, e.courseid
+        $sql = "SELECT DISTINCT CONCAT(ue.userid, '-', e.courseid) as unik, ue.userid, e.courseid
                   FROM {user_enrolments} ue
                   JOIN {enrol} e
                     ON e.id = ue.enrolid
@@ -452,7 +452,7 @@ class report implements report_interface {
         [$coursesql, $courseparams] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED, "course");
         [$usersql, $userparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, "user");
 
-        $sql = "SELECT CONCAT(cmc.userid, cm.course) AS unik, cmc.userid, cm.course, COUNT(DISTINCT cmc.coursemoduleid) AS total
+        $sql = "SELECT CONCAT(cmc.userid, '-', cm.course) AS unik, cmc.userid, cm.course, COUNT(DISTINCT cmc.coursemoduleid) AS total
                   FROM {course_modules_completion} cmc
                   JOIN {course_modules} cm
                     ON cm.id = cmc.coursemoduleid
@@ -571,7 +571,7 @@ class report implements report_interface {
         [$coursesql, $courseparams] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED, "course");
         [$usersql, $userparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, "user");
 
-        $sql = "SELECT CONCAT(qa.userid, q.course) as unik, qa.userid, q.course, COUNT(DISTINCT qa.quiz) AS total
+        $sql = "SELECT CONCAT(qa.userid, '-', q.course) as unik, qa.userid, q.course, COUNT(DISTINCT qa.quiz) AS total
                   FROM {quiz_attempts} qa
                   JOIN {quiz} q
                     ON q.id = qa.quiz
@@ -608,7 +608,7 @@ class report implements report_interface {
         [$coursesql, $courseparams] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED, "course");
         [$usersql, $userparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, "user");
 
-        $sql = "SELECT CONCAT(userid, courseid) userid, courseid, MAX(timeaccess) AS timeaccess
+        $sql = "SELECT CONCAT(userid, '-', courseid) AS unik, userid, courseid, MAX(timeaccess) AS timeaccess
                   FROM {user_lastaccess}
                  WHERE courseid {$coursesql}
                    AND userid {$usersql}
