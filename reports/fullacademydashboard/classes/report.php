@@ -55,7 +55,7 @@ class report implements report_interface {
      * @throws moodle_exception
      * @throws dml_exception
      */
-    public static function get_header(array $courses, $extra=""): string {
+    public static function get_header(array $courses, $extra = ""): string {
         global $OUTPUT;
 
         $reportdata = self::prepare_report_data($courses);
@@ -64,19 +64,17 @@ class report implements report_interface {
         }
 
         $title = get_string("pluginname", "gimidashboardreports_fullacademydashboard");
-        $academyname = core_text::strtoupper(strip_tags(
-            $reportdata->selection->label !== "" ? $reportdata->selection->label : $title
-        ));
+        $academyname = core_text::strtoupper(
+            strip_tags(
+                $reportdata->selection->label !== "" ? $reportdata->selection->label : $title
+            )
+        );
 
         $subtitleparts = [];
         if ($reportdata->pathwaycount === 1) {
             $subtitleparts[] = get_string("allpathwayssingle", "gimidashboardreports_fullacademydashboard");
         } else {
-            $subtitleparts[] = get_string(
-                "allpathways",
-                "gimidashboardreports_fullacademydashboard",
-                $reportdata->pathwaycount
-            );
+            $subtitleparts[] = get_string("allpathways", "gimidashboardreports_fullacademydashboard", $reportdata->pathwaycount);
         }
         $subtitleparts[] = get_string("learnerscount", "gimidashboardreports_fullacademydashboard", count($reportdata->rows));
         $subtitleparts[] = get_string("snapshotlabel", "gimidashboardreports_fullacademydashboard", userdate(time(), "%Y-%m-%d"));
@@ -91,7 +89,7 @@ class report implements report_interface {
                 $reportdata->learnerid,
                 $reportdata->cohortid
             ),
-            "extra_html"=>$extra,
+            "extra_html" => $extra,
         ]);
     }
 
@@ -909,7 +907,7 @@ class report implements report_interface {
         $pathways = [];
         foreach ($rows as $row) {
             foreach ($row->pathways as $cohortid => $cohortname) {
-                $pathways[$cohortid] = $cohortname;
+                $pathways[$cohortid] = $cohortid;
             }
         }
 
