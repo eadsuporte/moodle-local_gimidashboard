@@ -573,7 +573,7 @@ class report implements report_interface {
         [$coursesql, $courseparams] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED, "course");
         [$usersql, $userparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, "user");
 
-        $sql = "SELECT qa.userid, q.course, COUNT(DISTINCT qa.quiz) AS total
+        $sql = "SELECT CONCAT(qa.userid, q.course) as unik, qa.userid, q.course, COUNT(DISTINCT qa.quiz) AS total
                   FROM {quiz_attempts} qa
                   JOIN {quiz} q
                     ON q.id = qa.quiz
