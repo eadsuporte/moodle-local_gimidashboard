@@ -19,7 +19,6 @@
 
     Example context (json):
     {
-        Aqui tem que criar o context em inglês
     }
 }}
 
@@ -39,6 +38,9 @@
                         </optgroup>
                     {{/groups}}
                 </select>
+                {{#existingparams}}
+                    <input type="hidden" name="{{name}}" value="{{value}}">
+                {{/existingparams}}
                 <div class="form-text">{{#str}}selectorhelp, local_gimidashboard{{/str}}</div>
                 <input type="submit" style="display:none;">
             </form>
