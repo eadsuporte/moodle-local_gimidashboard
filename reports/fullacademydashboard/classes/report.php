@@ -537,7 +537,7 @@ class report implements report_interface {
         [$coursesql, $courseparams] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED, "course");
         [$usersql, $userparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, "user");
 
-        $sql = "SELECT userid, course, timecompleted
+        $sql = "SELECT CONCAT(userid, '-', course, '-', timecompleted) AS unik, userid, course, timecompleted
                   FROM {course_completions}
                  WHERE course {$coursesql}
                    AND userid {$usersql}
@@ -658,7 +658,7 @@ class report implements report_interface {
         [$usersql, $userparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, "user");
         [$cohortsql, $cohortparams] = $DB->get_in_or_equal(array_values($cohortids), SQL_PARAMS_NAMED, "cohort");
 
-        $sql = "SELECT cm.userid, c.id, c.name
+        $sql = "SELECT CONCAT(cm.userid, '-', c.id) as unik, cm.userid, c.id, c.name
                   FROM {cohort_members} cm
                   JOIN {cohort} c
                     ON c.id = cm.cohortid
