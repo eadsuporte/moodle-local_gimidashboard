@@ -39,6 +39,7 @@ $string['movedown'] = 'Move down';
 $string['moveup'] = 'Move up';
 $string['noreportablecourses'] = 'There are no courses available for the current user based on the configured capabilities.';
 $string['noreportsavailable'] = 'No active reports are available for the current selection.';
+$string['openonlyreport'] = 'Open only this report';
 $string['pluginname'] = 'Gimi Dashboard';
 $string['plugintabledescription'] = 'Installed dashboard report plugins in the order they are displayed on the dashboard page.';
 $string['position'] = 'Position';

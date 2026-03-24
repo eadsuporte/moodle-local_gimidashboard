@@ -31,21 +31,49 @@ use local_gimidashboard\report\report_manager;
 require_login();
 
 $target = optional_param("target", "", PARAM_TEXT);
+$selectedplugin = optional_param("plugin", "", PARAM_COMPONENT);
 
 $dashboardpage = selection_resolver::resolve($target, $USER->id);
 
-$PAGE->set_url(new moodle_url("/local/gimidashboard/view.php", ["target" => $dashboardpage->target]));
+$existingparams = [];
+$currentparams = ["target" => $dashboardpage->target];
+foreach ($_GET as $name => $value) {
+    if ($name == "target" || is_array($value)) {
+        continue;
+    }
+
+    $cleanname = clean_param($name, PARAM_ALPHANUMEXT);
+    if ($cleanname === "") {
+        continue;
+    }
+
+    $cleanvalue = clean_param((string) $value, PARAM_RAW_TRIMMED);
+    $existingparams[] = [
+        "name" => $cleanname,
+        "value" => $cleanvalue,
+    ];
+    $currentparams[$cleanname] = $cleanvalue;
+}
+
+$PAGE->set_url(new moodle_url("/local/gimidashboard/view.php", $currentparams));
 $PAGE->set_context(context_system::instance());
 $PAGE->set_pagelayout("report");
 $PAGE->set_title(get_string("pluginname", "local_gimidashboard"));
 $PAGE->set_heading(get_string("pluginname", "local_gimidashboard"));
 
 echo $OUTPUT->header();
-$reports = report_manager::render_reports($dashboardpage->type, $dashboardpage->courses);
+$reports = report_manager::render_reports(
+    $dashboardpage->type,
+    $dashboardpage->courses,
+    $dashboardpage->target,
+    $currentparams,
+    $selectedplugin
+);
 $mustachedata = [
     "groups" => $dashboardpage->groups,
     "reports" => $reports,
     "hasreports" => !empty($reports),
+    "existingparams" => $existingparams,
 ];
 
 echo $OUTPUT->render_from_template("local_gimidashboard/view", $mustachedata);

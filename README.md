@@ -154,7 +154,7 @@ Current interface:
 
 ```php
 interface report_interface {
-    public static function get_title(): string;
+    public static function get_header(array $courses, $extra=""): string;
     public static function supports_course(): bool;
     public static function supports_category(): bool;
     public static function render(array $courses): string;
@@ -163,7 +163,7 @@ interface report_interface {
 
 ### Method semantics
 
-#### `get_title()`
+#### `get_header(array $courses, $extra="")`
 
 Returns the report title shown by the parent plugin.
 
@@ -326,7 +326,7 @@ namespace gimidashboardreports_learnerprogress;
 use local_gimidashboard\report\report_interface;
 
 class report implements report_interface {
-    public static function get_title(): string {
+    public static function get_header(array $courses, $extra=""): string {
         return get_string("pluginname", "gimidashboardreports_learnerprogress");
     }
 

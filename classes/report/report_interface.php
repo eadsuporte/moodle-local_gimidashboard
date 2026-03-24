@@ -34,9 +34,11 @@ interface report_interface {
     /**
      * Returns the report title.
      *
+     * @param array $courses
+     * @param string $extra
      * @return string
      */
-    public static function get_title(): string;
+    public static function get_header(array $courses, $extra=""): string;
 
     /**
      * Returns true when the report supports a single course selection.

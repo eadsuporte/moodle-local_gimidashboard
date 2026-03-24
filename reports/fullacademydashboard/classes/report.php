@@ -49,11 +49,50 @@ class report implements report_interface {
     /**
      * Returns the report title.
      *
+     * @param array $courses
      * @return string
      * @throws coding_exception
+     * @throws moodle_exception
+     * @throws dml_exception
      */
-    public static function get_title(): string {
-        return get_string("pluginname", "gimidashboardreports_fullacademydashboard");
+    public static function get_header(array $courses, $extra=""): string {
+        global $OUTPUT;
+
+        $reportdata = self::prepare_report_data($courses);
+        if (empty($reportdata->courseids)) {
+            return "";
+        }
+
+        $title = get_string("pluginname", "gimidashboardreports_fullacademydashboard");
+        $academyname = core_text::strtoupper(strip_tags(
+            $reportdata->selection->label !== "" ? $reportdata->selection->label : $title
+        ));
+
+        $subtitleparts = [];
+        if ($reportdata->pathwaycount === 1) {
+            $subtitleparts[] = get_string("allpathwayssingle", "gimidashboardreports_fullacademydashboard");
+        } else {
+            $subtitleparts[] = get_string(
+                "allpathways",
+                "gimidashboardreports_fullacademydashboard",
+                $reportdata->pathwaycount
+            );
+        }
+        $subtitleparts[] = get_string("learnerscount", "gimidashboardreports_fullacademydashboard", count($reportdata->rows));
+        $subtitleparts[] = get_string("snapshotlabel", "gimidashboardreports_fullacademydashboard", userdate(time(), "%Y-%m-%d"));
+        $subtitleparts[] = get_string("poweredby", "gimidashboardreports_fullacademydashboard");
+
+        return $OUTPUT->render_from_template("gimidashboardreports_fullacademydashboard/content_title", [
+            "academyname" => $academyname,
+            "pluginname" => core_text::strtoupper(get_string("pluginname", "gimidashboardreports_fullacademydashboard")),
+            "subtitle" => implode(" • ", $subtitleparts),
+            "exporturl" => self::build_export_url(
+                $reportdata->selection->target,
+                $reportdata->learnerid,
+                $reportdata->cohortid
+            ),
+            "extra_html"=>$extra,
+        ]);
     }
 
     /**
@@ -92,28 +131,8 @@ class report implements report_interface {
             return "";
         }
 
-        $academyname = core_text::strtoupper(strip_tags(
-            $reportdata->selection->label !== "" ? $reportdata->selection->label : self::get_title()
-        ));
-
-        $subtitleparts = [];
-        if ($reportdata->pathwaycount === 1) {
-            $subtitleparts[] = get_string("allpathwayssingle", "gimidashboardreports_fullacademydashboard");
-        } else {
-            $subtitleparts[] = get_string(
-                "allpathways",
-                "gimidashboardreports_fullacademydashboard",
-                $reportdata->pathwaycount
-            );
-        }
-        $subtitleparts[] = get_string("learnerscount", "gimidashboardreports_fullacademydashboard", count($reportdata->rows));
-        $subtitleparts[] = get_string("snapshotlabel", "gimidashboardreports_fullacademydashboard", userdate(time(), "%Y-%m-%d"));
-        $subtitleparts[] = get_string("poweredby", "gimidashboardreports_fullacademydashboard");
-
         return $OUTPUT->render_from_template("gimidashboardreports_fullacademydashboard/content", [
-            "academyname" => $academyname,
             "pluginname" => core_text::strtoupper(get_string("pluginname", "gimidashboardreports_fullacademydashboard")),
-            "subtitle" => implode(" • ", $subtitleparts),
             "kpis" => [
                 [
                     "label" => get_string("totallearners", "gimidashboardreports_fullacademydashboard"),
@@ -148,12 +167,7 @@ class report implements report_interface {
             "hasrows" => !empty($reportdata->rows),
             "hasfilters" => !empty($reportdata->filters),
             "filters" => $reportdata->filters,
-            "reseturl" => self::build_url($reportdata->selection->target)->out(false),
-            "exporturl" => self::build_export_url(
-                $reportdata->selection->target,
-                $reportdata->learnerid,
-                $reportdata->cohortid
-            )->out(false),
+            "reseturl" => self::build_url($reportdata->selection->target),
         ]);
     }
 
@@ -267,7 +281,7 @@ class report implements report_interface {
                 $filters[] = [
                     "label" => get_string("filteredlearner", "gimidashboardreports_fullacademydashboard"),
                     "value" => fullname($users[$learnerid]),
-                    "clearurl" => self::build_url($selection->target, 0, $cohortid)->out(false),
+                    "clearurl" => self::build_url($selection->target, 0, $cohortid),
                 ];
             }
 
@@ -277,7 +291,7 @@ class report implements report_interface {
                     $filters[] = [
                         "label" => get_string("filteredpathway", "gimidashboardreports_fullacademydashboard"),
                         "value" => $cohortname,
-                        "clearurl" => self::build_url($selection->target, $learnerid)->out(false),
+                        "clearurl" => self::build_url($selection->target, $learnerid),
                     ];
                 }
             }
@@ -944,7 +958,7 @@ class report implements report_interface {
                 "firstname" => s($row->firstname),
                 "lastname" => s($row->lastname),
                 "email" => s($row->email),
-                "learnerurl" => $learnerurl->out(false),
+                "learnerurl" => $learnerurl,
                 "pathwayshtml" => self::render_pathway_links($row->pathways, $selection),
                 "courses" => $row->coursecount,
                 "avgprogress" => self::format_percent($row->avgprogress),
@@ -1214,7 +1228,8 @@ class report implements report_interface {
      * @return string
      */
     protected static function build_export_filename(object $selection): string {
-        $label = $selection->label !== "" ? $selection->label : self::get_title();
+        $title = get_string("pluginname", "gimidashboardreports_fullacademydashboard");
+        $label = $selection->label !== "" ? $selection->label : $title;
         return clean_filename("full-academy-dashboard-" . $label . "-" . userdate(time(), "%Y%m%d-%H%M"));
     }
 

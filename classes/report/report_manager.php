@@ -1,8 +1,9 @@
 <?php
+
 namespace local_gimidashboard\report;
 
-
 use core_plugin_manager;
+use Exception;
 use local_gimidashboard\access\config;
 use moodle_url;
 
@@ -138,6 +139,7 @@ class report_manager {
      * @param array $currentparams Current view parameters.
      * @param string $selectedplugin Selected report component.
      * @return array
+     * @throws Exception
      */
     public static function render_reports(
         string $selectiontype,
@@ -151,6 +153,7 @@ class report_manager {
         $reports = [];
         foreach (self::get_ordered_reports() as $report) {
             $component = $report["component"];
+            /** @var report_interface $classname */
             $classname = $report["classname"];
 
             if (!self::is_enabled($component)) {
@@ -170,12 +173,15 @@ class report_manager {
             $reportparams["target"] = $target;
             $reportparams["plugin"] = $component;
 
+            $reporturl = new moodle_url("/local/gimidashboard/view.php", $reportparams);
+            $label = get_string("openonlyreport", "local_gimidashboard");
+            $reportlink = "<a href=\"{$reporturl}\" class=\"btn btn-primary text-nowrap\">{$label}</a>";
+
             $reports[] = [
                 "component" => $component,
                 "html" => $OUTPUT->render_from_template("local_gimidashboard/report_card", [
-                    "title" => $classname::get_title(),
+                    "header" => $classname::get_header($courses, $reportlink),
                     "content" => $content,
-                    "onlyreporturl" => (new moodle_url("/local/gimidashboard/view.php", $reportparams))->out(false),
                 ]),
             ];
         }
