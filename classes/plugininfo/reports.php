@@ -24,7 +24,6 @@
 
 namespace local_gimidashboard\plugininfo;
 
-
 /**
  * Optional alias class kept for readability inside the plugin.
  *

@@ -24,7 +24,6 @@
 
 namespace local_gimidashboard\report;
 
-
 /**
  * Contract implemented by dashboard report subplugins.
  *

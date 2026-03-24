@@ -24,7 +24,6 @@
 
 namespace local_gimidashboard\access;
 
-
 /**
  * Reads plugin configuration values.
  *

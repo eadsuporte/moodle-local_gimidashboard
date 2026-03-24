@@ -61,7 +61,6 @@ class selection_resolver {
         $target = $target !== "" ? $target : $defaulttarget;
         [$type, $id] = array_pad(explode("-", $target, 2), 2, "");
 
-
         if ($type == "category" && $id > 0) {
             $courses = access_manager::get_accessible_courses_for_category($id, $userid);
             if (!empty($courses)) {
@@ -70,7 +69,7 @@ class selection_resolver {
                     $groups, $target, (object) [
                     "target" => $target,
                     "type" => "category",
-                    "label" => $labels[$id] ??  $id,
+                    "label" => $labels[$id] ?? $id,
                     "courses" => $courses,
                 ]
                 );
@@ -117,7 +116,7 @@ class selection_resolver {
      * @param array $groups Select groups.
      * @param string $target Selected target.
      * @param object $selection Selection payload.
-     * @return array
+     * @return object
      */
     protected static function finalize_groups(array $groups, string $target, object $selection): object {
         foreach ($groups as $groupindex => $group) {

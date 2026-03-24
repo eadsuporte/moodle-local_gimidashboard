@@ -24,7 +24,6 @@
 
 namespace local_gimidashboard\access;
 
-
 use context_system;
 
 /**

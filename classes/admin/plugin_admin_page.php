@@ -24,7 +24,6 @@
 
 namespace local_gimidashboard\admin;
 
-
 use context_system;
 use flexible_table;
 use html_writer;

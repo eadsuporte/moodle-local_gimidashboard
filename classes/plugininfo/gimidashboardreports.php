@@ -24,7 +24,6 @@
 
 namespace local_gimidashboard\plugininfo;
 
-
 use core\plugininfo\base;
 
 /**

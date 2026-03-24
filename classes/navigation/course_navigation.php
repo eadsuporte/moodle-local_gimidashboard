@@ -24,7 +24,6 @@
 
 namespace local_gimidashboard\navigation;
 
-
 use coding_exception;
 use context_course;
 use core\exception\moodle_exception;
