@@ -33,7 +33,7 @@ define([
     /**
      * Initialize DataTables for dashboard tables.
      */
-    function datatable(selector) {
+    function datatable(selector, pageLength) {
         const tables = document.querySelectorAll(selector);
         if (!tables.length) {
             return;
@@ -53,8 +53,8 @@ define([
             $(element).DataTable({
                 autoWidth: false,
                 responsive: true,
-                pageLength: 10,
-                lengthMenu: [10, 25, 50, 100],
+                pageLength: pageLength,
+                lengthMenu: [5, 10, 25, 50, 100],
                 scrollX: true,
                 select: true,
                 layout: {

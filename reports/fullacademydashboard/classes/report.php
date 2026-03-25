@@ -956,7 +956,8 @@ class report implements report_interface {
             ];
         }
 
-        $PAGE->requires->js_call_amd("local_gimidashboard/table", "datatable", ["#fullacademydashboard-summary_table"]);
+        $pageLength = optional_param("plugin", false, PARAM_COMPONENT) ? 50 : 5;
+        $PAGE->requires->js_call_amd("local_gimidashboard/table", "datatable", ["#fullacademydashboard-summary_table", $pageLength]);
         return $OUTPUT->render_from_template(
             "gimidashboardreports_fullacademydashboard/summary_table",
             $templatecontext
@@ -1003,7 +1004,8 @@ class report implements report_interface {
             ];
         }
 
-        $PAGE->requires->js_call_amd("local_gimidashboard/table", "datatable", ["#fullacademydashboard-detail_table"]);
+        $pageLength = optional_param("plugin", false, PARAM_COMPONENT) ? 50 : 5;
+        $PAGE->requires->js_call_amd("local_gimidashboard/table", "datatable", ["#fullacademydashboard-detail_table", $pageLength]);
         return $OUTPUT->render_from_template(
             "gimidashboardreports_fullacademydashboard/detail_table",
             $templatecontext
