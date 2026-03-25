@@ -59,25 +59,27 @@ class report implements report_interface {
         }
 
         $title = get_string("pluginname", "gimidashboardreports_fullacademydashboard");
-        $academyname = core_text::strtoupper(
+        $academyname = strtoupper(
             strip_tags(
                 $reportdata->selection->label !== "" ? $reportdata->selection->label : $title
             )
         );
 
         $subtitleparts = [];
-        if ($reportdata->pathwaycount === 1) {
+        if ($reportdata->pathwaycount == 1) {
             $subtitleparts[] = get_string("allpathwayssingle", "gimidashboardreports_fullacademydashboard");
         } else {
             $subtitleparts[] = get_string("allpathways", "gimidashboardreports_fullacademydashboard", $reportdata->pathwaycount);
         }
+
+        $date = userdate(time(), get_string("strftimedatefullshort", "langconfig"));
         $subtitleparts[] = get_string("learnerscount", "gimidashboardreports_fullacademydashboard", count($reportdata->rows));
-        $subtitleparts[] = get_string("snapshotlabel", "gimidashboardreports_fullacademydashboard", userdate(time(), "%Y-%m-%d"));
+        $subtitleparts[] = get_string("snapshotlabel", "gimidashboardreports_fullacademydashboard", $date);
         $subtitleparts[] = get_string("poweredby", "gimidashboardreports_fullacademydashboard");
 
-        return $OUTPUT->render_from_template("gimidashboardreports_fullacademydashboard/content_title", [
+        return $OUTPUT->render_from_template("local_gimidashboard/content_title", [
             "academyname" => $academyname,
-            "pluginname" => core_text::strtoupper(get_string("pluginname", "gimidashboardreports_fullacademydashboard")),
+            "pluginname" => get_string("pluginname", "gimidashboardreports_fullacademydashboard"),
             "subtitle" => implode(" • ", $subtitleparts),
             "exporturl" => self::build_export_url(
                 $reportdata->selection->target,
@@ -122,7 +124,7 @@ class report implements report_interface {
         }
 
         return $OUTPUT->render_from_template("gimidashboardreports_fullacademydashboard/content", [
-            "pluginname" => core_text::strtoupper(get_string("pluginname", "gimidashboardreports_fullacademydashboard")),
+            "pluginname" => strtoupper(get_string("pluginname", "gimidashboardreports_fullacademydashboard")),
             "kpis" => [
                 [
                     "label" => get_string("totallearners", "gimidashboardreports_fullacademydashboard"),
@@ -159,34 +161,6 @@ class report implements report_interface {
             "filters" => $reportdata->filters,
             "reseturl" => self::build_url($reportdata->selection->target),
         ]);
-    }
-
-    /**
-     * Downloads the current summary data using the selected dataformat.
-     *
-     * @param array $courses Accessible course records.
-     * @param string $dataformat Data format name.
-     * @return void
-     * @throws Exception
-     */
-    public static function export(array $courses, string $dataformat = "excel"): void {
-        $reportdata = self::prepare_report_data($courses);
-        if (empty($reportdata->courseids)) {
-            throw new Exception("invaliddata");
-        }
-
-        $columns = self::get_export_columns();
-        $iterator = new ArrayIterator(array_values($reportdata->rows));
-
-        dataformat::download_data(
-            self::build_export_filename($reportdata->selection),
-            $dataformat,
-            $columns,
-            $iterator,
-            static function(object $row, bool $supportshtml): array {
-                return self::format_export_record($row, $supportshtml);
-            }
-        );
     }
 
     /**
@@ -310,7 +284,7 @@ class report implements report_interface {
      */
     protected static function extract_course_ids(array $courses): array {
         return array_values(array_map(static function($course): int {
-            return (int) $course->id;
+            return $course->id;
         }, $courses));
     }
 
@@ -391,7 +365,7 @@ class report implements report_interface {
         $records = $DB->get_records_sql($sql, $courseparams + $userparams);
         $result = [];
         foreach ($records as $record) {
-            $result[(int) $record->userid][(int) $record->courseid] = (int) $record->courseid;
+            $result[$record->userid][$record->courseid] = $record->courseid;
         }
 
         return $result;
@@ -419,7 +393,7 @@ class report implements report_interface {
 
         $result = [];
         foreach ($records as $record) {
-            $result[(int) $record->course] = (int) $record->total;
+            $result[$record->course] = $record->total;
         }
 
         return $result;
@@ -458,7 +432,7 @@ class report implements report_interface {
         $records = $DB->get_records_sql($sql, $courseparams + $userparams);
         $result = [];
         foreach ($records as $record) {
-            $result[(int) $record->userid][(int) $record->course] = (int) $record->total;
+            $result[$record->userid][$record->course] = $record->total;
         }
 
         return $result;
@@ -500,7 +474,7 @@ class report implements report_interface {
         $records = $DB->get_records_sql($sql, $courseparams + $userparams);
         $result = [];
         foreach ($records as $record) {
-            $result[(int) $record->userid][(int) $record->courseid] = is_null($record->gradepercent)
+            $result[$record->userid][$record->courseid] = is_null($record->gradepercent)
                 ? null
                 : round((float) $record->gradepercent, 1);
         }
@@ -535,7 +509,7 @@ class report implements report_interface {
 
         $result = [];
         foreach ($records as $record) {
-            $result[(int) $record->userid][(int) $record->course] = (int) $record->timecompleted;
+            $result[$record->userid][$record->course] = $record->timecompleted;
         }
 
         return $result;
@@ -571,7 +545,7 @@ class report implements report_interface {
 
         $result = [];
         foreach ($records as $record) {
-            $result[(int) $record->userid][(int) $record->course] = (int) $record->total;
+            $result[$record->userid][$record->course] = $record->total;
         }
 
         return $result;
@@ -604,7 +578,7 @@ class report implements report_interface {
 
         $result = [];
         foreach ($records as $record) {
-            $result[(int) $record->userid][(int) $record->courseid] = (int) $record->timeaccess;
+            $result[$record->userid][$record->courseid] = $record->timeaccess;
         }
 
         return $result;
@@ -633,7 +607,7 @@ class report implements report_interface {
                              WHERE cm.userid {$usersql}";
             $fallback = $DB->get_records_sql($fallbacksql, $userparams);
             foreach ($fallback as $record) {
-                $cohortids[(int) $record->cohortid] = (int) $record->cohortid;
+                $cohortids[$record->cohortid] = $record->cohortid;
             }
         }
 
@@ -655,7 +629,7 @@ class report implements report_interface {
 
         $result = [];
         foreach ($records as $record) {
-            $result[(int) $record->userid][(int) $record->id] =
+            $result[$record->userid][$record->id] =
                 format_string($record->name, true, ["context" => context_system::instance()]);
         }
 
@@ -684,7 +658,7 @@ class report implements report_interface {
 
         $result = [];
         foreach ($records as $record) {
-            $result[(int) $record->cohortid] = (int) $record->cohortid;
+            $result[$record->cohortid] = $record->cohortid;
         }
 
         return $result;
@@ -745,19 +719,19 @@ class report implements report_interface {
                 $completedcount++;
             }
 
-            $examtotal += (int) ($examcounts[$courseid] ?? 0);
-            $lastaccess = max($lastaccess, (int) ($lastaccessbycourse[$courseid] ?? 0));
+            $examtotal += ($examcounts[$courseid] ?? 0);
+            $lastaccess = max($lastaccess, ($lastaccessbycourse[$courseid] ?? 0));
         }
 
         $avgprogress = !empty($courseprogresses) ? round(array_sum($courseprogresses) / count($courseprogresses), 1) : 0.0;
         $avggrade = !empty($gradevalues) ? round(array_sum($gradevalues) / count($gradevalues), 1) : null;
-        $status = ((int) $user->suspended === 1 || (int) $user->deleted === 1)
+        $status = ($user->suspended == 1 || $user->deleted == 1)
             ? get_string("suspended", "gimidashboardreports_fullacademydashboard")
             : get_string("active", "gimidashboardreports_fullacademydashboard");
-        $daysinactive = $lastaccess > 0 ? (int) floor((time() - $lastaccess) / DAYSECS) : null;
+        $daysinactive = $lastaccess > 0 ? floor((time() - $lastaccess) / DAYSECS) : null;
 
         return (object) [
-            "userid" => (int) $user->id,
+            "userid" => $user->id,
             "firstname" => s($user->firstname),
             "lastname" => s($user->lastname),
             "email" => s($user->email),
@@ -826,14 +800,14 @@ class report implements report_interface {
                 $progress = 0.0;
             }
 
-            $lastaccess = (int) ($lastaccessbycourse[$courseid] ?? 0);
+            $lastaccess = ($lastaccessbycourse[$courseid] ?? 0);
             $rows[] = [
                 "course" => format_string($courses[$courseid]->fullname, true, ["context" => context_course::instance($courseid)]),
                 "pathway" => self::render_pathway_links($pathways, $selection),
                 "progress" => self::format_percent($progress),
                 "grade" => self::format_grade($gradepercentages[$courseid] ?? null),
                 "completed" => $coursecompleted ? 1 : 0,
-                "exams" => (int) ($examcounts[$courseid] ?? 0),
+                "exams" => ($examcounts[$courseid] ?? 0),
                 "lastaccess" => self::format_date($lastaccess),
                 "status" => $summaryrow->status,
             ];
@@ -865,11 +839,11 @@ class report implements report_interface {
             if ($row->avggrade !== null) {
                 $avggradevalues[] = (float) $row->avggrade;
             }
-            if ((int) $row->lastaccess === 0) {
+            if ($row->lastaccess == 0) {
                 $neveraccessed++;
             }
-            $certsearned += (int) $row->certs;
-            $coursescomplete += (int) $row->completed;
+            $certsearned += $row->certs;
+            $coursescomplete += $row->completed;
         }
 
         return (object) [
@@ -1027,63 +1001,11 @@ class report implements report_interface {
 
         $links = [];
         foreach ($pathways as $cohortid => $cohortname) {
-            $url = self::build_url($selection->target, 0, (int) $cohortid);
+            $url = self::build_url($selection->target, 0, $cohortid);
             $links[] = html_writer::link($url, s($cohortname));
         }
 
         return html_writer::div(implode("", $links), "gimi-pathway-links");
-    }
-
-    /**
-     * Returns the export column definitions.
-     *
-     * @return array
-     * @throws Exception
-     */
-    protected static function get_export_columns(): array {
-        return [
-            "firstname" => get_string("firstname", "gimidashboardreports_fullacademydashboard"),
-            "lastname" => get_string("lastname", "gimidashboardreports_fullacademydashboard"),
-            "email" => get_string("email", "gimidashboardreports_fullacademydashboard"),
-            "pathway" => get_string("pathway", "gimidashboardreports_fullacademydashboard"),
-            "courses" => get_string("courses", "gimidashboardreports_fullacademydashboard"),
-            "avgprogress" => get_string("avgscoreprogress", "gimidashboardreports_fullacademydashboard"),
-            "avggrade" => get_string("avgscoregrade", "gimidashboardreports_fullacademydashboard"),
-            "delta" => get_string("deltavsday1", "gimidashboardreports_fullacademydashboard"),
-            "completed" => get_string("completed", "gimidashboardreports_fullacademydashboard"),
-            "certs" => get_string("certs", "gimidashboardreports_fullacademydashboard"),
-            "exams" => get_string("exams", "gimidashboardreports_fullacademydashboard"),
-            "lastaccess" => get_string("lastaccess", "gimidashboardreports_fullacademydashboard"),
-            "daysinactive" => get_string("daysinactive", "gimidashboardreports_fullacademydashboard"),
-            "status" => get_string("status", "gimidashboardreports_fullacademydashboard"),
-        ];
-    }
-
-    /**
-     * Formats a summary row for export.
-     *
-     * @param object $row Learner row.
-     * @param bool $supportshtml Whether the selected format supports HTML.
-     * @return array
-     * @throws Exception
-     */
-    protected static function format_export_record(object $row, bool $supportshtml): array {
-        return [
-            "firstname" => $row->firstname,
-            "lastname" => $row->lastname,
-            "email" => $row->email,
-            "pathway" => self::format_pathways_for_export($row->pathways),
-            "courses" => $row->coursecount,
-            "avgprogress" => self::format_percent($row->avgprogress),
-            "avggrade" => self::format_grade($row->avggrade),
-            "delta" => self::format_percent($row->delta),
-            "completed" => $row->completed,
-            "certs" => $row->certs,
-            "exams" => $row->exams,
-            "lastaccess" => self::format_date($row->lastaccess),
-            "daysinactive" => self::format_days_inactive($row->daysinactive),
-            "status" => $row->status,
-        ];
     }
 
     /**
@@ -1110,7 +1032,7 @@ class report implements report_interface {
      * @throws Exception
      */
     protected static function format_percent(?float $value, bool $appendpercent = true): string {
-        if ($value === null) {
+        if ($value == null) {
             return get_string("dash", "gimidashboardreports_fullacademydashboard");
         }
 
@@ -1126,7 +1048,7 @@ class report implements report_interface {
      * @throws Exception
      */
     protected static function format_grade(?float $value): string {
-        if ($value === null) {
+        if ($value == null) {
             return get_string("dash", "gimidashboardreports_fullacademydashboard");
         }
 
@@ -1145,7 +1067,7 @@ class report implements report_interface {
             return get_string("never", "gimidashboardreports_fullacademydashboard");
         }
 
-        return userdate($timestamp, "%Y-%m-%d");
+        return userdate($timestamp, get_string("strftimedatefullshort", "langconfig"));
     }
 
     /**
@@ -1156,11 +1078,11 @@ class report implements report_interface {
      * @throws Exception
      */
     protected static function format_days_inactive(?int $days): string {
-        if ($days === null) {
+        if ($days == null) {
             return get_string("never", "gimidashboardreports_fullacademydashboard");
         }
 
-        return (string) $days;
+        return $days;
     }
 
     /**
@@ -1212,19 +1134,6 @@ class report implements report_interface {
     }
 
     /**
-     * Builds the export filename.
-     *
-     * @param object $selection Selection payload.
-     * @return string
-     * @throws Exception
-     */
-    protected static function build_export_filename(object $selection): string {
-        $title = get_string("pluginname", "gimidashboardreports_fullacademydashboard");
-        $label = $selection->label !== "" ? $selection->label : $title;
-        return clean_filename("full-academy-dashboard-" . $label . "-" . userdate(time(), "%Y%m%d-%H%M"));
-    }
-
-    /**
      * Returns the cohort name.
      *
      * @param int $cohortid Cohort id.
@@ -1235,7 +1144,7 @@ class report implements report_interface {
         global $DB;
 
         $name = $DB->get_field("cohort", "name", ["id" => $cohortid]);
-        if ($name === false) {
+        if ($name == false) {
             return "";
         }
 

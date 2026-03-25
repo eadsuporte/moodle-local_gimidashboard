@@ -44,7 +44,6 @@ $string['detailhelp'] = 'Distinct learner rows are aggregated across all selecte
 $string['detailtitle'] = 'Learner detail';
 $string['email'] = 'Email';
 $string['exams'] = 'Exams';
-$string['exportexcel'] = 'Export to Excel';
 $string['filteredlearner'] = 'Learner';
 $string['filteredpathway'] = 'Pathway';
 $string['firstname'] = 'First Name';

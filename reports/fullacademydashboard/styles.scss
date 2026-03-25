@@ -1,0 +1,60 @@
+.gimi-gimidashboardreports_fullacademydashboard {
+    .gimi-dashboard-note {
+        margin-bottom: 1rem;
+        padding: 0.8rem 1rem;
+        border-radius: 12px;
+        background: #f8fafc;
+        border: 1px solid rgba(15, 23, 42, 0.08);
+        color: #334155;
+        font-size: 0.92rem;
+    }
+    .gimi-filter-bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+        margin-bottom: 1rem;
+    }
+    .gimi-filter-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        border-radius: 999px;
+        padding: 0.45rem 0.8rem;
+        border: 1px solid rgba(15, 23, 42, 0.09);
+        background: #f8fafc;
+        color: #0f172a;
+        font-size: 0.88rem;
+        strong {
+            font-weight: 800;
+        }
+        a {
+            color: #2563eb;
+            text-decoration: none;
+            &:hover,
+            &:focus {
+                text-decoration: underline;
+            }
+        }
+    }
+    .gimi-detail-heading {
+        margin: 1.2rem 0 0.8rem;
+        font-size: 1rem;
+        font-weight: 800;
+        color: #0f172a;
+    }
+    .gimi-empty-state {
+        padding: 1rem 1.1rem;
+        border-radius: 12px;
+        background: #fff7ed;
+        border: 1px solid rgba(245, 158, 11, 0.18);
+        color: #9a3412;
+    }
+    @media (max-width: 767.98px) {
+        .gimi-dashboard-header-main h3 {
+            font-size: 1.15rem;
+        }
+        .gimi-kpi-card-value {
+            font-size: 1.45rem;
+        }
+    }
+}
