@@ -26,6 +26,7 @@ namespace local_gimidashboard\access;
 
 use coding_exception;
 use context_course;
+use context_system;
 use dml_exception;
 use stdClass;
 
@@ -254,55 +255,151 @@ class access_manager {
     }
 
     /**
-     * Returns grouped select options for categories and courses.
+     * Returns select options for categories and courses preserving the category tree.
      *
      * @param int|null $userid User id.
      * @return array
      * @throws coding_exception
+     * @throws dml_exception
      */
-    public static function get_selector_groups(?int $userid = null): array {
+    public static function get_selector_options(?int $userid = null): array {
+        global $DB;
+
         $courses = self::get_accessible_courses($userid);
         if (empty($courses)) {
             return [];
         }
 
-        $categoryids = array_values(array_unique(array_map(static function($course): int {
-            return $course->category;
-        }, $courses)));
-        $categorylabels = category_path_formatter::get_labels($categoryids);
-
-        $groups = [];
+        $categoryids = [];
         foreach ($courses as $course) {
-            $categoryid = $course->category;
-            if (!isset($groups[$categoryid])) {
-                $label = $categorylabels[$categoryid] ?? $categoryid;
-                $groups[$categoryid] = [
-                    "label" => $label,
-                    "options" => [
-                        [
-                            "value" => "category-{$categoryid}",
-                            "name" => get_string("selectioncategory", "local_gimidashboard") . ": " . $label,
-                            "selected" => false,
-                        ],
-                    ],
-                ];
-            }
-
-            $groups[$categoryid]["options"][] = [
-                "value" => "course-{$course->id}",
-                "name" => "&nbsp;&nbsp;&nbsp;&nbsp;" .
-                    format_string($course->fullname, true, ["context" => context_course::instance($course->id)]),
-                "selected" => false,
-            ];
+            $categoryids[$course->category] = $course->category;
         }
 
-        usort($courses, static function(stdClass $a, stdClass $b): int {
-            return strcmp(
-                strtolower($a->fullname),
-                strtolower($b->fullname)
-            );
-        });
+        [$insql, $params] = $DB->get_in_or_equal(array_values($categoryids), SQL_PARAMS_NAMED);
+        $selectedcategories = $DB->get_records_select(
+            "course_categories",
+            "id {$insql}",
+            $params,
+            "sortorder ASC, id ASC",
+            "id, parent, name, path, depth, sortorder"
+        );
 
-        return array_values($groups);
+        $allcategoryids = [];
+        foreach ($selectedcategories as $category) {
+            foreach (explode("/", trim($category->path, "/")) as $pathid) {
+                if ($pathid !== "") {
+                    $allcategoryids[(int) $pathid] = (int) $pathid;
+                }
+            }
+        }
+
+        if (empty($allcategoryids)) {
+            return [];
+        }
+
+        [$allinsql, $allparams] = $DB->get_in_or_equal(array_values($allcategoryids), SQL_PARAMS_NAMED);
+        $allcategories = $DB->get_records_select(
+            "course_categories",
+            "id {$allinsql}",
+            $allparams,
+            "sortorder ASC, id ASC",
+            "id, parent, name, path, depth, sortorder"
+        );
+
+        $visiblecategories = [];
+        foreach ($selectedcategories as $category) {
+            foreach (explode("/", trim($category->path, "/")) as $pathid) {
+                $pathid = (int) $pathid;
+                if (!empty($allcategories[$pathid])) {
+                    $visiblecategories[$pathid] = $allcategories[$pathid];
+                }
+            }
+        }
+
+        $children = [];
+        foreach ($visiblecategories as $category) {
+            $parentid = (int) $category->parent;
+            if (empty($visiblecategories[$parentid])) {
+                $parentid = 0;
+            }
+            if (!isset($children[$parentid])) {
+                $children[$parentid] = [];
+            }
+            $children[$parentid][] = $category;
+        }
+
+        foreach ($children as $parentid => $items) {
+            usort($items, static function(stdClass $a, stdClass $b): int {
+                $sortordercomparison = $a->sortorder <=> $b->sortorder;
+                if ($sortordercomparison !== 0) {
+                    return $sortordercomparison;
+                }
+
+                return strcmp(
+                    strtolower($a->name),
+                    strtolower($b->name)
+                );
+            });
+            $children[$parentid] = $items;
+        }
+
+        $coursesbycategory = [];
+        foreach ($courses as $course) {
+            if (!isset($coursesbycategory[$course->category])) {
+                $coursesbycategory[$course->category] = [];
+            }
+            $coursesbycategory[$course->category][] = $course;
+        }
+
+        foreach ($coursesbycategory as $categoryid => $categorycourses) {
+            usort($categorycourses, static function(stdClass $a, stdClass $b): int {
+                $sortordercomparison = $a->sortorder <=> $b->sortorder;
+                if ($sortordercomparison !== 0) {
+                    return $sortordercomparison;
+                }
+
+                return strcmp(
+                    strtolower($a->fullname),
+                    strtolower($b->fullname)
+                );
+            });
+            $coursesbycategory[$categoryid] = $categorycourses;
+        }
+
+        $options = [];
+        $appendcategory =
+            static function(stdClass $category, int $level) use (&$appendcategory, &$options, $children, $coursesbycategory): void {
+                $prefix = str_repeat("&nbsp;&nbsp;&nbsp;&nbsp;", max(0, $level));
+                $prefixtitle = get_string("selectioncategory", "local_gimidashboard");
+                $name = format_string($category->name, true, ["context" => context_system::instance()]);
+                $options[] = [
+                    "value" => "category-{$category->id}",
+                    "name" => "{$prefix}{$prefixtitle}: {$name}",
+                    "selected" => false,
+                ];
+
+                if (!empty($coursesbycategory[$category->id])) {
+                    foreach ($coursesbycategory[$category->id] as $course) {
+                        $name = format_string($course->fullname, true, ["context" => context_course::instance($course->id)]);
+                        $options[] = [
+                            "value" => "course-{$course->id}",
+                            "name" => "{$prefix}&nbsp;&nbsp;&nbsp;&nbsp;{$name}",
+                            "selected" => false,
+                        ];
+                    }
+                }
+
+                if (!empty($children[$category->id])) {
+                    foreach ($children[$category->id] as $childcategory) {
+                        $appendcategory($childcategory, $level + 1);
+                    }
+                }
+            };
+
+        foreach ($children[0] ?? [] as $rootcategory) {
+            $appendcategory($rootcategory, 0);
+        }
+
+        return $options;
     }
 }

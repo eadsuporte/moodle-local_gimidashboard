@@ -31,13 +31,9 @@
                 >{{#str}}selectorlabel, local_gimidashboard{{/str}}</label>
                 <select id="local-gimidashboard-target" name="target" class="form-select"
                         onchange="this.form.submit()">
-                    {{#groups}}
-                        <optgroup label="{{{label}}}">
-                            {{#options}}
-                                <option value="{{{value}}}" {{#selected}}selected{{/selected}}>{{{name}}}</option>
-                            {{/options}}
-                        </optgroup>
-                    {{/groups}}
+                    {{#options}}
+                        <option value="{{{value}}}" {{#selected}}selected{{/selected}}>{{{name}}}</option>
+                    {{/options}}
                 </select>
                 {{#existingparams}}
                     <input type="hidden" name="{{{name}}}" value="{{{value}}}">

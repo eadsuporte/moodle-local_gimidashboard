@@ -64,14 +64,14 @@ if ($target !== false) {
         $selectedplugin
     );
     $mustachedata = [
-        "groups" => $dashboardpage->groups,
+        "options" => $dashboardpage->options,
         "reports" => $reports,
         "hasreports" => !empty($reports),
         "existingparams" => $existingparams,
     ];
 } else {
     $mustachedata = [
-        "groups" => $dashboardpage->groups,
+        "options" => $dashboardpage->options,
         "reports" => ["html" => ""],
     ];
     $currentparams = [];
