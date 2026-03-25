@@ -908,7 +908,7 @@ class report implements report_interface {
      * @throws Exception
      */
     protected static function render_summary_table(array $rows, object $selection): string {
-        global $OUTPUT;
+        global $OUTPUT, $PAGE;
 
         $cohortid = optional_param("cohortid", 0, PARAM_INT);
 
@@ -956,6 +956,7 @@ class report implements report_interface {
             ];
         }
 
+        $PAGE->requires->js_call_amd("local_gimidashboard/table", "datatable", ["#fullacademydashboard-summary_table"]);
         return $OUTPUT->render_from_template(
             "gimidashboardreports_fullacademydashboard/summary_table",
             $templatecontext
@@ -971,7 +972,7 @@ class report implements report_interface {
      * @throws Exception
      */
     protected static function render_detail_table(array $rows, object $selection): string {
-        global $OUTPUT;
+        global $OUTPUT, $PAGE;
 
         $templatecontext = [
             "headers" => [
@@ -1002,6 +1003,7 @@ class report implements report_interface {
             ];
         }
 
+        $PAGE->requires->js_call_amd("local_gimidashboard/table", "datatable", ["#fullacademydashboard-detail_table"]);
         return $OUTPUT->render_from_template(
             "gimidashboardreports_fullacademydashboard/detail_table",
             $templatecontext

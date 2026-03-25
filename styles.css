@@ -1,3 +1,4 @@
+@charset "UTF-8";
 .local-gimidashboard {
   --gimi-radius-lg: 18px;
   --gimi-radius-md: 14px;
@@ -402,6 +403,1519 @@
   }
   .local-gimidashboard .gimi-kpi-card-value {
     font-size: 1.45rem;
+  }
+}
+.local-gimidashboard :root {
+  --dt-row-selected: 13, 110, 253;
+  --dt-row-selected-text: 255, 255, 255;
+  --dt-row-selected-link: 228, 228, 228;
+  --dt-row-stripe: 0, 0, 0;
+  --dt-row-hover: 0, 0, 0;
+  --dt-column-ordering: 0, 0, 0;
+  --dt-header-align-items: center;
+  --dt-header-vertical-align: middle;
+  --dt-html-background: white;
+}
+.local-gimidashboard table.dataTable tbody td.dt-control {
+  text-align: center;
+  cursor: pointer;
+}
+.local-gimidashboard table.dataTable tbody td.dt-control:before {
+  display: inline-block;
+  box-sizing: border-box;
+  content: "";
+  border-top: 5px solid transparent;
+  border-left: 10px solid rgba(0, 0, 0, 0.5);
+  border-bottom: 5px solid transparent;
+  border-right: 0 solid transparent;
+}
+.local-gimidashboard table.dataTable tbody tr.dt-hasChild td.dt-control:before {
+  border-top: 10px solid rgba(0, 0, 0, 0.5);
+  border-left: 5px solid transparent;
+  border-bottom: 0 solid transparent;
+  border-right: 5px solid transparent;
+}
+.local-gimidashboard table.dataTable tfoot:empty {
+  display: none;
+}
+.local-gimidashboard div.dt-scroll {
+  width: 100%;
+}
+.local-gimidashboard div.dt-scroll-body {
+  border: 1px solid rgba(47, 67, 86, 0.3);
+  border-top: 0;
+}
+.local-gimidashboard div.dt-scroll-body thead tr,
+.local-gimidashboard div.dt-scroll-body tfoot tr {
+  height: 0;
+}
+.local-gimidashboard div.dt-scroll-body thead tr th,
+.local-gimidashboard div.dt-scroll-body thead tr td,
+.local-gimidashboard div.dt-scroll-body tfoot tr th,
+.local-gimidashboard div.dt-scroll-body tfoot tr td {
+  height: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  border-top-width: 0 !important;
+  border-bottom-width: 0 !important;
+}
+.local-gimidashboard div.dt-scroll-body thead tr th div.dt-scroll-sizing,
+.local-gimidashboard div.dt-scroll-body thead tr td div.dt-scroll-sizing,
+.local-gimidashboard div.dt-scroll-body tfoot tr th div.dt-scroll-sizing,
+.local-gimidashboard div.dt-scroll-body tfoot tr td div.dt-scroll-sizing {
+  height: 0 !important;
+  overflow: hidden !important;
+}
+.local-gimidashboard table.dataTable thead > tr > th:active,
+.local-gimidashboard table.dataTable thead > tr > td:active {
+  outline: none;
+}
+.local-gimidashboard table.dataTable thead > tr > th.dt-orderable-asc .dt-column-order:before,
+.local-gimidashboard table.dataTable thead > tr > th.dt-ordering-asc .dt-column-order:before,
+.local-gimidashboard table.dataTable thead > tr > td.dt-orderable-asc .dt-column-order:before,
+.local-gimidashboard table.dataTable thead > tr > td.dt-ordering-asc .dt-column-order:before {
+  position: absolute;
+  display: block;
+  bottom: 50%;
+  content: "▲";
+  content: "▲"/"";
+}
+.local-gimidashboard table.dataTable thead > tr > th.dt-orderable-desc .dt-column-order:after,
+.local-gimidashboard table.dataTable thead > tr > th.dt-ordering-desc .dt-column-order:after,
+.local-gimidashboard table.dataTable thead > tr > td.dt-orderable-desc .dt-column-order:after,
+.local-gimidashboard table.dataTable thead > tr > td.dt-ordering-desc .dt-column-order:after {
+  position: absolute;
+  display: block;
+  top: 50%;
+  content: "▼";
+  content: "▼"/"";
+}
+.local-gimidashboard table.dataTable thead > tr > th.dt-orderable-asc .dt-column-order,
+.local-gimidashboard table.dataTable thead > tr > th.dt-orderable-desc .dt-column-order,
+.local-gimidashboard table.dataTable thead > tr > th.dt-ordering-asc .dt-column-order,
+.local-gimidashboard table.dataTable thead > tr > th.dt-ordering-desc .dt-column-order,
+.local-gimidashboard table.dataTable thead > tr > td.dt-orderable-asc .dt-column-order,
+.local-gimidashboard table.dataTable thead > tr > td.dt-orderable-desc .dt-column-order,
+.local-gimidashboard table.dataTable thead > tr > td.dt-ordering-asc .dt-column-order,
+.local-gimidashboard table.dataTable thead > tr > td.dt-ordering-desc .dt-column-order {
+  position: relative;
+  width: 12px;
+  height: 20px;
+}
+.local-gimidashboard table.dataTable thead > tr > th.dt-orderable-asc .dt-column-order:before,
+.local-gimidashboard table.dataTable thead > tr > th.dt-orderable-asc .dt-column-order:after,
+.local-gimidashboard table.dataTable thead > tr > th.dt-orderable-desc .dt-column-order:before,
+.local-gimidashboard table.dataTable thead > tr > th.dt-orderable-desc .dt-column-order:after,
+.local-gimidashboard table.dataTable thead > tr > th.dt-ordering-asc .dt-column-order:before,
+.local-gimidashboard table.dataTable thead > tr > th.dt-ordering-asc .dt-column-order:after,
+.local-gimidashboard table.dataTable thead > tr > th.dt-ordering-desc .dt-column-order:before,
+.local-gimidashboard table.dataTable thead > tr > th.dt-ordering-desc .dt-column-order:after,
+.local-gimidashboard table.dataTable thead > tr > td.dt-orderable-asc .dt-column-order:before,
+.local-gimidashboard table.dataTable thead > tr > td.dt-orderable-asc .dt-column-order:after,
+.local-gimidashboard table.dataTable thead > tr > td.dt-orderable-desc .dt-column-order:before,
+.local-gimidashboard table.dataTable thead > tr > td.dt-orderable-desc .dt-column-order:after,
+.local-gimidashboard table.dataTable thead > tr > td.dt-ordering-asc .dt-column-order:before,
+.local-gimidashboard table.dataTable thead > tr > td.dt-ordering-asc .dt-column-order:after,
+.local-gimidashboard table.dataTable thead > tr > td.dt-ordering-desc .dt-column-order:before,
+.local-gimidashboard table.dataTable thead > tr > td.dt-ordering-desc .dt-column-order:after {
+  left: 0;
+  opacity: 0.125;
+  line-height: 9px;
+  font-size: 0.8em;
+}
+.local-gimidashboard table.dataTable thead > tr > th.dt-orderable-asc,
+.local-gimidashboard table.dataTable thead > tr > th.dt-orderable-desc,
+.local-gimidashboard table.dataTable thead > tr > td.dt-orderable-asc,
+.local-gimidashboard table.dataTable thead > tr > td.dt-orderable-desc {
+  cursor: pointer;
+}
+.local-gimidashboard table.dataTable thead > tr > th.dt-orderable-asc:hover,
+.local-gimidashboard table.dataTable thead > tr > th.dt-orderable-desc:hover,
+.local-gimidashboard table.dataTable thead > tr > td.dt-orderable-asc:hover,
+.local-gimidashboard table.dataTable thead > tr > td.dt-orderable-desc:hover {
+  outline: 2px solid rgba(0, 0, 0, 0.05);
+  outline-offset: -2px;
+}
+.local-gimidashboard table.dataTable thead > tr > th.dt-ordering-asc .dt-column-order:before,
+.local-gimidashboard table.dataTable thead > tr > th.dt-ordering-desc .dt-column-order:after,
+.local-gimidashboard table.dataTable thead > tr > td.dt-ordering-asc .dt-column-order:before,
+.local-gimidashboard table.dataTable thead > tr > td.dt-ordering-desc .dt-column-order:after {
+  opacity: 0.6;
+}
+.local-gimidashboard table.dataTable thead > tr > th.dt-orderable-none:not(.dt-ordering-asc, .dt-ordering-desc) .dt-column-order:empty,
+.local-gimidashboard table.dataTable thead > tr > th.sorting_desc_disabled .dt-column-order:after,
+.local-gimidashboard table.dataTable thead > tr > th.sorting_asc_disabled .dt-column-order:before,
+.local-gimidashboard table.dataTable thead > tr > td.dt-orderable-none:not(.dt-ordering-asc, .dt-ordering-desc) .dt-column-order:empty,
+.local-gimidashboard table.dataTable thead > tr > td.sorting_desc_disabled .dt-column-order:after,
+.local-gimidashboard table.dataTable thead > tr > td.sorting_asc_disabled .dt-column-order:before {
+  display: none;
+}
+.local-gimidashboard table.dataTable thead > tr > th:active,
+.local-gimidashboard table.dataTable thead > tr > td:active {
+  outline: none;
+}
+.local-gimidashboard table.dataTable thead > tr > th div.dt-column-header,
+.local-gimidashboard table.dataTable thead > tr > th div.dt-column-footer,
+.local-gimidashboard table.dataTable thead > tr > td div.dt-column-header,
+.local-gimidashboard table.dataTable thead > tr > td div.dt-column-footer,
+.local-gimidashboard table.dataTable tfoot > tr > th div.dt-column-header,
+.local-gimidashboard table.dataTable tfoot > tr > th div.dt-column-footer,
+.local-gimidashboard table.dataTable tfoot > tr > td div.dt-column-header,
+.local-gimidashboard table.dataTable tfoot > tr > td div.dt-column-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: var(--dt-header-align-items);
+  gap: 4px;
+}
+.local-gimidashboard table.dataTable thead > tr > th div.dt-column-header .dt-column-title,
+.local-gimidashboard table.dataTable thead > tr > th div.dt-column-footer .dt-column-title,
+.local-gimidashboard table.dataTable thead > tr > td div.dt-column-header .dt-column-title,
+.local-gimidashboard table.dataTable thead > tr > td div.dt-column-footer .dt-column-title,
+.local-gimidashboard table.dataTable tfoot > tr > th div.dt-column-header .dt-column-title,
+.local-gimidashboard table.dataTable tfoot > tr > th div.dt-column-footer .dt-column-title,
+.local-gimidashboard table.dataTable tfoot > tr > td div.dt-column-header .dt-column-title,
+.local-gimidashboard table.dataTable tfoot > tr > td div.dt-column-footer .dt-column-title {
+  flex-grow: 1;
+}
+.local-gimidashboard table.dataTable thead > tr > th div.dt-column-header .dt-column-title:empty,
+.local-gimidashboard table.dataTable thead > tr > th div.dt-column-footer .dt-column-title:empty,
+.local-gimidashboard table.dataTable thead > tr > td div.dt-column-header .dt-column-title:empty,
+.local-gimidashboard table.dataTable thead > tr > td div.dt-column-footer .dt-column-title:empty,
+.local-gimidashboard table.dataTable tfoot > tr > th div.dt-column-header .dt-column-title:empty,
+.local-gimidashboard table.dataTable tfoot > tr > th div.dt-column-footer .dt-column-title:empty,
+.local-gimidashboard table.dataTable tfoot > tr > td div.dt-column-header .dt-column-title:empty,
+.local-gimidashboard table.dataTable tfoot > tr > td div.dt-column-footer .dt-column-title:empty {
+  display: none;
+}
+.local-gimidashboard div.dt-scroll-body > table.dataTable > thead > tr > th,
+.local-gimidashboard div.dt-scroll-body > table.dataTable > thead > tr > td {
+  overflow: hidden;
+}
+.local-gimidashboard div.dt-processing {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 200px;
+  margin-left: -100px;
+  margin-top: -22px;
+  text-align: center;
+  padding: 2px;
+  z-index: 10;
+}
+.local-gimidashboard div.dt-processing > div:last-child {
+  position: relative;
+  width: 80px;
+  height: 15px;
+  margin: 1em auto;
+}
+.local-gimidashboard div.dt-processing > div:last-child > div {
+  position: absolute;
+  top: 0;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: rgb(13, 110, 253);
+  background: rgb(var(--dt-row-selected));
+  animation-timing-function: cubic-bezier(0, 1, 1, 0);
+}
+.local-gimidashboard div.dt-processing > div:last-child > div:nth-child(1) {
+  left: 8px;
+  animation: datatables-loader-1 0.6s infinite;
+}
+.local-gimidashboard div.dt-processing > div:last-child > div:nth-child(2) {
+  left: 8px;
+  animation: datatables-loader-2 0.6s infinite;
+}
+.local-gimidashboard div.dt-processing > div:last-child > div:nth-child(3) {
+  left: 32px;
+  animation: datatables-loader-2 0.6s infinite;
+}
+.local-gimidashboard div.dt-processing > div:last-child > div:nth-child(4) {
+  left: 56px;
+  animation: datatables-loader-3 0.6s infinite;
+}
+@keyframes datatables-loader-1 {
+  0% {
+    transform: scale(0);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@keyframes datatables-loader-3 {
+  0% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(0);
+  }
+}
+@keyframes datatables-loader-2 {
+  0% {
+    transform: translate(0, 0);
+  }
+  100% {
+    transform: translate(24px, 0);
+  }
+}
+.local-gimidashboard table.dataTable.nowrap th, .local-gimidashboard table.dataTable.nowrap td {
+  white-space: nowrap;
+}
+.local-gimidashboard table.dataTable th,
+.local-gimidashboard table.dataTable td {
+  box-sizing: border-box;
+}
+.local-gimidashboard table.dataTable th.dt-type-numeric, .local-gimidashboard table.dataTable th.dt-type-date,
+.local-gimidashboard table.dataTable td.dt-type-numeric,
+.local-gimidashboard table.dataTable td.dt-type-date {
+  text-align: right;
+}
+.local-gimidashboard table.dataTable th.dt-type-numeric div.dt-column-header,
+.local-gimidashboard table.dataTable th.dt-type-numeric div.dt-column-footer, .local-gimidashboard table.dataTable th.dt-type-date div.dt-column-header,
+.local-gimidashboard table.dataTable th.dt-type-date div.dt-column-footer,
+.local-gimidashboard table.dataTable td.dt-type-numeric div.dt-column-header,
+.local-gimidashboard table.dataTable td.dt-type-numeric div.dt-column-footer,
+.local-gimidashboard table.dataTable td.dt-type-date div.dt-column-header,
+.local-gimidashboard table.dataTable td.dt-type-date div.dt-column-footer {
+  flex-direction: row-reverse;
+}
+.local-gimidashboard table.dataTable th.dt-left,
+.local-gimidashboard table.dataTable td.dt-left {
+  text-align: left;
+}
+.local-gimidashboard table.dataTable th.dt-left div.dt-column-header,
+.local-gimidashboard table.dataTable th.dt-left div.dt-column-footer,
+.local-gimidashboard table.dataTable td.dt-left div.dt-column-header,
+.local-gimidashboard table.dataTable td.dt-left div.dt-column-footer {
+  flex-direction: row;
+}
+.local-gimidashboard table.dataTable th.dt-center,
+.local-gimidashboard table.dataTable td.dt-center {
+  text-align: center;
+}
+.local-gimidashboard table.dataTable th.dt-right,
+.local-gimidashboard table.dataTable td.dt-right {
+  text-align: right;
+}
+.local-gimidashboard table.dataTable th.dt-right div.dt-column-header,
+.local-gimidashboard table.dataTable th.dt-right div.dt-column-footer,
+.local-gimidashboard table.dataTable td.dt-right div.dt-column-header,
+.local-gimidashboard table.dataTable td.dt-right div.dt-column-footer {
+  flex-direction: row-reverse;
+}
+.local-gimidashboard table.dataTable th.dt-justify,
+.local-gimidashboard table.dataTable td.dt-justify {
+  text-align: justify;
+}
+.local-gimidashboard table.dataTable th.dt-justify div.dt-column-header,
+.local-gimidashboard table.dataTable th.dt-justify div.dt-column-footer,
+.local-gimidashboard table.dataTable td.dt-justify div.dt-column-header,
+.local-gimidashboard table.dataTable td.dt-justify div.dt-column-footer {
+  flex-direction: row;
+}
+.local-gimidashboard table.dataTable th.dt-nowrap,
+.local-gimidashboard table.dataTable td.dt-nowrap {
+  white-space: nowrap;
+}
+.local-gimidashboard table.dataTable th.dt-empty,
+.local-gimidashboard table.dataTable td.dt-empty {
+  text-align: center;
+  vertical-align: top;
+}
+.local-gimidashboard table.dataTable thead th,
+.local-gimidashboard table.dataTable thead td,
+.local-gimidashboard table.dataTable tfoot th,
+.local-gimidashboard table.dataTable tfoot td {
+  text-align: left;
+  vertical-align: var(--dt-header-vertical-align);
+}
+.local-gimidashboard table.dataTable thead th.dt-head-left,
+.local-gimidashboard table.dataTable thead td.dt-head-left,
+.local-gimidashboard table.dataTable tfoot th.dt-head-left,
+.local-gimidashboard table.dataTable tfoot td.dt-head-left {
+  text-align: left;
+}
+.local-gimidashboard table.dataTable thead th.dt-head-left div.dt-column-header,
+.local-gimidashboard table.dataTable thead th.dt-head-left div.dt-column-footer,
+.local-gimidashboard table.dataTable thead td.dt-head-left div.dt-column-header,
+.local-gimidashboard table.dataTable thead td.dt-head-left div.dt-column-footer,
+.local-gimidashboard table.dataTable tfoot th.dt-head-left div.dt-column-header,
+.local-gimidashboard table.dataTable tfoot th.dt-head-left div.dt-column-footer,
+.local-gimidashboard table.dataTable tfoot td.dt-head-left div.dt-column-header,
+.local-gimidashboard table.dataTable tfoot td.dt-head-left div.dt-column-footer {
+  flex-direction: row;
+}
+.local-gimidashboard table.dataTable thead th.dt-head-center,
+.local-gimidashboard table.dataTable thead td.dt-head-center,
+.local-gimidashboard table.dataTable tfoot th.dt-head-center,
+.local-gimidashboard table.dataTable tfoot td.dt-head-center {
+  text-align: center;
+}
+.local-gimidashboard table.dataTable thead th.dt-head-right,
+.local-gimidashboard table.dataTable thead td.dt-head-right,
+.local-gimidashboard table.dataTable tfoot th.dt-head-right,
+.local-gimidashboard table.dataTable tfoot td.dt-head-right {
+  text-align: right;
+}
+.local-gimidashboard table.dataTable thead th.dt-head-right div.dt-column-header,
+.local-gimidashboard table.dataTable thead th.dt-head-right div.dt-column-footer,
+.local-gimidashboard table.dataTable thead td.dt-head-right div.dt-column-header,
+.local-gimidashboard table.dataTable thead td.dt-head-right div.dt-column-footer,
+.local-gimidashboard table.dataTable tfoot th.dt-head-right div.dt-column-header,
+.local-gimidashboard table.dataTable tfoot th.dt-head-right div.dt-column-footer,
+.local-gimidashboard table.dataTable tfoot td.dt-head-right div.dt-column-header,
+.local-gimidashboard table.dataTable tfoot td.dt-head-right div.dt-column-footer {
+  flex-direction: row-reverse;
+}
+.local-gimidashboard table.dataTable thead th.dt-head-justify,
+.local-gimidashboard table.dataTable thead td.dt-head-justify,
+.local-gimidashboard table.dataTable tfoot th.dt-head-justify,
+.local-gimidashboard table.dataTable tfoot td.dt-head-justify {
+  text-align: justify;
+}
+.local-gimidashboard table.dataTable thead th.dt-head-justify div.dt-column-header,
+.local-gimidashboard table.dataTable thead th.dt-head-justify div.dt-column-footer,
+.local-gimidashboard table.dataTable thead td.dt-head-justify div.dt-column-header,
+.local-gimidashboard table.dataTable thead td.dt-head-justify div.dt-column-footer,
+.local-gimidashboard table.dataTable tfoot th.dt-head-justify div.dt-column-header,
+.local-gimidashboard table.dataTable tfoot th.dt-head-justify div.dt-column-footer,
+.local-gimidashboard table.dataTable tfoot td.dt-head-justify div.dt-column-header,
+.local-gimidashboard table.dataTable tfoot td.dt-head-justify div.dt-column-footer {
+  flex-direction: row;
+}
+.local-gimidashboard table.dataTable thead th.dt-head-nowrap,
+.local-gimidashboard table.dataTable thead td.dt-head-nowrap,
+.local-gimidashboard table.dataTable tfoot th.dt-head-nowrap,
+.local-gimidashboard table.dataTable tfoot td.dt-head-nowrap {
+  white-space: nowrap;
+}
+.local-gimidashboard table.dataTable tbody th.dt-body-left,
+.local-gimidashboard table.dataTable tbody td.dt-body-left {
+  text-align: left;
+}
+.local-gimidashboard table.dataTable tbody th.dt-body-center,
+.local-gimidashboard table.dataTable tbody td.dt-body-center {
+  text-align: center;
+}
+.local-gimidashboard table.dataTable tbody th.dt-body-right,
+.local-gimidashboard table.dataTable tbody td.dt-body-right {
+  text-align: right;
+}
+.local-gimidashboard table.dataTable tbody th.dt-body-justify,
+.local-gimidashboard table.dataTable tbody td.dt-body-justify {
+  text-align: justify;
+}
+.local-gimidashboard table.dataTable tbody th.dt-body-nowrap,
+.local-gimidashboard table.dataTable tbody td.dt-body-nowrap {
+  white-space: nowrap;
+}
+.local-gimidashboard :root {
+  --dt-row-hover-alpha: 0.035;
+  --dt-row-stripe-alpha: 0.023;
+  --dt-column-ordering-alpha: 0.019;
+  --dt-row-selected-stripe-alpha: 0.923;
+  --dt-row-selected-column-ordering-alpha: 0.919;
+}
+.local-gimidashboard {
+  /*
+   * Table styles
+   */
+}
+.local-gimidashboard table.dataTable {
+  width: 100%;
+  margin: 0 auto;
+  border-spacing: 0;
+  /*
+   * Header and footer styles
+   */
+}
+.local-gimidashboard table.dataTable thead th,
+.local-gimidashboard table.dataTable tfoot th {
+  font-weight: bold;
+}
+.local-gimidashboard table.dataTable > thead > tr > th,
+.local-gimidashboard table.dataTable > thead > tr > td {
+  padding: 10px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+}
+.local-gimidashboard table.dataTable > thead > tr > th:active,
+.local-gimidashboard table.dataTable > thead > tr > td:active {
+  outline: none;
+}
+.local-gimidashboard table.dataTable > tfoot > tr > th,
+.local-gimidashboard table.dataTable > tfoot > tr > td {
+  border-top: 1px solid rgba(0, 0, 0, 0.3);
+  padding: 10px 10px 6px 10px;
+}
+.local-gimidashboard table.dataTable {
+  /*
+   * Body styles
+   */
+}
+.local-gimidashboard table.dataTable > tbody > tr {
+  background-color: transparent;
+}
+.local-gimidashboard table.dataTable > tbody > tr:first-child > * {
+  border-top: none;
+}
+.local-gimidashboard table.dataTable > tbody > tr:last-child > * {
+  border-bottom: none;
+}
+.local-gimidashboard table.dataTable > tbody > tr.selected > * {
+  box-shadow: inset 0 0 0 9999px rgba(13, 110, 253, 0.9);
+  box-shadow: inset 0 0 0 9999px rgba(var(--dt-row-selected), 0.9);
+  color: rgb(255, 255, 255);
+  color: rgb(var(--dt-row-selected-text));
+}
+.local-gimidashboard table.dataTable > tbody > tr.selected a {
+  color: rgb(228, 228, 228);
+  color: rgb(var(--dt-row-selected-link));
+}
+.local-gimidashboard table.dataTable > tbody > tr > th,
+.local-gimidashboard table.dataTable > tbody > tr > td {
+  padding: 8px 10px;
+}
+.local-gimidashboard table.dataTable.row-border > tbody > tr > *, .local-gimidashboard table.dataTable.display > tbody > tr > * {
+  border-top: 1px solid rgba(0, 0, 0, 0.15);
+}
+.local-gimidashboard table.dataTable.row-border > tbody > tr:first-child > *, .local-gimidashboard table.dataTable.display > tbody > tr:first-child > * {
+  border-top: none;
+}
+.local-gimidashboard table.dataTable.row-border > tbody > tr.selected + tr.selected > td, .local-gimidashboard table.dataTable.display > tbody > tr.selected + tr.selected > td {
+  border-top-color: rgba(13, 110, 253, 0.65);
+  border-top-color: rgba(var(--dt-row-selected), 0.65);
+}
+.local-gimidashboard table.dataTable.cell-border > tbody > tr > * {
+  border-top: 1px solid rgba(0, 0, 0, 0.15);
+  border-right: 1px solid rgba(0, 0, 0, 0.15);
+}
+.local-gimidashboard table.dataTable.cell-border > tbody > tr > *:first-child {
+  border-left: 1px solid rgba(0, 0, 0, 0.15);
+}
+.local-gimidashboard table.dataTable.cell-border > tbody > tr:first-child > * {
+  border-top: 1px solid rgba(0, 0, 0, 0.3);
+}
+.local-gimidashboard table.dataTable.stripe > tbody > tr:nth-child(odd) > *, .local-gimidashboard table.dataTable.display > tbody > tr:nth-child(odd) > * {
+  box-shadow: inset 0 0 0 9999px rgba(0, 0, 0, 0.023);
+  box-shadow: inset 0 0 0 9999px rgba(var(--dt-row-stripe), var(--dt-row-stripe-alpha));
+}
+.local-gimidashboard table.dataTable.stripe > tbody > tr:nth-child(odd).selected > *, .local-gimidashboard table.dataTable.display > tbody > tr:nth-child(odd).selected > * {
+  box-shadow: inset 0 0 0 9999px rgba(13, 110, 253, 0.923);
+  box-shadow: inset 0 0 0 9999px rgba(var(--dt-row-selected), var(--dt-row-selected-stripe-alpha));
+}
+.local-gimidashboard table.dataTable.hover > tbody > tr:hover > *, .local-gimidashboard table.dataTable.display > tbody > tr:hover > * {
+  box-shadow: inset 0 0 0 9999px rgba(0, 0, 0, 0.035);
+  box-shadow: inset 0 0 0 9999px rgba(var(--dt-row-hover), var(--dt-row-hover-alpha));
+}
+.local-gimidashboard table.dataTable.hover > tbody > tr.selected:hover > *, .local-gimidashboard table.dataTable.display > tbody > tr.selected:hover > * {
+  box-shadow: inset 0 0 0 9999px #0d6efd !important;
+  box-shadow: inset 0 0 0 9999px rgba(var(--dt-row-selected), 1) !important;
+}
+.local-gimidashboard table.dataTable.order-column > tbody tr > .sorting_1,
+.local-gimidashboard table.dataTable.order-column > tbody tr > .sorting_2,
+.local-gimidashboard table.dataTable.order-column > tbody tr > .sorting_3, .local-gimidashboard table.dataTable.display > tbody tr > .sorting_1,
+.local-gimidashboard table.dataTable.display > tbody tr > .sorting_2,
+.local-gimidashboard table.dataTable.display > tbody tr > .sorting_3 {
+  box-shadow: inset 0 0 0 9999px rgba(0, 0, 0, 0.019);
+  box-shadow: inset 0 0 0 9999px rgba(var(--dt-column-ordering), var(--dt-column-ordering-alpha));
+}
+.local-gimidashboard table.dataTable.order-column > tbody tr.selected > .sorting_1,
+.local-gimidashboard table.dataTable.order-column > tbody tr.selected > .sorting_2,
+.local-gimidashboard table.dataTable.order-column > tbody tr.selected > .sorting_3, .local-gimidashboard table.dataTable.display > tbody tr.selected > .sorting_1,
+.local-gimidashboard table.dataTable.display > tbody tr.selected > .sorting_2,
+.local-gimidashboard table.dataTable.display > tbody tr.selected > .sorting_3 {
+  box-shadow: inset 0 0 0 9999px rgba(13, 110, 253, 0.919);
+  box-shadow: inset 0 0 0 9999px rgba(var(--dt-row-selected), var(--dt-row-selected-column-ordering-alpha));
+}
+.local-gimidashboard table.dataTable.display > tbody > tr:nth-child(odd) > .sorting_1, .local-gimidashboard table.dataTable.order-column.stripe > tbody > tr:nth-child(odd) > .sorting_1 {
+  box-shadow: inset 0 0 0 9999px rgba(0, 0, 0, 0.054);
+  box-shadow: inset 0 0 0 9999px rgba(var(--dt-column-ordering), calc(var(--dt-row-stripe-alpha) + var(--dt-column-ordering-alpha)));
+}
+.local-gimidashboard table.dataTable.display > tbody > tr:nth-child(odd) > .sorting_2, .local-gimidashboard table.dataTable.order-column.stripe > tbody > tr:nth-child(odd) > .sorting_2 {
+  box-shadow: inset 0 0 0 9999px rgba(0, 0, 0, 0.047);
+  box-shadow: inset 0 0 0 9999px rgba(var(--dt-column-ordering), calc(var(--dt-row-stripe-alpha) + var(--dt-column-ordering-alpha) - 0.007));
+}
+.local-gimidashboard table.dataTable.display > tbody > tr:nth-child(odd) > .sorting_3, .local-gimidashboard table.dataTable.order-column.stripe > tbody > tr:nth-child(odd) > .sorting_3 {
+  box-shadow: inset 0 0 0 9999px rgba(0, 0, 0, 0.039);
+  box-shadow: inset 0 0 0 9999px rgba(var(--dt-column-ordering), calc(var(--dt-row-stripe-alpha) + var(--dt-column-ordering-alpha) - 0.015));
+}
+.local-gimidashboard table.dataTable.display > tbody > tr:nth-child(odd).selected > .sorting_1, .local-gimidashboard table.dataTable.order-column.stripe > tbody > tr:nth-child(odd).selected > .sorting_1 {
+  box-shadow: inset 0 0 0 9999px rgba(13, 110, 253, 0.954);
+  box-shadow: inset 0 0 0 9999px rgba(var(--dt-row-selected), calc(var(--dt-row-selected-stripe-alpha) + var(--dt-column-ordering-alpha)));
+}
+.local-gimidashboard table.dataTable.display > tbody > tr:nth-child(odd).selected > .sorting_2, .local-gimidashboard table.dataTable.order-column.stripe > tbody > tr:nth-child(odd).selected > .sorting_2 {
+  box-shadow: inset 0 0 0 9999px rgba(13, 110, 253, 0.947);
+  box-shadow: inset 0 0 0 9999px rgba(var(--dt-row-selected), calc(var(--dt-row-selected-stripe-alpha) + var(--dt-column-ordering-alpha) - 0.007));
+}
+.local-gimidashboard table.dataTable.display > tbody > tr:nth-child(odd).selected > .sorting_3, .local-gimidashboard table.dataTable.order-column.stripe > tbody > tr:nth-child(odd).selected > .sorting_3 {
+  box-shadow: inset 0 0 0 9999px rgba(13, 110, 253, 0.939);
+  box-shadow: inset 0 0 0 9999px rgba(var(--dt-row-selected), calc(var(--dt-row-selected-stripe-alpha) + var(--dt-column-ordering-alpha) - 0.015));
+}
+.local-gimidashboard table.dataTable.display tbody tr:hover > .sorting_1, .local-gimidashboard table.dataTable.order-column.hover tbody tr:hover > .sorting_1 {
+  box-shadow: inset 0 0 0 9999px rgba(0, 0, 0, 0.082);
+  box-shadow: inset 0 0 0 9999px rgba(var(--dt-row-hover), calc(var(--dt-row-stripe-alpha) + var(--dt-column-ordering-alpha) + var(--dt-row-hover-alpha)));
+}
+.local-gimidashboard table.dataTable.display tbody tr:hover > .sorting_2, .local-gimidashboard table.dataTable.order-column.hover tbody tr:hover > .sorting_2 {
+  box-shadow: inset 0 0 0 9999px rgba(0, 0, 0, 0.074);
+  box-shadow: inset 0 0 0 9999px rgba(var(--dt-row-hover), calc(var(--dt-row-stripe-alpha) + var(--dt-column-ordering-alpha) + var(--dt-row-hover-alpha) - 0.007));
+}
+.local-gimidashboard table.dataTable.display tbody tr:hover > .sorting_3, .local-gimidashboard table.dataTable.order-column.hover tbody tr:hover > .sorting_3 {
+  box-shadow: inset 0 0 0 9999px rgba(0, 0, 0, 0.062);
+  box-shadow: inset 0 0 0 9999px rgba(var(--dt-row-hover), calc(var(--dt-row-stripe-alpha) + var(--dt-column-ordering-alpha) + var(--dt-row-hover-alpha) - 0.015));
+}
+.local-gimidashboard table.dataTable.display tbody tr:hover.selected > .sorting_1, .local-gimidashboard table.dataTable.order-column.hover tbody tr:hover.selected > .sorting_1 {
+  box-shadow: inset 0 0 0 9999px rgba(13, 110, 253, 0.982);
+  box-shadow: inset 0 0 0 9999px rgba(var(--dt-row-selected), calc(var(--dt-row-selected-stripe-alpha) + var(--dt-column-ordering-alpha)));
+}
+.local-gimidashboard table.dataTable.display tbody tr:hover.selected > .sorting_2, .local-gimidashboard table.dataTable.order-column.hover tbody tr:hover.selected > .sorting_2 {
+  box-shadow: inset 0 0 0 9999px rgba(13, 110, 253, 0.974);
+  box-shadow: inset 0 0 0 9999px rgba(var(--dt-row-selected), calc(var(--dt-row-selected-stripe-alpha) + var(--dt-column-ordering-alpha) + var(--dt-row-hover-alpha) - 0.007));
+}
+.local-gimidashboard table.dataTable.display tbody tr:hover.selected > .sorting_3, .local-gimidashboard table.dataTable.order-column.hover tbody tr:hover.selected > .sorting_3 {
+  box-shadow: inset 0 0 0 9999px rgba(13, 110, 253, 0.962);
+  box-shadow: inset 0 0 0 9999px rgba(var(--dt-row-selected), calc(var(--dt-row-selected-stripe-alpha) + var(--dt-column-ordering-alpha) + var(--dt-row-hover-alpha) - 0.015));
+}
+.local-gimidashboard table.dataTable.compact thead th,
+.local-gimidashboard table.dataTable.compact thead td,
+.local-gimidashboard table.dataTable.compact tfoot th,
+.local-gimidashboard table.dataTable.compact tfoot td,
+.local-gimidashboard table.dataTable.compact tbody th,
+.local-gimidashboard table.dataTable.compact tbody td {
+  padding: 4px;
+}
+.local-gimidashboard div.dt-container div.dt-layout-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+.local-gimidashboard div.dt-container div.dt-layout-row:last-child {
+  margin-bottom: 0;
+}
+.local-gimidashboard div.dt-container div.dt-layout-row div.dt-layout-cell {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.local-gimidashboard div.dt-container div.dt-layout-row div.dt-layout-cell.dt-layout-start {
+  justify-content: flex-start;
+  margin-right: auto;
+}
+.local-gimidashboard div.dt-container div.dt-layout-row div.dt-layout-cell.dt-layout-end {
+  justify-content: flex-end;
+  margin-left: auto;
+}
+.local-gimidashboard div.dt-container div.dt-layout-row div.dt-layout-cell:empty {
+  display: none;
+}
+@media screen and (max-width: 767px) {
+  .local-gimidashboard div.dt-container div.dt-layout-row:not(.dt-layout-table) {
+    display: block;
+  }
+  .local-gimidashboard div.dt-container div.dt-layout-row:not(.dt-layout-table) div.dt-layout-cell {
+    display: block;
+    text-align: center;
+  }
+  .local-gimidashboard div.dt-container div.dt-layout-row:not(.dt-layout-table) div.dt-layout-cell > * {
+    margin: 0.5em 0;
+  }
+  .local-gimidashboard div.dt-container div.dt-layout-row:not(.dt-layout-table) div.dt-layout-cell.dt-layout-start {
+    margin-right: 0;
+  }
+  .local-gimidashboard div.dt-container div.dt-layout-row:not(.dt-layout-table) div.dt-layout-cell.dt-layout-end {
+    margin-left: 0;
+  }
+}
+.local-gimidashboard div.dt-container div.dt-layout-start > *:not(:last-child) {
+  margin-right: 1em;
+}
+.local-gimidashboard div.dt-container div.dt-layout-end > *:not(:first-child) {
+  margin-left: 1em;
+}
+.local-gimidashboard div.dt-container div.dt-layout-full {
+  width: 100%;
+}
+.local-gimidashboard div.dt-container div.dt-layout-full > *:only-child {
+  margin-left: auto;
+  margin-right: auto;
+}
+.local-gimidashboard div.dt-container div.dt-layout-table > div {
+  display: block !important;
+}
+@media screen and (max-width: 767px) {
+  .local-gimidashboard div.dt-container div.dt-layout-start > *:not(:last-child) {
+    margin-right: 0;
+  }
+  .local-gimidashboard div.dt-container div.dt-layout-end > *:not(:first-child) {
+    margin-left: 0;
+  }
+}
+.local-gimidashboard div.dt-container {
+  /*
+   * Control feature layout
+   */
+  position: relative;
+  clear: both;
+}
+.local-gimidashboard div.dt-container .dt-search input {
+  border: 1px solid #aaaaaa;
+  border-radius: 3px;
+  padding: 5px;
+  background-color: transparent;
+  color: inherit;
+  margin-left: 3px;
+}
+.local-gimidashboard div.dt-container .dt-input {
+  border: 1px solid #aaaaaa;
+  border-radius: 3px;
+  padding: 5px;
+  background-color: transparent;
+  color: inherit;
+}
+.local-gimidashboard div.dt-container select.dt-input {
+  padding: 4px;
+}
+.local-gimidashboard div.dt-container .dt-paging .ellipsis {
+  padding: 0 1em;
+}
+.local-gimidashboard div.dt-container .dt-length,
+.local-gimidashboard div.dt-container .dt-search,
+.local-gimidashboard div.dt-container .dt-info,
+.local-gimidashboard div.dt-container .dt-processing,
+.local-gimidashboard div.dt-container .dt-paging {
+  color: inherit;
+}
+.local-gimidashboard div.dt-container .dt-length {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+.local-gimidashboard div.dt-container .dt-length label {
+  margin-bottom: 0;
+}
+.local-gimidashboard div.dt-container .dataTables_scroll {
+  clear: both;
+}
+.local-gimidashboard div.dt-container .dataTables_scroll div.dt-scroll-body {
+  -webkit-overflow-scrolling: touch;
+}
+.local-gimidashboard div.dt-container .dataTables_scroll div.dt-scroll-body > table > thead > tr > th,
+.local-gimidashboard div.dt-container .dataTables_scroll div.dt-scroll-body > table > thead > tr > td,
+.local-gimidashboard div.dt-container .dataTables_scroll div.dt-scroll-body > table > tbody > tr > th,
+.local-gimidashboard div.dt-container .dataTables_scroll div.dt-scroll-body > table > tbody > tr > td {
+  vertical-align: middle;
+}
+.local-gimidashboard div.dt-container .dataTables_scroll div.dt-scroll-body > table > thead > tr > th > div.dataTables_sizing,
+.local-gimidashboard div.dt-container .dataTables_scroll div.dt-scroll-body > table > thead > tr > td > div.dataTables_sizing,
+.local-gimidashboard div.dt-container .dataTables_scroll div.dt-scroll-body > table > tbody > tr > th > div.dataTables_sizing,
+.local-gimidashboard div.dt-container .dataTables_scroll div.dt-scroll-body > table > tbody > tr > td > div.dataTables_sizing {
+  height: 0;
+  overflow: hidden;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+.local-gimidashboard div.dt-container div.dt-container.dt-empty-footer tbody > tr:last-child > * {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+}
+.local-gimidashboard div.dt-container div.dt-container.dt-empty-footer .dt-scroll-body {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+}
+.local-gimidashboard div.dt-container div.dt-container.dt-empty-footer .dt-scroll-body tbody > tr:last-child > * {
+  border-bottom: none;
+}
+.local-gimidashboard div.dt-container {
+  /* Wrapper geral */
+  color: #1f2937;
+  /* Espaçamento entre áreas */
+}
+.local-gimidashboard div.dt-container .dt-layout-row {
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.local-gimidashboard div.dt-container {
+  /* Controles superiores/inferiores */
+}
+.local-gimidashboard div.dt-container .dt-length,
+.local-gimidashboard div.dt-container .dt-search,
+.local-gimidashboard div.dt-container .dt-info,
+.local-gimidashboard div.dt-container .dt-paging {
+  font-size: 14px;
+}
+.local-gimidashboard div.dt-container {
+  /* Labels */
+}
+.local-gimidashboard div.dt-container .dt-length label,
+.local-gimidashboard div.dt-container .dt-search label {
+  color: #4b5563;
+  font-weight: 500;
+  margin: 0 8px 0 0;
+}
+.local-gimidashboard div.dt-container {
+  /* Select e input */
+}
+.local-gimidashboard div.dt-container .dt-input {
+  height: 38px;
+  padding: 0 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #111827;
+  outline: none;
+  transition: all 0.2s ease;
+  box-shadow: none;
+}
+.local-gimidashboard div.dt-container select.dt-input {
+  min-width: 80px;
+  cursor: pointer;
+}
+.local-gimidashboard div.dt-container input.dt-input[type=search] {
+  min-width: 220px;
+}
+.local-gimidashboard div.dt-container .dt-input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+.local-gimidashboard div.dt-container {
+  /* Header destacado */
+}
+.local-gimidashboard div.dt-container table.dataTable thead th {
+  background: linear-gradient(0deg, #34495e, #2c3e50);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 14px 16px;
+  vertical-align: middle;
+  white-space: nowrap;
+  /* Melhor alinhamento do título + ícone de ordenação */
+}
+.local-gimidashboard div.dt-container table.dataTable thead th .dt-column-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.local-gimidashboard div.dt-container table.dataTable thead th {
+  /* Hover no header */
+}
+.local-gimidashboard div.dt-container table.dataTable thead th:hover {
+  background: linear-gradient(180deg, #34495e, #2c3e50);
+}
+.local-gimidashboard div.dt-container {
+  /* Corpo da tabela */
+}
+.local-gimidashboard div.dt-container table.dataTable tbody td {
+  padding: 14px 16px;
+  border-top: 1px solid #eef2f7;
+  vertical-align: middle;
+  color: #374151;
+  /* Primeira coluna um pouco mais forte */
+}
+.local-gimidashboard div.dt-container table.dataTable tbody td.sorting_1 {
+  font-weight: 600;
+  color: #111827;
+  background: transparent !important;
+}
+.local-gimidashboard div.dt-container {
+  /* Linhas alternadas */
+}
+.local-gimidashboard div.dt-container table.dataTable tbody tr:nth-child(odd) {
+  background-color: #ffffff;
+}
+.local-gimidashboard div.dt-container table.dataTable tbody tr:nth-child(even) {
+  background-color: #f8fafc;
+}
+.local-gimidashboard div.dt-container table.dataTable tbody tr {
+  /* Hover nas linhas */
+}
+.local-gimidashboard div.dt-container table.dataTable tbody tr:hover {
+  background-color: #eef6ff;
+  transition: background-color 0.2s ease;
+}
+.local-gimidashboard div.dt-container {
+  /* Numéricos */
+}
+.local-gimidashboard div.dt-container table.dataTable .dt-type-numeric {
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.local-gimidashboard div.dt-container {
+  /* Info */
+}
+.local-gimidashboard div.dt-container .dt-info {
+  color: #6b7280;
+  padding-top: 4px;
+}
+.local-gimidashboard div.dt-container {
+  /* Paginação */
+}
+.local-gimidashboard div.dt-container .dt-paging nav {
+  display: flex;
+  align-items: center;
+}
+.local-gimidashboard div.dt-container .dt-paging nav-button {
+  min-width: 36px;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #374151;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.local-gimidashboard div.dt-container .dt-paging nav-button .disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.local-gimidashboard .dataTables_wrapper {
+  width: 100%;
+}
+.local-gimidashboard .dataTables_length,
+.local-gimidashboard .dataTables_filter {
+  margin-bottom: 12px;
+}
+.local-gimidashboard .dataTables_length input,
+.local-gimidashboard .dataTables_length select,
+.local-gimidashboard .dataTables_filter input,
+.local-gimidashboard .dataTables_filter select {
+  border: 1px solid #dbe3ea;
+  border-radius: 6px;
+  padding: 6px 8px;
+  background: #ffffff;
+}
+.local-gimidashboard .dataTables_info,
+.local-gimidashboard .dataTables_paginate {
+  margin-top: 12px;
+}
+.local-gimidashboard table.dataTable thead th, .local-gimidashboard table.dataTable thead td {
+  border-bottom: 1px solid #eef2f6;
+}
+@keyframes dtb-spinner {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+.local-gimidashboard div.dataTables_wrapper {
+  position: relative;
+}
+.local-gimidashboard {
+  @import "https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,600,0,0";
+}
+.local-gimidashboard div.dt-buttons,
+.local-gimidashboard div.dt-paging {
+  /* Container dos botões */
+  display: inline-flex;
+  align-items: center;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #dbe3ea;
+  /* Botões */
+}
+.local-gimidashboard div.dt-buttons .dt-button,
+.local-gimidashboard div.dt-buttons .dt-paging-button,
+.local-gimidashboard div.dt-paging .dt-button,
+.local-gimidashboard div.dt-paging .dt-paging-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 46px;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  border-right: 1px solid #e7edf3 !important;
+  background: linear-gradient(180deg, #ffffff 0%, #f7f9fc 100%) !important;
+  color: #334155 !important;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: none !important;
+  outline: none;
+  min-width: 52px;
+  outline: none !important;
+  /* Remove a borda do último */
+}
+.local-gimidashboard div.dt-buttons .dt-button:last-child,
+.local-gimidashboard div.dt-buttons .dt-paging-button:last-child,
+.local-gimidashboard div.dt-paging .dt-button:last-child,
+.local-gimidashboard div.dt-paging .dt-paging-button:last-child {
+  border-right: 0 !important;
+}
+.local-gimidashboard div.dt-buttons .dt-button,
+.local-gimidashboard div.dt-buttons .dt-paging-button,
+.local-gimidashboard div.dt-paging .dt-button,
+.local-gimidashboard div.dt-paging .dt-paging-button {
+  /* Ícones Material */
+}
+.local-gimidashboard div.dt-buttons .dt-button::before,
+.local-gimidashboard div.dt-buttons .dt-paging-button::before,
+.local-gimidashboard div.dt-paging .dt-button::before,
+.local-gimidashboard div.dt-paging .dt-paging-button::before {
+  font-family: "Material Symbols Outlined";
+  font-weight: normal;
+  font-style: normal;
+  font-size: 22px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  font-variation-settings: "FILL" 0, "wght" 600, "GRAD" 0, "opsz" 24;
+}
+.local-gimidashboard div.dt-buttons .dt-button,
+.local-gimidashboard div.dt-buttons .dt-paging-button,
+.local-gimidashboard div.dt-paging .dt-button,
+.local-gimidashboard div.dt-paging .dt-paging-button {
+  /* Hover */
+}
+.local-gimidashboard div.dt-buttons .dt-button:hover,
+.local-gimidashboard div.dt-buttons .dt-paging-button:hover,
+.local-gimidashboard div.dt-paging .dt-button:hover,
+.local-gimidashboard div.dt-paging .dt-paging-button:hover {
+  background: linear-gradient(180deg, #eff6ff 0%, #dbeafe 100%) !important;
+  color: #1d4ed8 !important;
+  transform: translateY(-1px);
+  z-index: 1;
+}
+.local-gimidashboard div.dt-buttons .dt-button,
+.local-gimidashboard div.dt-buttons .dt-paging-button,
+.local-gimidashboard div.dt-paging .dt-button,
+.local-gimidashboard div.dt-paging .dt-paging-button {
+  /* Active / click */
+}
+.local-gimidashboard div.dt-buttons .dt-button:active, .local-gimidashboard div.dt-buttons .dt-button.active, .local-gimidashboard div.dt-buttons .dt-button:focus, .local-gimidashboard div.dt-buttons .dt-button.current,
+.local-gimidashboard div.dt-buttons .dt-paging-button:active,
+.local-gimidashboard div.dt-buttons .dt-paging-button.active,
+.local-gimidashboard div.dt-buttons .dt-paging-button:focus,
+.local-gimidashboard div.dt-buttons .dt-paging-button.current,
+.local-gimidashboard div.dt-paging .dt-button:active,
+.local-gimidashboard div.dt-paging .dt-button.active,
+.local-gimidashboard div.dt-paging .dt-button:focus,
+.local-gimidashboard div.dt-paging .dt-button.current,
+.local-gimidashboard div.dt-paging .dt-paging-button:active,
+.local-gimidashboard div.dt-paging .dt-paging-button.active,
+.local-gimidashboard div.dt-paging .dt-paging-button:focus,
+.local-gimidashboard div.dt-paging .dt-paging-button.current {
+  background: linear-gradient(180deg, #dbeafe 0%, #bfdbfe 100%) !important;
+  color: #1e40af !important;
+}
+.local-gimidashboard div.dt-buttons .dt-button.disabled,
+.local-gimidashboard div.dt-buttons .dt-paging-button.disabled,
+.local-gimidashboard div.dt-paging .dt-button.disabled,
+.local-gimidashboard div.dt-paging .dt-paging-button.disabled {
+  display: none !important;
+}
+.local-gimidashboard div.dt-buttons .dt-button,
+.local-gimidashboard div.dt-paging .dt-button {
+  /* Esconde o texto visualmente */
+}
+.local-gimidashboard div.dt-buttons .dt-button span,
+.local-gimidashboard div.dt-paging .dt-button span {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.local-gimidashboard div.dt-buttons,
+.local-gimidashboard div.dt-paging {
+  /* Ícones por botão */
+}
+.local-gimidashboard div.dt-buttons .buttons-print::before,
+.local-gimidashboard div.dt-paging .buttons-print::before {
+  content: "print";
+}
+.local-gimidashboard div.dt-buttons .buttons-print:hover,
+.local-gimidashboard div.dt-paging .buttons-print:hover {
+  color: #475569 !important;
+}
+.local-gimidashboard div.dt-buttons .buttons-copy::before,
+.local-gimidashboard div.dt-paging .buttons-copy::before {
+  content: "content_copy";
+}
+.local-gimidashboard div.dt-buttons .buttons-copy:hover,
+.local-gimidashboard div.dt-paging .buttons-copy:hover {
+  color: #7c3aed !important;
+}
+.local-gimidashboard div.dt-buttons .buttons-excel::before,
+.local-gimidashboard div.dt-paging .buttons-excel::before {
+  content: "table_view";
+}
+.local-gimidashboard div.dt-buttons .buttons-excel:hover,
+.local-gimidashboard div.dt-paging .buttons-excel:hover {
+  color: #15803d !important;
+}
+.local-gimidashboard div.dt-buttons .buttons-csv::before,
+.local-gimidashboard div.dt-paging .buttons-csv::before {
+  content: "description";
+}
+.local-gimidashboard div.dt-buttons .buttons-csv:hover,
+.local-gimidashboard div.dt-paging .buttons-csv:hover {
+  color: #ea580c !important;
+}
+.local-gimidashboard div.dt-button-info {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 400px;
+  margin-top: -100px;
+  margin-left: -200px;
+  background-color: white;
+  border-radius: 0.75em;
+  box-shadow: 3px 4px 10px 1px rgba(0, 0, 0, 0.8);
+  text-align: center;
+  z-index: 2003;
+  overflow: hidden;
+}
+.local-gimidashboard div.dt-button-info h2 {
+  padding: 2rem 2rem 1rem 2rem;
+  margin: 0;
+  font-weight: normal;
+}
+.local-gimidashboard div.dt-button-info > div {
+  padding: 1em 2em 2em 2em;
+}
+.local-gimidashboard div.dtb-popover-close {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 22px;
+  height: 22px;
+  text-align: center;
+  border-radius: 3px;
+  cursor: pointer;
+  z-index: 2003;
+}
+.local-gimidashboard button.dtb-hide-drop {
+  display: none !important;
+}
+.local-gimidashboard div.dt-button-collection-title {
+  text-align: center;
+  padding: 0.3em 0.5em 0.5em;
+  margin-left: 0.5em;
+  margin-right: 0.5em;
+  font-size: 0.9em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.local-gimidashboard div.dt-button-collection-title:empty {
+  display: none;
+}
+.local-gimidashboard span.dt-button-spacer {
+  display: inline-block;
+  margin: 0.5em;
+  white-space: nowrap;
+}
+.local-gimidashboard span.dt-button-spacer.bar {
+  border-left: 1px solid rgba(0, 0, 0, 0.3);
+  vertical-align: middle;
+  padding-left: 0.5em;
+}
+.local-gimidashboard span.dt-button-spacer.bar:empty {
+  height: 1em;
+  width: 1px;
+  padding-left: 0;
+}
+.local-gimidashboard div.dt-button-collection .dt-button-active {
+  padding-right: 3em;
+}
+.local-gimidashboard div.dt-button-collection .dt-button-active:after {
+  position: absolute;
+  top: 50%;
+  margin-top: -10px;
+  right: 1em;
+  display: inline-block;
+  content: "✓";
+  color: inherit;
+}
+.local-gimidashboard div.dt-button-collection .dt-button-active.dt-button-split {
+  padding-right: 0;
+}
+.local-gimidashboard div.dt-button-collection .dt-button-active.dt-button-split:after {
+  display: none;
+}
+.local-gimidashboard div.dt-button-collection .dt-button-active.dt-button-split > *:first-child {
+  padding-right: 3em;
+}
+.local-gimidashboard div.dt-button-collection .dt-button-active.dt-button-split > *:first-child:after {
+  position: absolute;
+  top: 50%;
+  margin-top: -10px;
+  right: 1em;
+  display: inline-block;
+  content: "✓";
+  color: inherit;
+}
+.local-gimidashboard div.dt-button-collection .dt-button-active-a a {
+  padding-right: 3em;
+}
+.local-gimidashboard div.dt-button-collection .dt-button-active-a a:after {
+  position: absolute;
+  right: 1em;
+  display: inline-block;
+  content: "✓";
+  color: inherit;
+}
+.local-gimidashboard div.dt-button-collection span.dt-button-spacer {
+  width: 100%;
+  font-size: 0.9em;
+  text-align: center;
+  margin: 0.5em 0;
+}
+.local-gimidashboard div.dt-button-collection span.dt-button-spacer:empty {
+  height: 0;
+  width: 100%;
+}
+.local-gimidashboard div.dt-button-collection span.dt-button-spacer.bar {
+  border-left: none;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  padding-left: 0;
+}
+@media print {
+  .local-gimidashboard table.dataTable tr > * {
+    box-shadow: none !important;
+  }
+}
+.local-gimidashboard div.dt-buttons > .dt-button,
+.local-gimidashboard div.dt-buttons > div.dt-button-split .dt-button {
+  position: relative;
+  display: inline-block;
+  box-sizing: border-box;
+  margin-left: 0.167em;
+  margin-right: 0.167em;
+  margin-bottom: 0.333em;
+  padding: 0.5em 1em;
+  border: 1px solid rgba(0, 0, 0, 0.3);
+  border-radius: 2px;
+  cursor: pointer;
+  font-size: 0.88em;
+  line-height: 1.6em;
+  color: inherit;
+  white-space: nowrap;
+  overflow: hidden;
+  background-color: rgba(0, 0, 0, 0.1); /* Fallback */
+  user-select: none;
+  text-decoration: none;
+  outline: none;
+  text-overflow: ellipsis;
+}
+.local-gimidashboard div.dt-buttons > .dt-button:first-child,
+.local-gimidashboard div.dt-buttons > div.dt-button-split .dt-button:first-child {
+  margin-left: 0;
+}
+.local-gimidashboard div.dt-buttons > .dt-button.disabled,
+.local-gimidashboard div.dt-buttons > div.dt-button-split .dt-button.disabled {
+  cursor: default;
+  opacity: 0.4;
+}
+.local-gimidashboard div.dt-buttons > .dt-button.dt-button-active:not(.disabled),
+.local-gimidashboard div.dt-buttons > div.dt-button-split .dt-button.dt-button-active:not(.disabled) {
+  background-color: hsla(0, 0%, -20%, 0.1); /* Fallback */
+  background: linear-gradient(to bottom, rgba(178.5, 178.5, 178.5, 0.1) 0%, hsla(0, 0%, -20%, 0.1) 100%);
+  filter: progid:DXImageTransform.Microsoft.gradient(GradientType=0, StartColorStr='rgba(178.5, 178.5, 178.5, 0.1)', EndColorStr='hsla(0, 0%, -20%, 0.1)');
+  box-shadow: inset 1px 1px 3px #999999;
+}
+.local-gimidashboard div.dt-buttons > .dt-button.dt-button-active:not(.disabled):hover:not(.disabled),
+.local-gimidashboard div.dt-buttons > div.dt-button-split .dt-button.dt-button-active:not(.disabled):hover:not(.disabled) {
+  box-shadow: inset 1px 1px 3px #999999;
+  background-color: hsla(0, 0%, -50%, 0.1); /* Fallback */
+  background: linear-gradient(to bottom, rgba(127.5, 127.5, 127.5, 0.1) 0%, hsla(0, 0%, -50%, 0.1) 100%);
+  filter: progid:DXImageTransform.Microsoft.gradient(GradientType=0, StartColorStr='rgba(127.5, 127.5, 127.5, 0.1)', EndColorStr='hsla(0, 0%, -50%, 0.1)');
+}
+.local-gimidashboard div.dt-buttons > .dt-button:hover,
+.local-gimidashboard div.dt-buttons > div.dt-button-split .dt-button:hover {
+  text-decoration: none;
+}
+.local-gimidashboard div.dt-buttons > .dt-button:hover:not(.disabled),
+.local-gimidashboard div.dt-buttons > div.dt-button-split .dt-button:hover:not(.disabled) {
+  border: 1px solid #666666;
+  background-color: hsla(0, 0%, -30%, 0.1); /* Fallback */
+  background: linear-gradient(to bottom, rgba(153, 153, 153, 0.1) 0%, hsla(0, 0%, -30%, 0.1) 100%);
+  filter: progid:DXImageTransform.Microsoft.gradient(GradientType=0, StartColorStr='rgba(153, 153, 153, 0.1)', EndColorStr='hsla(0, 0%, -30%, 0.1)');
+}
+.local-gimidashboard div.dt-buttons > .dt-button:focus:not(.disabled),
+.local-gimidashboard div.dt-buttons > div.dt-button-split .dt-button:focus:not(.disabled) {
+  outline: 2px solid rgb(53, 132, 228);
+}
+.local-gimidashboard div.dt-buttons > .dt-button embed,
+.local-gimidashboard div.dt-buttons > div.dt-button-split .dt-button embed {
+  outline: none;
+}
+.local-gimidashboard div.dt-buttons > div.dt-button-split .dt-button:first-child {
+  border-right: 1px solid rgba(0, 0, 0, 0.15);
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+.local-gimidashboard div.dt-buttons > div.dt-button-split .dt-button:first-child:hover {
+  border-right: 1px solid #666666;
+}
+.local-gimidashboard div.dt-buttons > div.dt-button-split .dt-button:last-child {
+  border-left: 1px solid transparent;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+.local-gimidashboard div.dt-buttons > div.dt-button-split .dt-button:last-child:hover {
+  border-left: 1px solid #666666;
+}
+.local-gimidashboard div.dt-buttons span.dt-button-down-arrow {
+  position: relative;
+  top: -2px;
+  font-size: 10px;
+  padding-left: 10px;
+  line-height: 1em;
+  opacity: 0.6;
+}
+.local-gimidashboard div.dt-buttons div.dt-button-split {
+  display: inline-block;
+}
+.local-gimidashboard div.dt-buttons div.dt-button-split .dt-button:first-child {
+  margin-right: 0;
+}
+.local-gimidashboard div.dt-buttons div.dt-button-split .dt-button:last-child {
+  margin-left: -1px;
+  padding-left: 0.75em;
+  padding-right: 0.75em;
+  z-index: 2;
+}
+.local-gimidashboard div.dt-buttons div.dt-button-split .dt-button:last-child span {
+  padding-left: 0;
+}
+.local-gimidashboard div.dt-button-collection {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 200px;
+  margin-top: 3px;
+  margin-bottom: 3px;
+  padding: 0.75em 0;
+  border: 1px solid rgba(0, 0, 0, 0.4);
+  background-color: white;
+  overflow: hidden;
+  z-index: 2002;
+  border-radius: 5px;
+  box-shadow: 3px 4px 10px 1px rgba(0, 0, 0, 0.3);
+  box-sizing: border-box;
+}
+.local-gimidashboard div.dt-button-collection .dt-button {
+  position: relative;
+  left: 0;
+  right: 0;
+  width: 100%;
+  display: flex;
+  float: none;
+  justify-content: space-between;
+  align-items: center;
+  background: none;
+  margin: 0;
+  padding: 0.5em 1em;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+}
+.local-gimidashboard div.dt-button-collection .dt-button.dt-button-active {
+  background: none;
+  box-shadow: none;
+}
+.local-gimidashboard div.dt-button-collection .dt-button.disabled {
+  cursor: default;
+  opacity: 0.4;
+}
+.local-gimidashboard div.dt-button-collection .dt-button:hover:not(.disabled) {
+  border: none;
+  background: rgba(153, 153, 153, 0.1);
+  box-shadow: none;
+}
+.local-gimidashboard div.dt-button-collection .dt-button:focus {
+  outline-offset: -2px;
+}
+.local-gimidashboard div.dt-button-collection div.dt-button-split {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  align-content: flex-start;
+  align-items: stretch;
+}
+.local-gimidashboard div.dt-button-collection div.dt-button-split button.dt-button {
+  margin: 0;
+  display: inline-block;
+  width: 0;
+  flex-grow: 1;
+  flex-shrink: 0;
+  flex-basis: 50px;
+}
+.local-gimidashboard div.dt-button-collection div.dt-button-split button.dt-button-split-drop {
+  min-width: 33px;
+  flex: 0;
+}
+.local-gimidashboard div.dt-button-collection.fixed .dt-button {
+  border-radius: 0.25em;
+  background: rgba(255, 255, 255, 0.1);
+}
+.local-gimidashboard div.dt-button-collection.fixed {
+  position: fixed;
+  display: block;
+  top: 50%;
+  left: 50%;
+  margin-left: -75px;
+  border-radius: 5px;
+  background-color: white;
+  padding: 0.5em;
+}
+.local-gimidashboard div.dt-button-collection.fixed.two-column {
+  margin-left: -200px;
+}
+.local-gimidashboard div.dt-button-collection.fixed.three-column {
+  margin-left: -225px;
+}
+.local-gimidashboard div.dt-button-collection.fixed.four-column {
+  margin-left: -300px;
+}
+.local-gimidashboard div.dt-button-collection.fixed.columns {
+  margin-left: -409px;
+}
+@media screen and (max-width: 1024px) {
+  .local-gimidashboard div.dt-button-collection.fixed.columns {
+    margin-left: -308px;
+  }
+}
+@media screen and (max-width: 640px) {
+  .local-gimidashboard div.dt-button-collection.fixed.columns {
+    margin-left: -203px;
+  }
+}
+@media screen and (max-width: 460px) {
+  .local-gimidashboard div.dt-button-collection.fixed.columns {
+    margin-left: -100px;
+  }
+}
+.local-gimidashboard div.dt-button-collection.fixed > :last-child {
+  max-height: 100vh;
+  overflow: auto;
+}
+.local-gimidashboard div.dt-button-collection.two-column > :last-child, .local-gimidashboard div.dt-button-collection.three-column > :last-child, .local-gimidashboard div.dt-button-collection.four-column > :last-child {
+  display: block !important;
+  column-gap: 8px;
+}
+.local-gimidashboard div.dt-button-collection.two-column > :last-child > *, .local-gimidashboard div.dt-button-collection.three-column > :last-child > *, .local-gimidashboard div.dt-button-collection.four-column > :last-child > * {
+  break-inside: avoid;
+}
+.local-gimidashboard div.dt-button-collection.two-column {
+  width: 400px;
+}
+.local-gimidashboard div.dt-button-collection.two-column > :last-child {
+  padding-bottom: 1px;
+  column-count: 2;
+}
+.local-gimidashboard div.dt-button-collection.three-column {
+  width: 450px;
+}
+.local-gimidashboard div.dt-button-collection.three-column > :last-child {
+  padding-bottom: 1px;
+  column-count: 3;
+}
+.local-gimidashboard div.dt-button-collection.four-column {
+  width: 600px;
+}
+.local-gimidashboard div.dt-button-collection.four-column > :last-child {
+  padding-bottom: 1px;
+  column-count: 4;
+}
+.local-gimidashboard div.dt-button-collection .dt-button {
+  border-radius: 0;
+}
+.local-gimidashboard div.dt-button-collection.columns {
+  width: auto;
+}
+.local-gimidashboard div.dt-button-collection.columns > :last-child {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 6px;
+  width: 818px;
+  padding-bottom: 1px;
+}
+.local-gimidashboard div.dt-button-collection.columns > :last-child .dt-button {
+  min-width: 200px;
+  flex: 0 1;
+  margin: 0;
+}
+.local-gimidashboard div.dt-button-collection.columns.dtb-b3 > :last-child, .local-gimidashboard div.dt-button-collection.columns.dtb-b2 > :last-child, .local-gimidashboard div.dt-button-collection.columns.dtb-b1 > :last-child {
+  justify-content: space-between;
+}
+.local-gimidashboard div.dt-button-collection.columns.dtb-b3 .dt-button {
+  flex: 1 1 32%;
+}
+.local-gimidashboard div.dt-button-collection.columns.dtb-b2 .dt-button {
+  flex: 1 1 48%;
+}
+.local-gimidashboard div.dt-button-collection.columns.dtb-b1 .dt-button {
+  flex: 1 1 100%;
+}
+@media screen and (max-width: 1024px) {
+  .local-gimidashboard div.dt-button-collection.columns > :last-child {
+    width: 612px;
+  }
+}
+@media screen and (max-width: 640px) {
+  .local-gimidashboard div.dt-button-collection.columns > :last-child {
+    width: 406px;
+  }
+  .local-gimidashboard div.dt-button-collection.columns.dtb-b3 .dt-button {
+    flex: 0 1 32%;
+  }
+}
+@media screen and (max-width: 460px) {
+  .local-gimidashboard div.dt-button-collection.columns > :last-child {
+    width: 200px;
+  }
+}
+.local-gimidashboard div.dt-button-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7); /* Fallback */
+  background: radial-gradient(ellipse farthest-corner at center, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.7) 100%); /* W3C Markup, IE10 Release Preview */
+  z-index: 2001;
+}
+.local-gimidashboard .dt-button.processing {
+  color: rgba(0, 0, 0, 0.2);
+}
+.local-gimidashboard .dt-button.processing:after {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;
+  box-sizing: border-box;
+  display: block;
+  content: " ";
+  border: 2px solid rgb(40, 40, 40);
+  border-radius: 50%;
+  border-left-color: transparent;
+  border-right-color: transparent;
+  animation: dtb-spinner 1500ms infinite linear;
+}
+@media screen and (max-width: 640px) {
+  .local-gimidashboard div.dt-buttons {
+    float: none !important;
+    text-align: center;
   }
 }
 

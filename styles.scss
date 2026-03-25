@@ -420,6 +420,9 @@
             font-size: 1.45rem;
         }
     }
+
+    @import "amd/src/dataTables";
+    @import "amd/src/dataTables-buttons";
 }
 #page-footer .copyright,
 #page-footer .copyright .madeby,
