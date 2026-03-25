@@ -186,6 +186,7 @@ class report_manager {
             $reports[] = [
                 "component" => $component,
                 "html" => $OUTPUT->render_from_template("local_gimidashboard/report_card", [
+                    "component" => $component,
                     "header" => $classname::get_header($courses, $reportlink),
                     "content" => $content,
                 ]),
