@@ -1,0 +1,58 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template gimidashboardreports_accesscompletiontrend/table
+
+    Example context (json):
+    {
+    }
+}}
+
+
+<div style="width:100%;overflow-x:auto;">
+    <table id="accesscompletiontrend-table" class="table table-bordered"
+           data-title="Course access and completion trend">
+        <thead>
+        <tr>
+            {{#headers}}
+                <th class="text-nowrap">{{{label}}}</th>
+            {{/headers}}
+        </tr>
+        </thead>
+        <tbody>
+        {{#hasrows}}
+            {{#rows}}
+                <tr>
+                    <td><a href="{{{courseurl}}}"target="_blank" class="text-nowrap">{{{course}}}</a></td>
+                    <td class="text-center text-nowrap">{{{enrolled}}}</td>
+                    <td class="text-center text-nowrap">{{{accesses}}}</td>
+                    <td class="text-center text-nowrap">{{{userswithaccess}}}</td>
+                    <td class="text-center text-nowrap">{{{completions}}}</td>
+                    <td class="text-center text-nowrap">{{{completionrate}}}</td>
+                    <td class="text-center text-nowrap">{{{lastaccess}}}</td>
+                </tr>
+            {{/rows}}
+        {{/hasrows}}
+
+        {{^hasrows}}
+            <tr>
+                <td colspan="7">{{{emptymessage}}}</td>
+            </tr>
+        {{/hasrows}}
+        </tbody>
+    </table>
+</div>

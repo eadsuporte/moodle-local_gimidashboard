@@ -1,0 +1,38 @@
+.gimi-gimidashboardreports_accesscompletiontrend {
+    .gimi-accesscompletiontrend-summary {
+        .gimi-kpi {
+            border-radius: 16px;
+        }
+    }
+    .gimi-accesscompletiontrend-legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem 1rem;
+        align-items: center;
+    }
+    .gimi-accesscompletiontrend-legend-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+        color: #334155;
+        font-weight: 600;
+    }
+    .gimi-accesscompletiontrend-legend-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 999px;
+        display: inline-block;
+        box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.12);
+    }
+    .gimi-accesscompletiontrend-chart {
+        width: 100%;
+        overflow-x: auto;
+        svg {
+            min-width: 900px;
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+    }
+}

@@ -15,26 +15,17 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * export.php
+ * version.php
  *
- * @package   gimidashboardreports_fullacademydashboard
+ * @package   gimidashboardreports_accesscompletiontrend
  * @copyright 2026 Eduardo Kraus {@link https://eduardokraus.com}
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require_once(__DIR__ . "/../../../../config.php");
+defined("MOODLE_INTERNAL") || die();
 
-use gimidashboardreports_fullacademydashboard\report;
-use local_gimidashboard\page\selection_resolver;
-
-require_login();
-
-$target = optional_param("target", "", PARAM_TEXT);
-$dataformat = optional_param("dataformat", "excel", PARAM_ALPHA);
-
-$dashboardpage = selection_resolver::resolve($target, $USER->id);
-if (empty($dashboardpage->courses)) {
-    throw new moodle_exception("invaliddata");
-}
-
-report::export($dashboardpage->courses, $dataformat);
+$plugin->component = "gimidashboardreports_accesscompletiontrend";
+$plugin->version = 2026032400;
+$plugin->requires = 2024042200;
+$plugin->maturity = MATURITY_STABLE;
+$plugin->release = "0.1.0";
