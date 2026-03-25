@@ -55,7 +55,7 @@ class course_navigation {
 
         $navigation->add(
             get_string("pluginname", "local_gimidashboard"),
-            new moodle_url("/local/gimidashboard/view.php", ["target" => "course-" . $course->id]),
+            new moodle_url("/local/gimidashboard/", ["target" => "course-" . $course->id]),
             navigation_node::TYPE_SETTING,
             null,
             "local_gimidashboard"

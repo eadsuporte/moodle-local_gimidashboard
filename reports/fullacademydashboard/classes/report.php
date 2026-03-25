@@ -1106,7 +1106,7 @@ class report implements report_interface {
             $params["cohortid"] = $cohortid;
         }
 
-        return new moodle_url("/local/gimidashboard/view.php", $params);
+        return new moodle_url("/local/gimidashboard/", $params);
     }
 
     /**

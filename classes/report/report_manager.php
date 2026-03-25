@@ -174,11 +174,11 @@ class report_manager {
 
             if (!optional_param("plugin", false, PARAM_COMPONENT)) {
                 $reportparams["plugin"] = str_replace("gimidashboardreports_", "", $component);
-                $reporturl = new moodle_url("/local/gimidashboard/view.php", $reportparams);
+                $reporturl = new moodle_url("/local/gimidashboard/", $reportparams);
                 $label = get_string("openonlyreport", "local_gimidashboard");
                 $reportlink = "<a href=\"{$reporturl}\" class=\"btn btn-primary text-nowrap\">{$label}</a>";
             } else {
-                $reporturl = new moodle_url("/local/gimidashboard/view.php", ["target" => $target]);
+                $reporturl = new moodle_url("/local/gimidashboard/", ["target" => $target]);
                 $label = get_string("back");
                 $reportlink = "<a href=\"{$reporturl}\" class=\"btn btn-primary text-nowrap\">{$label}</a>";
             }

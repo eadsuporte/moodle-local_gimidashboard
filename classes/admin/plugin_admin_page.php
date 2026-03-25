@@ -87,7 +87,7 @@ class plugin_admin_page {
         return [
             "description" => get_string("plugintabledescription", "local_gimidashboard"),
             "tablehtml" => $this->render_table(),
-            "dashboardurl" => new moodle_url("/local/gimidashboard/view.php"),
+            "dashboardurl" => new moodle_url("/local/gimidashboard/"),
             "dashboardlabel" => get_string("backtodashboard", "local_gimidashboard"),
         ];
     }

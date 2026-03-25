@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * view.php
+ * index.php
  *
  * @package   local_gimidashboard
  * @copyright 2026 Eduardo Kraus {@link https://eduardokraus.com}
@@ -77,7 +77,7 @@ if ($target !== false) {
     $currentparams = [];
 }
 
-$PAGE->set_url(new moodle_url("/local/gimidashboard/view.php", $currentparams));
+$PAGE->set_url(new moodle_url("/local/gimidashboard/", $currentparams));
 $PAGE->set_pagelayout("report");
 $PAGE->set_title(get_string("pluginname", "local_gimidashboard"));
 
