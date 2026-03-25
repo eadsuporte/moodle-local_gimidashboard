@@ -23,6 +23,15 @@
 }}
 
 <div class="gimi-full-academy-dashboard">
+    <div class="gimi-kpi-grid">
+        {{#kpis}}
+            <div class="gimi-kpi-card">
+                <div class="gimi-kpi-card-label">{{{label}}}</div>
+                <div class="gimi-kpi-card-value">{{{value}}}</div>
+            </div>
+        {{/kpis}}
+    </div>
+
     {{#hasfilters}}
         <div class="gimi-filter-bar">
             {{#filters}}
@@ -37,17 +46,9 @@
             </div>
         </div>
     {{/hasfilters}}
-
-    <div class="gimi-kpi-grid">
-        {{#kpis}}
-            <div class="gimi-kpi-card">
-                <div class="gimi-kpi-card-label">{{{label}}}</div>
-                <div class="gimi-kpi-card-value">{{{value}}}</div>
-            </div>
-        {{/kpis}}
-    </div>
-
-    <div class="gimi-dashboard-note">{{#str}}detailhelp, gimidashboardreports_fullacademydashboard{{/str}}</div>
+    {{^hasfilters}}
+        <div class="gimi-dashboard-note">{{#str}}detailhelp, gimidashboardreports_fullacademydashboard{{/str}}</div>
+    {{/hasfilters}}
 
     {{#hasrows}}
         {{{summarytablehtml}}}
@@ -58,7 +59,8 @@
     {{/hasrows}}
 
     {{#hasdetailtable}}
-        <div class="gimi-detail-heading">{{#str}}coursebreakdown, gimidashboardreports_fullacademydashboard{{/str}}</div>
+        <div class="gimi-detail-heading">{{#str}}
+            coursebreakdown, gimidashboardreports_fullacademydashboard{{/str}}</div>
         {{{detailtablehtml}}}
     {{/hasdetailtable}}
 </div>
