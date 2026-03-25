@@ -44,11 +44,11 @@ if ($target !== false) {
         }
 
         $cleanname = clean_param($name, PARAM_ALPHANUMEXT);
-        if ($cleanname === "") {
+        if ($cleanname == "") {
             continue;
         }
 
-        $cleanvalue = clean_param((string) $value, PARAM_RAW_TRIMMED);
+        $cleanvalue = clean_param($value, PARAM_RAW_TRIMMED);
         $existingparams[] = [
             "name" => $cleanname,
             "value" => $cleanvalue,

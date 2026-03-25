@@ -64,7 +64,7 @@ class access_manager {
 
         $userroles = get_user_roles($context, $userid, true, "ra.roleid");
         foreach ($userroles as $userrole) {
-            if (in_array((int) $userrole->roleid, $roleids, true)) {
+            if (in_array($userrole->roleid, $roleids, true)) {
                 return true;
             }
         }
@@ -135,17 +135,17 @@ class access_manager {
         $categorycontextids = [];
 
         foreach ($assignments as $assignment) {
-            if ($assignment->contextlevel === CONTEXT_SYSTEM) {
+            if ($assignment->contextlevel == CONTEXT_SYSTEM) {
                 $hasystemrole = true;
                 break;
             }
 
-            if ($assignment->contextlevel === CONTEXT_COURSE) {
+            if ($assignment->contextlevel == CONTEXT_COURSE) {
                 $courseids[$assignment->instanceid] = $assignment->instanceid;
                 continue;
             }
 
-            if ($assignment->contextlevel === CONTEXT_COURSECAT) {
+            if ($assignment->contextlevel == CONTEXT_COURSECAT) {
                 $categorycontextids[$assignment->contextid] = $assignment->contextid;
             }
         }
