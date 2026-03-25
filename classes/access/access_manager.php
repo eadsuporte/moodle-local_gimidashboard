@@ -26,7 +26,6 @@ namespace local_gimidashboard\access;
 
 use coding_exception;
 use context_course;
-use context_system;
 use dml_exception;
 use stdClass;
 
@@ -48,29 +47,9 @@ class access_manager {
         global $USER;
 
         $userid = $userid ?: $USER->id;
-        $context = context_course::instance($courseid);
 
-        if (!has_capability("local/gimidashboard:view", $context, $userid)) {
-            return false;
-        }
-
-        $roleids = array_map("intval", config::get_report_capabilities());
-        if (empty($roleids)) {
-            return false;
-        }
-
-        if (is_siteadmin($userid)) {
-            return true;
-        }
-
-        $userroles = get_user_roles($context, $userid, true, "ra.roleid");
-        foreach ($userroles as $userrole) {
-            if (in_array($userrole->roleid, $roleids, true)) {
-                return true;
-            }
-        }
-
-        return false;
+        $courses = self::get_accessible_courses($userid);
+        return isset($courses[$courseid]);
     }
 
     /**
@@ -336,8 +315,8 @@ class access_manager {
                 }
 
                 return strcmp(
-                    strtolower($a->name),
-                    strtolower($b->name)
+                    \core_text::strtolower($a->name),
+                    \core_text::strtolower($b->name)
                 );
             });
             $children[$parentid] = $items;
@@ -359,42 +338,39 @@ class access_manager {
                 }
 
                 return strcmp(
-                    strtolower($a->fullname),
-                    strtolower($b->fullname)
+                    \core_text::strtolower($a->fullname),
+                    \core_text::strtolower($b->fullname)
                 );
             });
             $coursesbycategory[$categoryid] = $categorycourses;
         }
 
         $options = [];
-        $appendcategory =
-            static function(stdClass $category, int $level) use (&$appendcategory, &$options, $children, $coursesbycategory): void {
-                $prefix = str_repeat("&nbsp;&nbsp;&nbsp;&nbsp;", max(0, $level));
-                $prefixtitle = get_string("selectioncategory", "local_gimidashboard");
-                $name = format_string($category->name, true, ["context" => context_system::instance()]);
-                $options[] = [
-                    "value" => "category-{$category->id}",
-                    "name" => "{$prefix}{$prefixtitle}: {$name}",
-                    "selected" => false,
-                ];
+        $appendcategory = static function(stdClass $category, int $level) use (&$appendcategory, &$options, $children, $coursesbycategory): void {
+            $prefix = str_repeat("&nbsp;&nbsp;&nbsp;&nbsp;", max(0, $level));
+            $options[] = [
+                "value" => "category-{$category->id}",
+                "name" => $prefix . format_string($category->name, true, ["context" => \context_system::instance()]),
+                "selected" => false,
+            ];
 
-                if (!empty($coursesbycategory[$category->id])) {
-                    foreach ($coursesbycategory[$category->id] as $course) {
-                        $name = format_string($course->fullname, true, ["context" => context_course::instance($course->id)]);
-                        $options[] = [
-                            "value" => "course-{$course->id}",
-                            "name" => "{$prefix}&nbsp;&nbsp;&nbsp;&nbsp;{$name}",
-                            "selected" => false,
-                        ];
-                    }
+            if (!empty($coursesbycategory[$category->id])) {
+                foreach ($coursesbycategory[$category->id] as $course) {
+                    $options[] = [
+                        "value" => "course-{$course->id}",
+                        "name" => $prefix . "&nbsp;&nbsp;&nbsp;&nbsp;" .
+                            format_string($course->fullname, true, ["context" => context_course::instance($course->id)]),
+                        "selected" => false,
+                    ];
                 }
+            }
 
-                if (!empty($children[$category->id])) {
-                    foreach ($children[$category->id] as $childcategory) {
-                        $appendcategory($childcategory, $level + 1);
-                    }
+            if (!empty($children[$category->id])) {
+                foreach ($children[$category->id] as $childcategory) {
+                    $appendcategory($childcategory, $level + 1);
                 }
-            };
+            }
+        };
 
         foreach ($children[0] ?? [] as $rootcategory) {
             $appendcategory($rootcategory, 0);
