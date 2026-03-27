@@ -587,7 +587,7 @@ class report implements report_interface {
         global $OUTPUT, $PAGE;
 
         $pageLength = optional_param("plugin", false, PARAM_COMPONENT) ? 50 : 5;
-        $PAGE->requires->js_call_amd("local_gimidashboard/table", "datatable", ["#accesscompletiontrend-table", $pageLength]);
+        $PAGE->requires->js_call_amd("local_gimidashboard/dashboard", "datatable", ["#accesscompletiontrend-table", $pageLength]);
 
         return $OUTPUT->render_from_template("gimidashboardreports_accesscompletiontrend/table", [
             "headers" => [

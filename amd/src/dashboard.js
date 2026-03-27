@@ -23,6 +23,7 @@
 
 define([
     "jquery",
+    "local_gimidashboard/select2",
     "local_gimidashboard/jszip",
     "local_gimidashboard/dataTables",
     "local_gimidashboard/dataTables.buttons",
@@ -86,7 +87,12 @@ define([
         });
     }
 
+    function init_select2(element) {
+        $(element).select2();
+    }
+
     return {
         datatable: datatable,
+        init_select2: init_select2,
     };
 });

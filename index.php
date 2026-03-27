@@ -82,5 +82,6 @@ $PAGE->set_pagelayout("report");
 $PAGE->set_title(get_string("pluginname", "local_gimidashboard"));
 
 echo $OUTPUT->header();
-echo $OUTPUT->render_from_template("local_gimidashboard/view", $mustachedata);
+$PAGE->requires->js_call_amd("local_gimidashboard/dashboard", "init_select2", ["#local-gimidashboard-target"]);
+echo $OUTPUT->render_from_template("local_gimidashboard/index", $mustachedata);
 echo $OUTPUT->footer();
