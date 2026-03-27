@@ -1,0 +1,1161 @@
+<?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * report.php
+ *
+ * @package   gimidashboardreports_leaderboard
+ * @copyright 2026 Eduardo Kraus {@link https://eduardokraus.com}
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
+namespace gimidashboardreports_leaderboard;
+
+use coding_exception;
+use context_system;
+use Exception;
+use local_gimidashboard\report\report_interface;
+use moodle_url;
+use stdClass;
+use xmldb_field;
+use xmldb_table;
+
+/**
+ * Leaderboards report.
+ *
+ * This first version assumes pathway = cohort linked to the selected course(s).
+ * Category selections render the pathway leaderboard and course selections render
+ * the course leaderboard.
+ *
+ * @package   gimidashboardreports_leaderboard
+ */
+class report implements report_interface {
+    /**
+     * Returns the report header.
+     *
+     * @param array $courses Accessible course records.
+     * @param string $extra Optional header action HTML.
+     * @return string
+     * @throws Exception
+     */
+    public static function get_header(array $courses, $extra = ""): string {
+        global $OUTPUT;
+
+        $reportdata = self::prepare_report_data($courses);
+        $scope = $reportdata->selection->type === "course"
+            ? get_string("courseleaderboard", "gimidashboardreports_leaderboard")
+            : get_string("pathwayleaderboard", "gimidashboardreports_leaderboard");
+
+        $academyname = strtoupper(
+            strip_tags(
+                $reportdata->selection->label !== ""
+                    ? $reportdata->selection->label
+                    : get_string("pluginname", "gimidashboardreports_leaderboard")
+            )
+        );
+
+        $subtitleparts = [$scope];
+        if ($reportdata->pathwayname !== "") {
+            $subtitleparts[] = get_string("pathway", "gimidashboardreports_leaderboard") . ": " . $reportdata->pathwayname;
+        }
+        if ($reportdata->learnercount > 0) {
+            $subtitleparts[] = get_string("learners", "gimidashboardreports_leaderboard") . ": " . $reportdata->learnercount;
+        }
+        if (!empty($reportdata->courseids)) {
+            $subtitleparts[] = get_string("courses", "gimidashboardreports_leaderboard") . ": " . count($reportdata->courseids);
+        }
+        $subtitleparts[] = get_string(
+                "snapshot",
+                "gimidashboardreports_leaderboard"
+            ) . ": " . userdate(time(), get_string("strftimedatefullshort", "langconfig"));
+
+        return $OUTPUT->render_from_template("local_gimidashboard/content_title", [
+            "academyname" => $academyname,
+            "pluginname" => strtoupper(get_string("pluginname", "gimidashboardreports_leaderboard")),
+            "subtitle" => implode(" • ", $subtitleparts),
+            "exporturl" => false,
+            "extra_html" => $extra,
+        ]);
+    }
+
+    /**
+     * Returns true for course selections.
+     *
+     * @return bool
+     */
+    public static function supports_course(): bool {
+        return true;
+    }
+
+    /**
+     * Returns true for category selections.
+     *
+     * @return bool
+     */
+    public static function supports_category(): bool {
+        return true;
+    }
+
+    /**
+     * Renders the report HTML.
+     *
+     * @param array $courses Accessible course records.
+     * @return string
+     * @throws Exception
+     */
+    public static function render(array $courses): string {
+        global $OUTPUT, $PAGE;
+
+        $reportdata = self::prepare_report_data($courses);
+
+        $message = "";
+        $messageiswarning = false;
+        if ($reportdata->state === "emptyselection") {
+            $message = get_string("emptyselection", "gimidashboardreports_leaderboard");
+            $messageiswarning = true;
+        } else if ($reportdata->state === "nopathways") {
+            $message = get_string("nopathways", "gimidashboardreports_leaderboard");
+            $messageiswarning = true;
+        } else if ($reportdata->state === "choosepathway") {
+            $message = get_string("choosepathway", "gimidashboardreports_leaderboard");
+            $messageiswarning = true;
+        } else if ($reportdata->state === "nolearners") {
+            $message = get_string("nolearners", "gimidashboardreports_leaderboard");
+            $messageiswarning = true;
+        } else if ($reportdata->autopathway) {
+            $message = get_string("autopathway", "gimidashboardreports_leaderboard");
+        } else {
+            $message = get_string("scopenotice", "gimidashboardreports_leaderboard");
+        }
+
+        //$pageLength = optional_param("plugin", false, PARAM_COMPONENT) ? 50 : 5;
+        //$PAGE->requires->js_call_amd("local_gimidashboard/dashboard", "datatable", [".gimi-leaderboard-table", $pageLength]);
+        return $OUTPUT->render_from_template("gimidashboardreports_leaderboard/content", [
+            "hasmessage" => $message !== "",
+            "message" => $message,
+            "messageiswarning" => $messageiswarning,
+            "showpathwayoptions" => !empty($reportdata->pathwayoptions),
+            "pathwayoptions" => $reportdata->pathwayoptions,
+            "hasclearpathway" => $reportdata->cohortid > 0 && count($reportdata->pathwayoptions) > 1,
+            "clearpathwayurl" => self::build_url($reportdata->selection->target),
+            "haskpis" => !empty($reportdata->kpis),
+            "kpis" => $reportdata->kpis,
+            "hasboards" => !empty($reportdata->boards),
+            "boards" => $reportdata->boards,
+        ]);
+    }
+
+    /**
+     * Prepares the report payload.
+     *
+     * @param array $courses Accessible courses.
+     * @return object
+     * @throws Exception
+     */
+    protected static function prepare_report_data(array $courses): object {
+        global $USER;
+
+        static $cache = null;
+        if ($cache !== null) {
+            return $cache;
+        }
+
+        $selection = \local_gimidashboard\page\selection_resolver::resolve(optional_param("target", "", PARAM_TEXT), $USER->id);
+        $courseids = self::extract_course_ids($courses);
+
+        $base = (object) [
+            "state" => "ready",
+            "selection" => $selection,
+            "courseids" => $courseids,
+            "cohortid" => 0,
+            "pathwayname" => "",
+            "pathwayoptions" => [],
+            "autopathway" => false,
+            "learnercount" => 0,
+            "kpis" => [],
+            "boards" => [],
+        ];
+
+        if (empty($courseids)) {
+            $base->state = "emptyselection";
+            $cache = $base;
+            return $cache;
+        }
+
+        $linkedpathways = self::get_linked_pathways($courseids);
+        $requestedcohortid = optional_param("cohortid", 0, PARAM_INT);
+        $cohortid = $requestedcohortid;
+        $autopathway = false;
+        if ($cohortid === 0 && count($linkedpathways) === 1) {
+            $cohortid = (int) array_key_first($linkedpathways);
+            $autopathway = true;
+        }
+
+        $base->pathwayoptions = self::build_pathway_options($selection->target, $linkedpathways, $cohortid);
+
+        if (empty($linkedpathways)) {
+            $base->state = "nopathways";
+            $cache = $base;
+            return $cache;
+        }
+
+        if ($cohortid <= 0 || !isset($linkedpathways[$cohortid])) {
+            $base->state = "choosepathway";
+            $cache = $base;
+            return $cache;
+        }
+
+        $base->cohortid = $cohortid;
+        $base->pathwayname = $linkedpathways[$cohortid];
+        $base->autopathway = $autopathway;
+
+        $users = self::get_learners($courseids, $cohortid);
+        if (empty($users)) {
+            $base->state = "nolearners";
+            $base->kpis = self::build_kpis($selection, $base->pathwayname, $courseids, 0);
+            $cache = $base;
+            return $cache;
+        }
+
+        $userids = array_keys($users);
+        $usercourses = self::get_user_courses($courseids, $userids);
+        $moduletotals = self::get_trackable_module_totals($courseids);
+        $completedmodules = self::get_completed_module_totals($courseids, $userids);
+        $grades = self::get_course_grade_percentages($courseids, $userids);
+        $completions = self::get_course_completions($courseids, $userids);
+        $enroltimes = self::get_enrolment_times($courseids, $userids);
+        $certificatetimes = self::get_certificate_issue_times($courseids, $userids);
+
+        if ($selection->type === "course") {
+            $courseid = (int) reset($courseids);
+            $base->boards = [
+                self::build_course_best_grade_board($users, $grades, $courseid),
+                self::build_course_progress_board($users, $moduletotals, $completedmodules, $completions, $courseid),
+                self::build_course_fastest_board($users, $enroltimes, $certificatetimes, $courseid),
+            ];
+        } else {
+            $base->boards = [
+                self::build_pathway_best_grade_board($users, $courseids, $grades),
+                self::build_pathway_progress_board($users, $courseids, $moduletotals, $completedmodules, $completions),
+            ];
+        }
+
+        $base->learnercount = count($users);
+        $base->kpis = self::build_kpis($selection, $base->pathwayname, $courseids, $base->learnercount);
+        $cache = $base;
+        return $cache;
+    }
+
+    /**
+     * Extracts course ids.
+     *
+     * @param array $courses Course records.
+     * @return array
+     */
+    protected static function extract_course_ids(array $courses): array {
+        return array_values(array_map(static function($course): int {
+            return (int) $course->id;
+        }, $courses));
+    }
+
+    /**
+     * Returns the linked pathways for the selected courses.
+     *
+     * @param array $courseids Course ids.
+     * @return array
+     * @throws Exception
+     */
+    protected static function get_linked_pathways(array $courseids): array {
+        global $DB;
+
+        [$coursesql, $params] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED, "course");
+        $params["enroltype"] = "cohort";
+
+        $sql = "SELECT DISTINCT c.id, c.name
+                  FROM {enrol} e
+                  JOIN {cohort} c
+                    ON c.id = e.customint1
+                 WHERE e.courseid {$coursesql}
+                   AND e.enrol = :enroltype
+                   AND e.customint1 > 0
+              ORDER BY c.name ASC";
+
+        $records = $DB->get_records_sql($sql, $params);
+        $result = [];
+        foreach ($records as $record) {
+            $result[(int) $record->id] = format_string($record->name, true, ["context" => context_system::instance()]);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Builds the pathway option links.
+     *
+     * @param string $target Current target.
+     * @param array $pathways Pathways.
+     * @param int $selectedcohortid Selected cohort id.
+     * @return array
+     */
+    protected static function build_pathway_options(string $target, array $pathways, int $selectedcohortid): array {
+        $options = [];
+        foreach ($pathways as $cohortid => $name) {
+            $options[] = [
+                "name" => $name,
+                "url" => self::build_url($target, (int) $cohortid),
+                "selected" => $selectedcohortid === (int) $cohortid,
+            ];
+        }
+
+        return $options;
+    }
+
+    /**
+     * Returns learners scoped to the selected courses and pathway.
+     *
+     * @param array $courseids Course ids.
+     * @param int $cohortid Cohort id.
+     * @return array
+     * @throws Exception
+     */
+    protected static function get_learners(array $courseids, int $cohortid): array {
+        global $DB;
+
+        [$coursesql, $params] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED, "course");
+        $params["cohortid"] = $cohortid;
+        $params["uconfirmed"] = 1;
+
+        $sql = "SELECT DISTINCT u.id,
+                                u.firstname,
+                                u.lastname,
+                                u.email,
+                                u.suspended,
+                                u.deleted,
+                                u.firstnamephonetic,
+                                u.lastnamephonetic,
+                                u.middlename,
+                                u.alternatename
+                  FROM {user} u
+                  JOIN {cohort_members} cm
+                    ON cm.userid = u.id
+                   AND cm.cohortid = :cohortid
+                  JOIN {user_enrolments} ue
+                    ON ue.userid = u.id
+                  JOIN {enrol} e
+                    ON e.id = ue.enrolid
+                 WHERE e.courseid {$coursesql}
+                   AND e.status = 0
+                   AND ue.status = 0
+                   AND u.deleted = 0
+                   AND u.confirmed = :uconfirmed
+              ORDER BY u.firstname ASC, u.lastname ASC, u.email ASC";
+
+        return $DB->get_records_sql($sql, $params);
+    }
+
+    /**
+     * Returns active enrolled course ids by user.
+     *
+     * @param array $courseids Course ids.
+     * @param array $userids User ids.
+     * @return array
+     * @throws Exception
+     */
+    protected static function get_user_courses(array $courseids, array $userids): array {
+        global $DB;
+
+        if (empty($userids)) {
+            return [];
+        }
+
+        [$coursesql, $courseparams] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED, "course");
+        [$usersql, $userparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, "user");
+
+        $sql = "SELECT DISTINCT CONCAT(ue.userid, '-', e.courseid) AS unik,
+                                ue.userid,
+                                e.courseid
+                  FROM {user_enrolments} ue
+                  JOIN {enrol} e
+                    ON e.id = ue.enrolid
+                 WHERE e.courseid {$coursesql}
+                   AND ue.userid {$usersql}
+                   AND e.status = 0
+                   AND ue.status = 0";
+
+        $records = $DB->get_records_sql($sql, $courseparams + $userparams);
+        $result = [];
+        foreach ($records as $record) {
+            $result[(int) $record->userid][(int) $record->courseid] = (int) $record->courseid;
+        }
+
+        return $result;
+    }
+
+    /**
+     * Returns trackable module totals by course.
+     *
+     * @param array $courseids Course ids.
+     * @return array
+     * @throws Exception
+     */
+    protected static function get_trackable_module_totals(array $courseids): array {
+        global $DB;
+
+        [$insql, $params] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED, "course");
+        $sql = "SELECT cm.course, COUNT(cm.id) AS total
+                  FROM {course_modules} cm
+                 WHERE cm.course {$insql}
+                   AND cm.visible = 1
+                   AND cm.deletioninprogress = 0
+                   AND cm.completion > 0
+              GROUP BY cm.course";
+
+        $records = $DB->get_records_sql($sql, $params);
+        $result = [];
+        foreach ($records as $record) {
+            $result[(int) $record->course] = (int) $record->total;
+        }
+
+        return $result;
+    }
+
+    /**
+     * Returns completed module totals by user and course.
+     *
+     * @param array $courseids Course ids.
+     * @param array $userids User ids.
+     * @return array
+     * @throws Exception
+     */
+    protected static function get_completed_module_totals(array $courseids, array $userids): array {
+        global $DB;
+
+        if (empty($userids)) {
+            return [];
+        }
+
+        [$coursesql, $courseparams] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED, "course");
+        [$usersql, $userparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, "user");
+
+        $sql = "SELECT CONCAT(cmc.userid, '-', cm.course) AS unik,
+                       cmc.userid,
+                       cm.course,
+                       COUNT(DISTINCT cmc.coursemoduleid) AS total
+                  FROM {course_modules_completion} cmc
+                  JOIN {course_modules} cm
+                    ON cm.id = cmc.coursemoduleid
+                 WHERE cm.course {$coursesql}
+                   AND cmc.userid {$usersql}
+                   AND cm.visible = 1
+                   AND cm.deletioninprogress = 0
+                   AND cm.completion > 0
+                   AND cmc.completionstate > 0
+              GROUP BY cmc.userid, cm.course";
+
+        $records = $DB->get_records_sql($sql, $courseparams + $userparams);
+        $result = [];
+        foreach ($records as $record) {
+            $result[(int) $record->userid][(int) $record->course] = (int) $record->total;
+        }
+
+        return $result;
+    }
+
+    /**
+     * Returns course grade percentages by user and course.
+     *
+     * @param array $courseids Course ids.
+     * @param array $userids User ids.
+     * @return array
+     * @throws Exception
+     */
+    protected static function get_course_grade_percentages(array $courseids, array $userids): array {
+        global $DB;
+
+        if (empty($userids)) {
+            return [];
+        }
+
+        [$coursesql, $courseparams] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED, "course");
+        [$usersql, $userparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, "user");
+
+        $sql = "SELECT gg.userid,
+                       gi.courseid,
+                       AVG(CASE
+                               WHEN gg.finalgrade IS NULL THEN NULL
+                               WHEN gi.grademax <= gi.grademin THEN NULL
+                               ELSE ((gg.finalgrade - gi.grademin) / (gi.grademax - gi.grademin)) * 100
+                           END) AS gradepercent
+                  FROM {grade_items} gi
+                  JOIN {grade_grades} gg
+                    ON gg.itemid = gi.id
+                 WHERE gi.courseid {$coursesql}
+                   AND gg.userid {$usersql}
+                   AND gi.itemtype = 'course'
+              GROUP BY gg.userid, gi.courseid";
+
+        $records = $DB->get_records_sql($sql, $courseparams + $userparams);
+        $result = [];
+        foreach ($records as $record) {
+            $result[(int) $record->userid][(int) $record->courseid] = is_null($record->gradepercent)
+                ? null
+                : round((float) $record->gradepercent, 1);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Returns course completion timestamps by user and course.
+     *
+     * @param array $courseids Course ids.
+     * @param array $userids User ids.
+     * @return array
+     * @throws Exception
+     */
+    protected static function get_course_completions(array $courseids, array $userids): array {
+        global $DB;
+
+        if (empty($userids)) {
+            return [];
+        }
+
+        [$coursesql, $courseparams] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED, "course");
+        [$usersql, $userparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, "user");
+
+        $sql = "SELECT CONCAT(userid, '-', course) AS unik, userid, course, MIN(timecompleted) AS timecompleted
+                  FROM {course_completions}
+                 WHERE course {$coursesql}
+                   AND userid {$usersql}
+                   AND timecompleted > 0
+              GROUP BY userid, course";
+
+        $records = $DB->get_records_sql($sql, $courseparams + $userparams);
+        $result = [];
+        foreach ($records as $record) {
+            $result[(int) $record->userid][(int) $record->course] = (int) $record->timecompleted;
+        }
+
+        return $result;
+    }
+
+    /**
+     * Returns enrolment start timestamps by user and course.
+     *
+     * @param array $courseids Course ids.
+     * @param array $userids User ids.
+     * @return array
+     * @throws Exception
+     */
+    protected static function get_enrolment_times(array $courseids, array $userids): array {
+        global $DB;
+
+        if (empty($userids)) {
+            return [];
+        }
+
+        [$coursesql, $courseparams] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED, "course");
+        [$usersql, $userparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, "user");
+
+        $sql = "SELECT CONCAT(ue.userid, '-', e.courseid) AS unik,
+                       ue.userid,
+                       e.courseid,
+                       MIN(ue.timecreated) AS timecreated
+                  FROM {user_enrolments} ue
+                  JOIN {enrol} e
+                    ON e.id = ue.enrolid
+                 WHERE e.courseid {$coursesql}
+                   AND ue.userid {$usersql}
+                   AND e.status = 0
+                   AND ue.status = 0
+              GROUP BY ue.userid, e.courseid";
+
+        $records = $DB->get_records_sql($sql, $courseparams + $userparams);
+        $result = [];
+        foreach ($records as $record) {
+            $result[(int) $record->userid][(int) $record->courseid] = (int) $record->timecreated;
+        }
+
+        return $result;
+    }
+
+    /**
+     * Returns certificate issue timestamps by user and course.
+     *
+     * @param array $courseids Course ids.
+     * @param array $userids User ids.
+     * @return array
+     * @throws Exception
+     */
+    protected static function get_certificate_issue_times(array $courseids, array $userids): array {
+        $result = [];
+
+        foreach (self::get_customcert_issue_times($courseids, $userids) as $userid => $courses) {
+            foreach ($courses as $courseid => $timestamp) {
+                if (!isset($result[$userid][$courseid]) || $timestamp < $result[$userid][$courseid]) {
+                    $result[$userid][$courseid] = $timestamp;
+                }
+            }
+        }
+
+        foreach (self::get_tool_certificate_issue_times($courseids, $userids) as $userid => $courses) {
+            foreach ($courses as $courseid => $timestamp) {
+                if (!isset($result[$userid][$courseid]) || $timestamp < $result[$userid][$courseid]) {
+                    $result[$userid][$courseid] = $timestamp;
+                }
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Returns custom certificate issue timestamps.
+     *
+     * @param array $courseids Course ids.
+     * @param array $userids User ids.
+     * @return array
+     * @throws Exception
+     */
+    protected static function get_customcert_issue_times(array $courseids, array $userids): array {
+        global $DB;
+
+        if (empty($userids)) {
+            return [];
+        }
+
+        $dbman = $DB->get_manager();
+        if (!$dbman->table_exists(new xmldb_table("customcert")) ||
+            !$dbman->table_exists(new xmldb_table("customcert_issues")) ||
+            !$dbman->field_exists(new xmldb_table("customcert"), new xmldb_field("course")) ||
+            !$dbman->field_exists(new xmldb_table("customcert_issues"), new xmldb_field("customcertid")) ||
+            !$dbman->field_exists(new xmldb_table("customcert_issues"), new xmldb_field("userid")) ||
+            !$dbman->field_exists(new xmldb_table("customcert_issues"), new xmldb_field("timecreated"))) {
+            return [];
+        }
+
+        [$coursesql, $courseparams] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED, "course");
+        [$usersql, $userparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, "user");
+
+        $sql = "SELECT CONCAT(ci.userid, '-', cc.course) AS unik,
+                       ci.userid,
+                       cc.course,
+                       MIN(ci.timecreated) AS timeissued
+                  FROM {customcert_issues} ci
+                  JOIN {customcert} cc
+                    ON cc.id = ci.customcertid
+                 WHERE cc.course {$coursesql}
+                   AND ci.userid {$usersql}
+                   AND ci.timecreated > 0
+              GROUP BY ci.userid, cc.course";
+
+        $records = $DB->get_records_sql($sql, $courseparams + $userparams);
+        $result = [];
+        foreach ($records as $record) {
+            $result[(int) $record->userid][(int) $record->course] = (int) $record->timeissued;
+        }
+
+        return $result;
+    }
+
+    /**
+     * Returns tool certificate issue timestamps when the schema exposes courseid.
+     *
+     * @param array $courseids Course ids.
+     * @param array $userids User ids.
+     * @return array
+     * @throws Exception
+     */
+    protected static function get_tool_certificate_issue_times(array $courseids, array $userids): array {
+        global $DB;
+
+        if (empty($userids)) {
+            return [];
+        }
+
+        $dbman = $DB->get_manager();
+        if (!$dbman->table_exists(new xmldb_table("tool_certificate_templates")) ||
+            !$dbman->table_exists(new xmldb_table("tool_certificate_issues")) ||
+            !$dbman->field_exists(new xmldb_table("tool_certificate_templates"), new xmldb_field("courseid")) ||
+            !$dbman->field_exists(new xmldb_table("tool_certificate_issues"), new xmldb_field("templateid")) ||
+            !$dbman->field_exists(new xmldb_table("tool_certificate_issues"), new xmldb_field("userid")) ||
+            !$dbman->field_exists(new xmldb_table("tool_certificate_issues"), new xmldb_field("timecreated"))) {
+            return [];
+        }
+
+        [$coursesql, $courseparams] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED, "course");
+        [$usersql, $userparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, "user");
+
+        $sql = "SELECT CONCAT(ti.userid, '-', tt.courseid) AS unik,
+                       ti.userid,
+                       tt.courseid,
+                       MIN(ti.timecreated) AS timeissued
+                  FROM {tool_certificate_issues} ti
+                  JOIN {tool_certificate_templates} tt
+                    ON tt.id = ti.templateid
+                 WHERE tt.courseid {$coursesql}
+                   AND ti.userid {$usersql}
+                   AND ti.timecreated > 0
+              GROUP BY ti.userid, tt.courseid";
+
+        $records = $DB->get_records_sql($sql, $courseparams + $userparams);
+        $result = [];
+        foreach ($records as $record) {
+            $result[(int) $record->userid][(int) $record->courseid] = (int) $record->timeissued;
+        }
+
+        return $result;
+    }
+
+    /**
+     * Builds the pathway Best Grade board.
+     *
+     * @param array $users Users.
+     * @param array $courseids Selected course ids.
+     * @param array $grades Grades.
+     * @return array
+     */
+    protected static function build_pathway_best_grade_board(array $users, array $courseids, array $grades): array {
+        $rows = [];
+        foreach ($users as $userid => $user) {
+            $gradevalues = [];
+            foreach ($courseids as $courseid) {
+                if (isset($grades[$userid][$courseid]) && $grades[$userid][$courseid] !== null && $grades[$userid][$courseid] > 0) {
+                    $gradevalues[] = (float) $grades[$userid][$courseid];
+                }
+            }
+
+            $metric = !empty($gradevalues) ? round(array_sum($gradevalues) / count($gradevalues), 1) : null;
+            $rows[] = self::build_row(
+                $user,
+                $metric,
+                $metric !== null ? self::format_percent($metric) : "—",
+                $metric !== null
+                    ? get_string("gradedcourses", "gimidashboardreports_leaderboard", count($gradevalues))
+                    : get_string("notrankedassessment", "gimidashboardreports_leaderboard")
+            );
+        }
+
+        return self::build_board(
+            get_string("bestgrade", "gimidashboardreports_leaderboard"),
+            get_string("bestgradedescpathway", "gimidashboardreports_leaderboard"),
+            get_string("pathwayleaderboard", "gimidashboardreports_leaderboard"),
+            $rows,
+            false,
+            true
+        );
+    }
+
+    /**
+     * Builds the pathway Most Progress board.
+     *
+     * @param array $users Users.
+     * @param array $courseids Selected course ids.
+     * @param array $moduletotals Trackable totals.
+     * @param array $completedmodules Completed modules.
+     * @param array $completions Course completions.
+     * @return array
+     */
+    protected static function build_pathway_progress_board(
+        array $users,
+        array $courseids,
+        array $moduletotals,
+        array $completedmodules,
+        array $completions
+    ): array {
+        $rows = [];
+        foreach ($users as $userid => $user) {
+            $progressvalues = [];
+            foreach ($courseids as $courseid) {
+                $progressvalues[] = self::calculate_course_progress(
+                    $moduletotals[$courseid] ?? 0,
+                    $completedmodules[$userid][$courseid] ?? 0,
+                    !empty($completions[$userid][$courseid])
+                );
+            }
+
+            $metric = !empty($progressvalues) ? round(array_sum($progressvalues) / count($progressvalues), 1) : 0.0;
+            $rows[] = self::build_row(
+                $user,
+                $metric,
+                self::format_percent($metric),
+                get_string("pathwaycourses", "gimidashboardreports_leaderboard", count($courseids))
+            );
+        }
+
+        return self::build_board(
+            get_string("mostprogress", "gimidashboardreports_leaderboard"),
+            get_string("mostprogressdescpathway", "gimidashboardreports_leaderboard"),
+            get_string("pathwayleaderboard", "gimidashboardreports_leaderboard"),
+            $rows,
+            true,
+            true
+        );
+    }
+
+    /**
+     * Builds the course Best Grade board.
+     *
+     * @param array $users Users.
+     * @param array $grades Grades.
+     * @param int $courseid Course id.
+     * @return array
+     */
+    protected static function build_course_best_grade_board(array $users, array $grades, int $courseid): array {
+        $rows = [];
+        foreach ($users as $userid => $user) {
+            $metric = isset($grades[$userid][$courseid]) && $grades[$userid][$courseid] !== null && $grades[$userid][$courseid] > 0
+                ? (float) $grades[$userid][$courseid]
+                : null;
+
+            $rows[] = self::build_row(
+                $user,
+                $metric,
+                $metric !== null ? self::format_percent($metric) : "—",
+                $metric !== null
+                    ? get_string("bestgradedesccourse", "gimidashboardreports_leaderboard")
+                    : get_string("notrankedassessment", "gimidashboardreports_leaderboard")
+            );
+        }
+
+        return self::build_board(
+            get_string("bestgrade", "gimidashboardreports_leaderboard"),
+            get_string("bestgradedesccourse", "gimidashboardreports_leaderboard"),
+            get_string("courseleaderboard", "gimidashboardreports_leaderboard"),
+            $rows,
+            false,
+            true
+        );
+    }
+
+    /**
+     * Builds the course Most Progress board.
+     *
+     * @param array $users Users.
+     * @param array $moduletotals Trackable totals.
+     * @param array $completedmodules Completed modules.
+     * @param array $completions Course completions.
+     * @param int $courseid Course id.
+     * @return array
+     */
+    protected static function build_course_progress_board(
+        array $users,
+        array $moduletotals,
+        array $completedmodules,
+        array $completions,
+        int $courseid
+    ): array {
+        $rows = [];
+        foreach ($users as $userid => $user) {
+            $metric = self::calculate_course_progress(
+                $moduletotals[$courseid] ?? 0,
+                $completedmodules[$userid][$courseid] ?? 0,
+                !empty($completions[$userid][$courseid])
+            );
+
+            $rows[] = self::build_row(
+                $user,
+                $metric,
+                self::format_percent($metric),
+                get_string("courseprogressdetails", "gimidashboardreports_leaderboard", round($metric, 1))
+            );
+        }
+
+        return self::build_board(
+            get_string("mostprogress", "gimidashboardreports_leaderboard"),
+            get_string("mostprogressdesccourse", "gimidashboardreports_leaderboard"),
+            get_string("courseleaderboard", "gimidashboardreports_leaderboard"),
+            $rows,
+            true,
+            true
+        );
+    }
+
+    /**
+     * Builds the course Fastest to Finish board.
+     *
+     * @param array $users Users.
+     * @param array $enroltimes Enrolment times.
+     * @param array $certificatetimes Certificate times.
+     * @param int $courseid Course id.
+     * @return array
+     */
+    protected static function build_course_fastest_board(array $users, array $enroltimes, array $certificatetimes, int $courseid
+    ): array {
+        $rows = [];
+        foreach ($users as $userid => $user) {
+            $metric = null;
+            if (!empty($enroltimes[$userid][$courseid]) && !empty($certificatetimes[$userid][$courseid])) {
+                $seconds = max(0, (int) $certificatetimes[$userid][$courseid] - (int) $enroltimes[$userid][$courseid]);
+                $metric = (float) floor($seconds / DAYSECS);
+            }
+
+            $rows[] = self::build_row(
+                $user,
+                $metric,
+                $metric !== null ? get_string("days", "gimidashboardreports_leaderboard", (int) $metric) : "—",
+                $metric !== null
+                    ?
+                    get_string("certissuedon", "gimidashboardreports_leaderboard", userdate($certificatetimes[$userid][$courseid]))
+                    : get_string("notrankedcertificate", "gimidashboardreports_leaderboard")
+            );
+        }
+
+        return self::build_board(
+            get_string("fastesttofinish", "gimidashboardreports_leaderboard"),
+            get_string("fastesttofinishdesc", "gimidashboardreports_leaderboard"),
+            get_string("courseleaderboard", "gimidashboardreports_leaderboard"),
+            $rows,
+            false,
+            false
+        );
+    }
+
+    /**
+     * Calculates course progress.
+     *
+     * @param int $trackable Trackable module count.
+     * @param int $completed Completed module count.
+     * @param bool $coursecompleted Course completion flag.
+     * @return float
+     */
+    protected static function calculate_course_progress(int $trackable, int $completed, bool $coursecompleted): float {
+        if ($trackable > 0) {
+            return min(100.0, round(($completed / $trackable) * 100, 1));
+        }
+
+        if ($coursecompleted) {
+            return 100.0;
+        }
+
+        return 0.0;
+    }
+
+    /**
+     * Builds a raw leaderboard row.
+     *
+     * @param stdClass $user User.
+     * @param float|null $metric Metric.
+     * @param string $valuedisplay Display value.
+     * @param string $details Details.
+     * @return array
+     */
+    protected static function build_row(stdClass $user, ?float $metric, string $valuedisplay, string $details): array {
+        return [
+            "userid" => (int) $user->id,
+            "fullname" => fullname($user),
+            "email" => s($user->email),
+            "metric" => $metric,
+            "valuedisplay" => $valuedisplay,
+            "details" => $details,
+        ];
+    }
+
+    /**
+     * Builds a board context.
+     *
+     * @param string $title Title.
+     * @param string $description Description.
+     * @param string $scopebadge Scope badge.
+     * @param array $rows Rows.
+     * @param bool $rankall Whether everyone is ranked.
+     * @param bool $descending Whether higher is better.
+     * @return array
+     */
+    protected static function build_board(
+        string $title,
+        string $description,
+        string $scopebadge,
+        array $rows,
+        bool $rankall,
+        bool $descending
+    ): array {
+        $rows = self::rank_rows($rows, $rankall, $descending);
+
+        return [
+            "title" => $title,
+            "description" => $description,
+            "scopebadge" => $scopebadge,
+            "hasrows" => !empty($rows),
+            "rows" => array_slice($rows, 0, 5),
+            "emptymessage" => get_string("emptyboard", "gimidashboardreports_leaderboard"),
+        ];
+    }
+
+    /**
+     * Ranks the rows and decorates them for output.
+     *
+     * @param array $rows Raw rows.
+     * @param bool $rankall Whether everyone is ranked.
+     * @param bool $descending Whether higher is better.
+     * @return array
+     */
+    protected static function rank_rows(array $rows, bool $rankall, bool $descending): array {
+        usort($rows, static function(array $a, array $b) use ($rankall, $descending): int {
+            $ametric = $a["metric"];
+            $bmetric = $b["metric"];
+
+            if (!$rankall) {
+                if ($ametric === null && $bmetric !== null) {
+                    return 1;
+                }
+                if ($ametric !== null && $bmetric === null) {
+                    return -1;
+                }
+                if ($ametric === null && $bmetric === null) {
+                    return strcasecmp($a["fullname"], $b["fullname"]);
+                }
+            }
+
+            if ($ametric === null && $bmetric === null) {
+                return strcasecmp($a["fullname"], $b["fullname"]);
+            }
+
+            if ($descending) {
+                if ($ametric > $bmetric) {
+                    return -1;
+                }
+                if ($ametric < $bmetric) {
+                    return 1;
+                }
+            } else {
+                if ($ametric < $bmetric) {
+                    return -1;
+                }
+                if ($ametric > $bmetric) {
+                    return 1;
+                }
+            }
+
+            return strcasecmp($a["fullname"], $b["fullname"]);
+        });
+
+        $position = 0;
+        $rank = 0;
+        $lastmetric = null;
+        $haslastmetric = false;
+
+        foreach ($rows as $index => $row) {
+            $position++;
+            if (!$rankall && $row["metric"] === null) {
+                $rows[$index]["rank"] = null;
+            } else {
+                if (!$haslastmetric || $row["metric"] !== $lastmetric) {
+                    $rank = $position;
+                    $lastmetric = $row["metric"];
+                    $haslastmetric = true;
+                }
+                $rows[$index]["rank"] = $rank;
+            }
+
+            $rows[$index]["rankdisplay"] = $rows[$index]["rank"] !== null ? (string) $rows[$index]["rank"] : "—";
+            $rows[$index]["rankclass"] = self::get_rank_class($rows[$index]["rank"]);
+            $rows[$index]["rowclass"] = $rows[$index]["rank"] === null ? "is-unranked" : "is-ranked";
+        }
+
+        return $rows;
+    }
+
+    /**
+     * Returns the visual class for a rank.
+     *
+     * @param int|null $rank Rank number.
+     * @return string
+     */
+    protected static function get_rank_class(?int $rank): string {
+        if ($rank === 1) {
+            return "is-gold";
+        }
+        if ($rank === 2) {
+            return "is-silver";
+        }
+        if ($rank === 3) {
+            return "is-bronze";
+        }
+        if ($rank === null) {
+            return "is-unranked";
+        }
+
+        return "";
+    }
+
+    /**
+     * Builds the top KPI cards.
+     *
+     * @param object $selection Selection payload.
+     * @param string $pathwayname Pathway name.
+     * @param array $courseids Course ids.
+     * @param int $learnercount Learner count.
+     * @return array
+     * @throws coding_exception
+     */
+    protected static function build_kpis(object $selection, string $pathwayname, array $courseids, int $learnercount): array {
+        return [
+            [
+                "label" => get_string("scope", "gimidashboardreports_leaderboard"),
+                "value" => $selection->type === "course"
+                    ? get_string("rankscopecourse", "gimidashboardreports_leaderboard")
+                    : get_string("rankscopepathway", "gimidashboardreports_leaderboard"),
+            ],
+            [
+                "label" => get_string("pathway", "gimidashboardreports_leaderboard"),
+                "value" => $pathwayname !== "" ? $pathwayname : "—",
+            ],
+            [
+                "label" => get_string("courses", "gimidashboardreports_leaderboard"),
+                "value" => count($courseids),
+            ],
+            [
+                "label" => get_string("learners", "gimidashboardreports_leaderboard"),
+                "value" => $learnercount,
+            ],
+        ];
+    }
+
+    /**
+     * Formats a percentage value.
+     *
+     * @param float|null $value Value.
+     * @return string
+     */
+    protected static function format_percent(?float $value): string {
+        if ($value === null) {
+            return "—";
+        }
+
+        return format_float($value, 1) . "%";
+    }
+
+    /**
+     * Builds a report URL preserving the selected plugin.
+     *
+     * @param string $target Target.
+     * @param int $cohortid Cohort id.
+     * @return moodle_url
+     * @throws Exception
+     */
+    protected static function build_url(string $target, int $cohortid = 0): moodle_url {
+        $params = [
+            "target" => $target,
+            "plugin" => "leaderboard",
+        ];
+        if ($cohortid > 0) {
+            $params["cohortid"] = $cohortid;
+        }
+
+        return new moodle_url("/local/gimidashboard/", $params);
+    }
+}
