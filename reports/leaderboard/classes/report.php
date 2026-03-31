@@ -27,6 +27,7 @@ namespace gimidashboardreports_leaderboard;
 use coding_exception;
 use context_system;
 use Exception;
+use local_gimidashboard\page\selection_resolver;
 use local_gimidashboard\report\report_interface;
 use moodle_url;
 use stdClass;
@@ -117,11 +118,10 @@ class report implements report_interface {
      * @throws Exception
      */
     public static function render(array $courses): string {
-        global $OUTPUT, $PAGE;
+        global $OUTPUT;
 
         $reportdata = self::prepare_report_data($courses);
 
-        $message = "";
         $messageiswarning = false;
         if ($reportdata->state === "emptyselection") {
             $message = get_string("emptyselection", "gimidashboardreports_leaderboard");
@@ -173,7 +173,7 @@ class report implements report_interface {
             return $cache;
         }
 
-        $selection = \local_gimidashboard\page\selection_resolver::resolve(optional_param("target", "", PARAM_TEXT), $USER->id);
+        $selection = selection_resolver::resolve(optional_param("target", "", PARAM_TEXT), $USER->id);
         $courseids = self::extract_course_ids($courses);
 
         $base = (object) [
@@ -200,7 +200,7 @@ class report implements report_interface {
         $cohortid = $requestedcohortid;
         $autopathway = false;
         if ($cohortid === 0 && count($linkedpathways) === 1) {
-            $cohortid = (int) array_key_first($linkedpathways);
+            $cohortid = array_key_first($linkedpathways);
             $autopathway = true;
         }
 
@@ -231,16 +231,17 @@ class report implements report_interface {
         }
 
         $userids = array_keys($users);
-        $usercourses = self::get_user_courses($courseids, $userids);
         $moduletotals = self::get_trackable_module_totals($courseids);
         $completedmodules = self::get_completed_module_totals($courseids, $userids);
         $grades = self::get_course_grade_percentages($courseids, $userids);
         $completions = self::get_course_completions($courseids, $userids);
         $enroltimes = self::get_enrolment_times($courseids, $userids);
+        $firstaccesstimes = self::get_first_course_access_times($courseids, $userids);
         $certificatetimes = self::get_certificate_issue_times($courseids, $userids);
+        $coursenames = self::get_course_names($courseids);
 
         if ($selection->type === "course") {
-            $courseid = (int) reset($courseids);
+            $courseid = reset($courseids);
             $base->boards = [
                 self::build_course_best_grade_board($users, $grades, $courseid),
                 self::build_course_progress_board($users, $moduletotals, $completedmodules, $completions, $courseid),
@@ -250,6 +251,7 @@ class report implements report_interface {
             $base->boards = [
                 self::build_pathway_best_grade_board($users, $courseids, $grades),
                 self::build_pathway_progress_board($users, $courseids, $moduletotals, $completedmodules, $completions),
+                self::build_pathway_fastest_board($users, $courseids, $firstaccesstimes, $certificatetimes, $coursenames),
             ];
         }
 
@@ -267,7 +269,7 @@ class report implements report_interface {
      */
     protected static function extract_course_ids(array $courses): array {
         return array_values(array_map(static function($course): int {
-            return (int) $course->id;
+            return $course->id;
         }, $courses));
     }
 
@@ -296,7 +298,7 @@ class report implements report_interface {
         $records = $DB->get_records_sql($sql, $params);
         $result = [];
         foreach ($records as $record) {
-            $result[(int) $record->id] = format_string($record->name, true, ["context" => context_system::instance()]);
+            $result[$record->id] = format_string($record->name, true, ["context" => context_system::instance()]);
         }
 
         return $result;
@@ -309,14 +311,15 @@ class report implements report_interface {
      * @param array $pathways Pathways.
      * @param int $selectedcohortid Selected cohort id.
      * @return array
+     * @throws Exception
      */
     protected static function build_pathway_options(string $target, array $pathways, int $selectedcohortid): array {
         $options = [];
         foreach ($pathways as $cohortid => $name) {
             $options[] = [
                 "name" => $name,
-                "url" => self::build_url($target, (int) $cohortid),
-                "selected" => $selectedcohortid === (int) $cohortid,
+                "url" => self::build_url($target, $cohortid),
+                "selected" => $selectedcohortid === $cohortid,
             ];
         }
 
@@ -398,7 +401,7 @@ class report implements report_interface {
         $records = $DB->get_records_sql($sql, $courseparams + $userparams);
         $result = [];
         foreach ($records as $record) {
-            $result[(int) $record->userid][(int) $record->courseid] = (int) $record->courseid;
+            $result[$record->userid][$record->courseid] = $record->courseid;
         }
 
         return $result;
@@ -426,7 +429,7 @@ class report implements report_interface {
         $records = $DB->get_records_sql($sql, $params);
         $result = [];
         foreach ($records as $record) {
-            $result[(int) $record->course] = (int) $record->total;
+            $result[$record->course] = $record->total;
         }
 
         return $result;
@@ -468,7 +471,7 @@ class report implements report_interface {
         $records = $DB->get_records_sql($sql, $courseparams + $userparams);
         $result = [];
         foreach ($records as $record) {
-            $result[(int) $record->userid][(int) $record->course] = (int) $record->total;
+            $result[$record->userid][$record->course] = $record->total;
         }
 
         return $result;
@@ -510,7 +513,7 @@ class report implements report_interface {
         $records = $DB->get_records_sql($sql, $courseparams + $userparams);
         $result = [];
         foreach ($records as $record) {
-            $result[(int) $record->userid][(int) $record->courseid] = is_null($record->gradepercent)
+            $result[$record->userid][$record->courseid] = is_null($record->gradepercent)
                 ? null
                 : round((float) $record->gradepercent, 1);
         }
@@ -546,7 +549,85 @@ class report implements report_interface {
         $records = $DB->get_records_sql($sql, $courseparams + $userparams);
         $result = [];
         foreach ($records as $record) {
-            $result[(int) $record->userid][(int) $record->course] = (int) $record->timecompleted;
+            $result[$record->userid][$record->course] = $record->timecompleted;
+        }
+
+        return $result;
+    }
+
+    /**
+     * Returns course names keyed by id.
+     *
+     * @param array $courseids Course ids.
+     * @return array
+     * @throws Exception
+     */
+    protected static function get_course_names(array $courseids): array {
+        global $DB;
+
+        if (empty($courseids)) {
+            return [];
+        }
+
+        [$insql, $params] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED, "course");
+        $records = $DB->get_records_select("course", "id {$insql}", $params, "", "id, fullname, shortname");
+
+        $result = [];
+        foreach ($records as $record) {
+            $result[$record->id] = format_string($record->fullname ?: $record->shortname);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Returns the first course access timestamps by user and course.
+     *
+     * @param array $courseids Course ids.
+     * @param array $userids User ids.
+     * @return array
+     * @throws Exception
+     */
+    protected static function get_first_course_access_times(array $courseids, array $userids): array {
+        global $DB;
+
+        if (empty($userids)) {
+            return [];
+        }
+
+        $dbman = $DB->get_manager();
+        if (
+            !$dbman->table_exists(new xmldb_table("logstore_standard_log")) ||
+            !$dbman->field_exists(new xmldb_table("logstore_standard_log"), new xmldb_field("userid")) ||
+            !$dbman->field_exists(new xmldb_table("logstore_standard_log"), new xmldb_field("courseid")) ||
+            !$dbman->field_exists(new xmldb_table("logstore_standard_log"), new xmldb_field("timecreated")) ||
+            !$dbman->field_exists(new xmldb_table("logstore_standard_log"), new xmldb_field("eventname"))
+        ) {
+            return [];
+        }
+
+        [$coursesql, $courseparams] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED, "course");
+        [$usersql, $userparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, "user");
+
+        $params = $courseparams + $userparams + [
+                "eventname" => "\\core\\event\\course_viewed",
+            ];
+
+        $sql = "SELECT CONCAT(userid, '-', courseid) AS unik,
+                   userid,
+                   courseid,
+                   MIN(timecreated) AS firstaccess
+              FROM {logstore_standard_log}
+             WHERE courseid {$coursesql}
+               AND userid {$usersql}
+               AND eventname = :eventname
+               AND timecreated > 0
+          GROUP BY userid, courseid";
+
+        $records = $DB->get_records_sql($sql, $params);
+        $result = [];
+        foreach ($records as $record) {
+            $result[$record->userid][$record->courseid] = $record->firstaccess;
         }
 
         return $result;
@@ -586,7 +667,7 @@ class report implements report_interface {
         $records = $DB->get_records_sql($sql, $courseparams + $userparams);
         $result = [];
         foreach ($records as $record) {
-            $result[(int) $record->userid][(int) $record->courseid] = (int) $record->timecreated;
+            $result[$record->userid][$record->courseid] = $record->timecreated;
         }
 
         return $result;
@@ -665,7 +746,7 @@ class report implements report_interface {
         $records = $DB->get_records_sql($sql, $courseparams + $userparams);
         $result = [];
         foreach ($records as $record) {
-            $result[(int) $record->userid][(int) $record->course] = (int) $record->timeissued;
+            $result[$record->userid][$record->course] = $record->timeissued;
         }
 
         return $result;
@@ -714,7 +795,7 @@ class report implements report_interface {
         $records = $DB->get_records_sql($sql, $courseparams + $userparams);
         $result = [];
         foreach ($records as $record) {
-            $result[(int) $record->userid][(int) $record->courseid] = (int) $record->timeissued;
+            $result[$record->userid][$record->courseid] = $record->timeissued;
         }
 
         return $result;
@@ -727,6 +808,7 @@ class report implements report_interface {
      * @param array $courseids Selected course ids.
      * @param array $grades Grades.
      * @return array
+     * @throws coding_exception
      */
     protected static function build_pathway_best_grade_board(array $users, array $courseids, array $grades): array {
         $rows = [];
@@ -768,6 +850,7 @@ class report implements report_interface {
      * @param array $completedmodules Completed modules.
      * @param array $completions Course completions.
      * @return array
+     * @throws coding_exception
      */
     protected static function build_pathway_progress_board(
         array $users,
@@ -807,12 +890,88 @@ class report implements report_interface {
     }
 
     /**
+     * Builds the pathway Fastest to Finish Top 5 board.
+     *
+     * @param array $users Users.
+     * @param array $courseids Selected course ids.
+     * @param array $firstaccesstimes First access timestamps.
+     * @param array $certificatetimes Certificate issue timestamps.
+     * @param array $coursenames Course names.
+     * @return array
+     * @throws coding_exception
+     */
+    protected static function build_pathway_fastest_board(
+        array $users,
+        array $courseids,
+        array $firstaccesstimes,
+        array $certificatetimes,
+        array $coursenames
+    ): array {
+        $rows = [];
+        foreach ($users as $userid => $user) {
+            $bestmetric = null;
+            $bestcourseid = 0;
+            $bestcertificatetime = 0;
+
+            foreach ($courseids as $courseid) {
+                if (empty($firstaccesstimes[$userid][$courseid]) || empty($certificatetimes[$userid][$courseid])) {
+                    continue;
+                }
+
+                $seconds = max(
+                    0,
+                    $certificatetimes[$userid][$courseid] - $firstaccesstimes[$userid][$courseid]
+                );
+                $metric = round($seconds / DAYSECS, 1);
+
+                if ($bestmetric === null || $metric < $bestmetric) {
+                    $bestmetric = $metric;
+                    $bestcourseid = $courseid;
+                    $bestcertificatetime = $certificatetimes[$userid][$courseid];
+                }
+            }
+
+            $details = $bestmetric !== null
+                ? get_string(
+                    "fastestpathwaydetails",
+                    "gimidashboardreports_leaderboard",
+                    [
+                        "course" => $coursenames[$bestcourseid] ?? get_string("course", "gimidashboardreports_leaderboard"),
+                        "date" => userdate($bestcertificatetime),
+                    ]
+                )
+                : get_string("notrankedcertificateaccess", "gimidashboardreports_leaderboard");
+
+            $rows[] = self::build_row(
+                $user,
+                $bestmetric,
+                $bestmetric !== null
+                    ? get_string("days", "gimidashboardreports_leaderboard", format_float($bestmetric))
+                    : "—",
+                $details
+            );
+        }
+
+        return self::build_board(
+            get_string("fastesttofinishtop5", "gimidashboardreports_leaderboard"),
+            get_string("fastesttofinishtop5desc", "gimidashboardreports_leaderboard"),
+            get_string("pathwayleaderboard", "gimidashboardreports_leaderboard"),
+            $rows,
+            false,
+            false,
+            true,
+            "is-full-width"
+        );
+    }
+
+    /**
      * Builds the course Best Grade board.
      *
      * @param array $users Users.
      * @param array $grades Grades.
      * @param int $courseid Course id.
      * @return array
+     * @throws coding_exception
      */
     protected static function build_course_best_grade_board(array $users, array $grades, int $courseid): array {
         $rows = [];
@@ -850,6 +1009,7 @@ class report implements report_interface {
      * @param array $completions Course completions.
      * @param int $courseid Course id.
      * @return array
+     * @throws coding_exception
      */
     protected static function build_course_progress_board(
         array $users,
@@ -892,6 +1052,7 @@ class report implements report_interface {
      * @param array $certificatetimes Certificate times.
      * @param int $courseid Course id.
      * @return array
+     * @throws coding_exception
      */
     protected static function build_course_fastest_board(array $users, array $enroltimes, array $certificatetimes, int $courseid
     ): array {
@@ -899,14 +1060,14 @@ class report implements report_interface {
         foreach ($users as $userid => $user) {
             $metric = null;
             if (!empty($enroltimes[$userid][$courseid]) && !empty($certificatetimes[$userid][$courseid])) {
-                $seconds = max(0, (int) $certificatetimes[$userid][$courseid] - (int) $enroltimes[$userid][$courseid]);
-                $metric = (float) floor($seconds / DAYSECS);
+                $seconds = max(0, $certificatetimes[$userid][$courseid] - $enroltimes[$userid][$courseid]);
+                $metric = floor($seconds / DAYSECS);
             }
 
             $rows[] = self::build_row(
                 $user,
                 $metric,
-                $metric !== null ? get_string("days", "gimidashboardreports_leaderboard", (int) $metric) : "—",
+                $metric !== null ? get_string("days", "gimidashboardreports_leaderboard", $metric) : "—",
                 $metric !== null
                     ?
                     get_string("certissuedon", "gimidashboardreports_leaderboard", userdate($certificatetimes[$userid][$courseid]))
@@ -955,7 +1116,7 @@ class report implements report_interface {
      */
     protected static function build_row(stdClass $user, ?float $metric, string $valuedisplay, string $details): array {
         return [
-            "userid" => (int) $user->id,
+            "userid" => $user->id,
             "fullname" => fullname($user),
             "email" => s($user->email),
             "metric" => $metric,
@@ -973,7 +1134,11 @@ class report implements report_interface {
      * @param array $rows Rows.
      * @param bool $rankall Whether everyone is ranked.
      * @param bool $descending Whether higher is better.
+     * @param int $limit Limit rows.
+     * @param bool $hideunranked Hide unranked rows.
+     * @param string $boardclass Extra CSS class.
      * @return array
+     * @throws coding_exception
      */
     protected static function build_board(
         string $title,
@@ -981,14 +1146,23 @@ class report implements report_interface {
         string $scopebadge,
         array $rows,
         bool $rankall,
-        bool $descending
+        bool $descending,
+        bool $hideunranked = false,
+        string $boardclass = ""
     ): array {
         $rows = self::rank_rows($rows, $rankall, $descending);
+
+        if ($hideunranked) {
+            $rows = array_values(array_filter($rows, static function(array $row): bool {
+                return $row["rank"] !== null;
+            }));
+        }
 
         return [
             "title" => $title,
             "description" => $description,
             "scopebadge" => $scopebadge,
+            "boardclass" => $boardclass,
             "hasrows" => !empty($rows),
             "rows" => array_slice($rows, 0, 5),
             "emptymessage" => get_string("emptyboard", "gimidashboardreports_leaderboard"),
@@ -1136,7 +1310,7 @@ class report implements report_interface {
             return "—";
         }
 
-        return format_float($value, 1) . "%";
+        return format_float($value) . "%";
     }
 
     /**

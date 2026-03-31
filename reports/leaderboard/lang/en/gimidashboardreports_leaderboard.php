@@ -62,3 +62,8 @@ $string['rankscopecourse'] = 'Ranking inside one course and one pathway only';
 $string['days'] = '{$a} day(s)';
 $string['resetpathway'] = 'Clear pathway filter';
 $string['nolearners'] = 'No active learners were found in this pathway for the current selection.';
+
+$string['fastesttofinishtop5'] = 'Leaderboard - Fastest to Finish - TOP 5';
+$string['fastesttofinishtop5desc'] = 'Top 5 learners with the shortest time between first course access and certificate issue date. Fewer days rank higher.';
+$string['fastestpathwaydetails'] = '{$a->course} • Issued on {$a->date}';
+$string['notrankedcertificateaccess'] = 'Listed without rank until a first course access and certificate issue date are both available.';
