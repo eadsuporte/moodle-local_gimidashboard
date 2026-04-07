@@ -24,7 +24,6 @@ Each report subplugin is an isolated plugin with its own:
 * `lang/en/...php`
 * `classes/report.php`
 * `templates/...`
-* optional `export.php`
 * any extra classes needed for SQL, tables, services, formatters, or builders
 
 ## Access model
@@ -68,27 +67,6 @@ Instead it:
 3. keeps only courses inside the selected category tree.
 
 This ensures category reports never receive courses outside the user’s allowed scope.
-
-### What `groups` contains
-
-`groups` is the structure used to build the `<select>` with `<optgroup>`:
-
-* one group per visible category;
-* first option is the category itself;
-* subsequent options are the visible courses inside that category.
-
-The parent plugin therefore controls both:
-
-* what the user can choose;
-* what the subplugin receives.
-
-## Report subplugin discovery and execution
-
-The core orchestration happens in:
-
-```text
-classes/report/report_manager.php
-```
 
 ### Discovery
 
@@ -223,7 +201,6 @@ Main characteristics found in the code:
 * contract class: `classes/report.php`
 * supports both course and category selections
 * uses Mustache templates for rendering
-* contains an `export.php` endpoint for data export
 * builds summary KPIs, learner table, detail table, and export pipeline
 
 This subplugin is the best reference when creating new reports.

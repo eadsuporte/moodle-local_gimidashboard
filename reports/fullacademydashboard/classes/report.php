@@ -83,11 +83,6 @@ class report implements report_interface {
             "academyname" => $academyname,
             "pluginname" => get_string("pluginname", "gimidashboardreports_fullacademydashboard"),
             "subtitle" => implode(" • ", $subtitleparts),
-            "exporturl" => self::build_export_url(
-                $reportdata->selection->target,
-                $reportdata->learnerid,
-                $reportdata->cohortid
-            ),
             "extra_html" => $extra,
         ]);
     }
@@ -1553,30 +1548,6 @@ class report implements report_interface {
         ];
 
         return new moodle_url("/local/gimidashboard/", $params);
-    }
-
-    /**
-     * Builds the export URL preserving active filters.
-     *
-     * @param string $target Target.
-     * @param int $learnerid Learner id.
-     * @param int $cohortid Cohort id.
-     * @return moodle_url
-     * @throws Exception
-     */
-    protected static function build_export_url(string $target, int $learnerid = 0, int $cohortid = 0): moodle_url {
-        $params = [
-            "target" => $target,
-            "dataformat" => "excel",
-        ];
-        if ($learnerid > 0) {
-            $params["learnerid"] = $learnerid;
-        }
-        if ($cohortid > 0) {
-            $params["cohortid"] = $cohortid;
-        }
-
-        return new moodle_url("/local/gimidashboard/reports/fullacademydashboard/export.php", $params);
     }
 
     /**

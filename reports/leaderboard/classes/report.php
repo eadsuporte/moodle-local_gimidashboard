@@ -87,7 +87,6 @@ class report implements report_interface {
             "academyname" => $academyname,
             "pluginname" => strtoupper(get_string("pluginname", "gimidashboardreports_leaderboard")),
             "subtitle" => implode(" • ", $subtitleparts),
-            "exporturl" => false,
             "extra_html" => $extra,
         ]);
     }
@@ -1317,10 +1316,10 @@ class report implements report_interface {
         }
 
         $parts = [];
-        foreach ($expressions as $expression) {
-            $parts[] = "LOWER({$expression}) LIKE :examterm1";
-            $parts[] = "LOWER({$expression}) LIKE :examterm2";
-            $parts[] = "LOWER({$expression}) LIKE :examterm3";
+        foreach ($expressions as $key => $expression) {
+            $parts[] = "LOWER({$expression}) LIKE :examterm_a{$key}_1";
+            $parts[] = "LOWER({$expression}) LIKE :examterm_a{$key}_2";
+            $parts[] = "LOWER({$expression}) LIKE :examterm_a{$key}_3";
         }
 
         return '(' . implode(' OR ', $parts) . ')';
@@ -1333,9 +1332,13 @@ class report implements report_interface {
      */
     protected static function get_exam_name_like_params(): array {
         return [
-            "examterm1" => "%exam%",
-            "examterm2" => "%final assessment%",
-            "examterm3" => "%final test%",
+            "examterm_a0_1" => "%exam%",
+            "examterm_a0_2" => "%final assessment%",
+            "examterm_a0_3" => "%final test%",
+
+            "examterm_a1_1" => "%exam%",
+            "examterm_a1_2" => "%final assessment%",
+            "examterm_a1_3" => "%final test%",
         ];
     }
 
