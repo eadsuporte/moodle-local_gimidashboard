@@ -24,11 +24,8 @@
 
 namespace gimidashboardreports_fullacademydashboard;
 
-use ArrayIterator;
 use context_course;
 use context_system;
-use core\dataformat;
-use core_text;
 use Exception;
 use html_writer;
 use local_gimidashboard\page\selection_resolver;
@@ -161,7 +158,7 @@ class report implements report_interface {
     }
 
     /**
-     * Prepares the report data for rendering and export.
+     * Prepares the report data for rendering.
      *
      * @param array $courses Accessible course records.
      * @return object
@@ -1407,21 +1404,6 @@ class report implements report_interface {
         }
 
         return html_writer::div(implode("", $links), "gimi-pathway-links");
-    }
-
-    /**
-     * Returns a plain text list of pathways for export.
-     *
-     * @param array $pathways Pathways.
-     * @return string
-     * @throws Exception
-     */
-    protected static function format_pathways_for_export(array $pathways): string {
-        if (empty($pathways)) {
-            return get_string("dash", "gimidashboardreports_fullacademydashboard");
-        }
-
-        return implode(" | ", array_values($pathways));
     }
 
     /**
