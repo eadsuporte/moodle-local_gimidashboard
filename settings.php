@@ -32,7 +32,6 @@ use local_gimidashboard\settings\capability_options;
  * @package   local_gimidashboard
  */
 if ($hassiteconfig) {
-
     global $CFG, $PAGE, $ADMIN;
 
     $settings = new admin_settingpage("local_gimidashboard", get_string("pluginname", "local_gimidashboard"));
