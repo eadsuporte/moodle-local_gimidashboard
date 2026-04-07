@@ -90,7 +90,7 @@ class report_manager {
         }, self::get_ordered_reports());
 
         $index = array_search($component, $ordered, true);
-        if ($index == false) {
+        if ($index === false) {
             return;
         }
 

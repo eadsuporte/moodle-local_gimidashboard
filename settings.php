@@ -46,12 +46,4 @@ if ($hassiteconfig) {
         capability_options::get_choices()
     );
     $settings->add($setting);
-
-    //$ADMIN->add("localplugins", $settings);
-    //$ADMIN->add("localplugins", new admin_externalpage(
-    //    "local_gimidashboard_plugins",
-    //    get_string("adminplugins", "local_gimidashboard"),
-    //    new moodle_url("/local/gimidashboard/admin_plugins.php"),
-    //    "local/gimidashboard:manage"
-    //));
 }
