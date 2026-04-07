@@ -231,6 +231,7 @@ class report implements report_interface {
         }
 
         $userids = array_keys($users);
+        $usercourses = self::get_user_courses($courseids, $userids);
         $moduletotals = self::get_trackable_module_totals($courseids);
         $completedmodules = self::get_completed_module_totals($courseids, $userids);
         $grades = self::get_course_grade_percentages($courseids, $userids);
@@ -245,13 +246,13 @@ class report implements report_interface {
             $base->boards = [
                 self::build_course_best_grade_board($users, $grades, $courseid),
                 self::build_course_progress_board($users, $moduletotals, $completedmodules, $completions, $courseid),
-                self::build_course_fastest_board($users, $enroltimes, $certificatetimes, $courseid),
+                self::build_course_fastest_board($users, $firstaccesstimes, $certificatetimes, $courseid),
             ];
         } else {
             $base->boards = [
-                self::build_pathway_best_grade_board($users, $courseids, $grades),
-                self::build_pathway_progress_board($users, $courseids, $moduletotals, $completedmodules, $completions),
-                self::build_pathway_fastest_board($users, $courseids, $firstaccesstimes, $certificatetimes, $coursenames),
+                self::build_pathway_best_grade_board($users, $usercourses, $grades),
+                self::build_pathway_progress_board($users, $usercourses, $moduletotals, $completedmodules, $completions),
+                self::build_pathway_fastest_board($users, $usercourses, $firstaccesstimes, $certificatetimes, $coursenames),
             ];
         }
 
@@ -494,6 +495,7 @@ class report implements report_interface {
 
         [$coursesql, $courseparams] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED, "course");
         [$usersql, $userparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, "user");
+        $params = $courseparams + $userparams + self::get_exam_name_like_params();
 
         $sql = "SELECT gg.userid,
                        gi.courseid,
@@ -505,12 +507,17 @@ class report implements report_interface {
                   FROM {grade_items} gi
                   JOIN {grade_grades} gg
                     ON gg.itemid = gi.id
+             LEFT JOIN {quiz} q
+                    ON q.id = gi.iteminstance
+                   AND gi.itemmodule = 'quiz'
                  WHERE gi.courseid {$coursesql}
                    AND gg.userid {$usersql}
-                   AND gi.itemtype = 'course'
+                   AND gi.itemtype = 'mod'
+                   AND gi.itemmodule = 'quiz'
+                   AND " . self::get_exam_name_sql("COALESCE(gi.itemname, '')", "COALESCE(q.name, '')") . "
               GROUP BY gg.userid, gi.courseid";
 
-        $records = $DB->get_records_sql($sql, $courseparams + $userparams);
+        $records = $DB->get_records_sql($sql, $params);
         $result = [];
         foreach ($records as $record) {
             $result[$record->userid][$record->courseid] = is_null($record->gradepercent)
@@ -810,11 +817,11 @@ class report implements report_interface {
      * @return array
      * @throws coding_exception
      */
-    protected static function build_pathway_best_grade_board(array $users, array $courseids, array $grades): array {
+    protected static function build_pathway_best_grade_board(array $users, array $usercourses, array $grades): array {
         $rows = [];
         foreach ($users as $userid => $user) {
             $gradevalues = [];
-            foreach ($courseids as $courseid) {
+            foreach (array_keys($usercourses[$userid] ?? []) as $courseid) {
                 if (isset($grades[$userid][$courseid]) && $grades[$userid][$courseid] !== null && $grades[$userid][$courseid] > 0) {
                     $gradevalues[] = (float) $grades[$userid][$courseid];
                 }
@@ -854,7 +861,7 @@ class report implements report_interface {
      */
     protected static function build_pathway_progress_board(
         array $users,
-        array $courseids,
+        array $usercourses,
         array $moduletotals,
         array $completedmodules,
         array $completions
@@ -862,7 +869,8 @@ class report implements report_interface {
         $rows = [];
         foreach ($users as $userid => $user) {
             $progressvalues = [];
-            foreach ($courseids as $courseid) {
+            $usercourseids = array_keys($usercourses[$userid] ?? []);
+            foreach ($usercourseids as $courseid) {
                 $progressvalues[] = self::calculate_course_progress(
                     $moduletotals[$courseid] ?? 0,
                     $completedmodules[$userid][$courseid] ?? 0,
@@ -875,7 +883,7 @@ class report implements report_interface {
                 $user,
                 $metric,
                 self::format_percent($metric),
-                get_string("pathwaycourses", "gimidashboardreports_leaderboard", count($courseids))
+                get_string("pathwaycourses", "gimidashboardreports_leaderboard", count($usercourseids))
             );
         }
 
@@ -902,7 +910,7 @@ class report implements report_interface {
      */
     protected static function build_pathway_fastest_board(
         array $users,
-        array $courseids,
+        array $usercourses,
         array $firstaccesstimes,
         array $certificatetimes,
         array $coursenames
@@ -913,7 +921,7 @@ class report implements report_interface {
             $bestcourseid = 0;
             $bestcertificatetime = 0;
 
-            foreach ($courseids as $courseid) {
+            foreach (array_keys($usercourses[$userid] ?? []) as $courseid) {
                 if (empty($firstaccesstimes[$userid][$courseid]) || empty($certificatetimes[$userid][$courseid])) {
                     continue;
                 }
@@ -1054,20 +1062,20 @@ class report implements report_interface {
      * @return array
      * @throws coding_exception
      */
-    protected static function build_course_fastest_board(array $users, array $enroltimes, array $certificatetimes, int $courseid
+    protected static function build_course_fastest_board(array $users, array $firstaccesstimes, array $certificatetimes, int $courseid
     ): array {
         $rows = [];
         foreach ($users as $userid => $user) {
             $metric = null;
-            if (!empty($enroltimes[$userid][$courseid]) && !empty($certificatetimes[$userid][$courseid])) {
-                $seconds = max(0, $certificatetimes[$userid][$courseid] - $enroltimes[$userid][$courseid]);
-                $metric = floor($seconds / DAYSECS);
+            if (!empty($firstaccesstimes[$userid][$courseid]) && !empty($certificatetimes[$userid][$courseid])) {
+                $seconds = max(0, $certificatetimes[$userid][$courseid] - $firstaccesstimes[$userid][$courseid]);
+                $metric = round($seconds / DAYSECS, 1);
             }
 
             $rows[] = self::build_row(
                 $user,
                 $metric,
-                $metric !== null ? get_string("days", "gimidashboardreports_leaderboard", $metric) : "—",
+                $metric !== null ? get_string("days", "gimidashboardreports_leaderboard", format_float($metric)) : "—",
                 $metric !== null
                     ?
                     get_string("certissuedon", "gimidashboardreports_leaderboard", userdate($certificatetimes[$userid][$courseid]))
@@ -1118,6 +1126,8 @@ class report implements report_interface {
         return [
             "userid" => $user->id,
             "fullname" => fullname($user),
+            "firstname" => s($user->firstname),
+            "lastname" => s($user->lastname),
             "email" => s($user->email),
             "metric" => $metric,
             "valuedisplay" => $valuedisplay,
@@ -1279,12 +1289,6 @@ class report implements report_interface {
     protected static function build_kpis(object $selection, string $pathwayname, array $courseids, int $learnercount): array {
         return [
             [
-                "label" => get_string("scope", "gimidashboardreports_leaderboard"),
-                "value" => $selection->type === "course"
-                    ? get_string("rankscopecourse", "gimidashboardreports_leaderboard")
-                    : get_string("rankscopepathway", "gimidashboardreports_leaderboard"),
-            ],
-            [
                 "label" => get_string("pathway", "gimidashboardreports_leaderboard"),
                 "value" => $pathwayname !== "" ? $pathwayname : "—",
             ],
@@ -1296,6 +1300,42 @@ class report implements report_interface {
                 "label" => get_string("learners", "gimidashboardreports_leaderboard"),
                 "value" => $learnercount,
             ],
+        ];
+    }
+
+    /**
+     * Returns the SQL clause used to detect exam activities.
+     *
+     * @param string $primaryexpr Primary SQL expression.
+     * @param string|null $secondaryexpr Optional secondary SQL expression.
+     * @return string
+     */
+    protected static function get_exam_name_sql(string $primaryexpr, ?string $secondaryexpr = null): string {
+        $expressions = [$primaryexpr];
+        if ($secondaryexpr !== null) {
+            $expressions[] = $secondaryexpr;
+        }
+
+        $parts = [];
+        foreach ($expressions as $expression) {
+            $parts[] = "LOWER({$expression}) LIKE :examterm1";
+            $parts[] = "LOWER({$expression}) LIKE :examterm2";
+            $parts[] = "LOWER({$expression}) LIKE :examterm3";
+        }
+
+        return '(' . implode(' OR ', $parts) . ')';
+    }
+
+    /**
+     * Returns the LIKE params used to detect exam activities.
+     *
+     * @return array
+     */
+    protected static function get_exam_name_like_params(): array {
+        return [
+            "examterm1" => "%exam%",
+            "examterm2" => "%final assessment%",
+            "examterm3" => "%final test%",
         ];
     }
 

@@ -43,7 +43,7 @@
     {{/showpathwayoptions}}
 
     {{#haskpis}}
-        <div class="gimi-leaderboard-kpis gimi-kpi-grid" style="grid-template-columns: repeat(4, minmax(0, 1fr));">
+        <div class="gimi-leaderboard-kpis gimi-kpi-grid">
             {{#kpis}}
                 <div class="gimi-leaderboard-kpi gimi-kpi-card">
                     <div class="gimi-leaderboard-kpi-label gimi-kpi-card-label">{{label}}</div>
@@ -71,7 +71,9 @@
                                 <thead>
                                 <tr>
                                     <th>{{#str}}rank, gimidashboardreports_leaderboard{{/str}}</th>
-                                    <th>{{#str}}learner, gimidashboardreports_leaderboard{{/str}}</th>
+                                    <th>{{#str}}firstname{{/str}}</th>
+                                    <th>{{#str}}lastname{{/str}}</th>
+                                    <th>{{#str}}email{{/str}}</th>
                                     <th>{{#str}}value, gimidashboardreports_leaderboard{{/str}}</th>
                                     <th>{{#str}}details, gimidashboardreports_leaderboard{{/str}}</th>
                                 </tr>
@@ -83,7 +85,12 @@
                                             <span class="gimi-rank-pill {{rankclass}}">{{rankdisplay}}</span>
                                         </td>
                                         <td>
-                                            <div class="gimi-learner-name">{{fullname}}</div>
+                                            <div class="gimi-learner-name">{{firstname}}</div>
+                                        </td>
+                                        <td>
+                                            <div class="gimi-learner-name">{{lastname}}</div>
+                                        </td>
+                                        <td>
                                             <div class="gimi-learner-email">{{email}}</div>
                                         </td>
                                         <td>

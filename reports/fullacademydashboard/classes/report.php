@@ -35,6 +35,7 @@ use local_gimidashboard\page\selection_resolver;
 use local_gimidashboard\report\report_interface;
 use moodle_url;
 use stdClass;
+use xmldb_field;
 use xmldb_table;
 
 /**
@@ -206,23 +207,24 @@ class report implements report_interface {
         if (!empty($users)) {
             $userids = array_keys($users);
             $usercourses = self::get_user_courses($courseids, $userids);
-            $enrolmenttimes = self::get_user_enrolment_times($courseids, $userids);
             $moduletotals = self::get_trackable_module_totals($courseids);
             $completedmodules = self::get_completed_module_totals($courseids, $userids);
             $day1completedmodules = self::get_day1_completed_module_totals($courseids, $userids);
+            $firstaccesstimes = self::get_first_course_access_times($courseids, $userids);
             $gradepercentages = self::get_course_grade_percentages($courseids, $userids);
             $completions = self::get_course_completions($courseids, $userids);
             $certificatecounts = self::get_certificate_counts($courseids, $userids);
             $examcounts = self::get_exam_counts($courseids, $userids);
             $lastaccessbycourse = self::get_last_access_by_course($courseids, $userids);
             $pathways = self::get_user_pathways($courseids, $userids);
+            $usercoursepathways = self::get_user_course_pathways($courseids, $userids);
 
             foreach ($users as $userid => $user) {
                 $rows[$userid] = self::build_user_row(
                     $user,
                     $usercourses[$userid] ?? [],
                     $moduletotals,
-                    $enrolmenttimes[$userid] ?? [],
+                    $firstaccesstimes[$userid] ?? [],
                     $completedmodules[$userid] ?? [],
                     $day1completedmodules[$userid] ?? [],
                     $gradepercentages[$userid] ?? [],
@@ -242,7 +244,7 @@ class report implements report_interface {
                     $courses,
                     $usercourses[$learnerid] ?? [],
                     $moduletotals,
-                    $enrolmenttimes[$learnerid] ?? [],
+                    $firstaccesstimes[$learnerid] ?? [],
                     $completedmodules[$learnerid] ?? [],
                     $day1completedmodules[$learnerid] ?? [],
                     $gradepercentages[$learnerid] ?? [],
@@ -251,6 +253,7 @@ class report implements report_interface {
                     $examcounts[$learnerid] ?? [],
                     $lastaccessbycourse[$learnerid] ?? [],
                     $pathways[$learnerid] ?? [],
+                    $usercoursepathways[$learnerid] ?? [],
                     $selection
                 );
                 $filters[] = [
@@ -509,18 +512,28 @@ class report implements report_interface {
 
         [$coursesqla, $courseparamsa] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED, "coursea");
         [$coursesqlb, $courseparamsb] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED, "courseb");
+        [$coursesqlc, $courseparamsc] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED, "coursec");
         [$usersqla, $userparamsa] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, "usera");
         [$usersqlb, $userparamsb] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, "userb");
-        $params = $courseparamsa + $courseparamsb + $userparamsa + $userparamsb + ["oneday" => DAYSECS];
+        [$usersqlc, $userparamsc] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, "userc");
 
-        $sql = "SELECT CONCAT(cmc.userid, '-', cm.course) AS unik,
-                       cmc.userid,
-                       cm.course,
-                       COUNT(DISTINCT cmc.coursemoduleid) AS total
-                  FROM {course_modules_completion} cmc
-                  JOIN {course_modules} cm
-                    ON cm.id = cmc.coursemoduleid
-                  JOIN (
+        $dbman = $DB->get_manager();
+        $haslogtable = $dbman->table_exists(new xmldb_table("logstore_standard_log")) &&
+            $dbman->field_exists(new xmldb_table("logstore_standard_log"), new xmldb_field("userid")) &&
+            $dbman->field_exists(new xmldb_table("logstore_standard_log"), new xmldb_field("courseid")) &&
+            $dbman->field_exists(new xmldb_table("logstore_standard_log"), new xmldb_field("timecreated")) &&
+            $dbman->field_exists(new xmldb_table("logstore_standard_log"), new xmldb_field("eventname"));
+
+        $params = $courseparamsa + $courseparamsb + $courseparamsc + $userparamsa + $userparamsb + $userparamsc + [
+                "oneday" => DAYSECS,
+                "courseevent" => "\\core\\event\\course_viewed",
+            ];
+
+        $baselinejoin = "JOIN (
+                SELECT enrol.userid,
+                       enrol.courseid,
+                       COALESCE(firstaccess.firstaccess, enrol.enroltime) AS basetime
+                  FROM (
                         SELECT ue.userid,
                                e.courseid,
                                MIN(CASE
@@ -536,18 +549,53 @@ class report implements report_interface {
                            AND e.status = 0
                            AND ue.status = 0
                       GROUP BY ue.userid, e.courseid
-                  ) enrol
-                    ON enrol.userid = cmc.userid
-                   AND enrol.courseid = cm.course
+                  ) enrol";
+
+        if ($haslogtable) {
+            $baselinejoin .= "
+             LEFT JOIN (
+                        SELECT userid,
+                               courseid,
+                               MIN(timecreated) AS firstaccess
+                          FROM {logstore_standard_log}
+                         WHERE courseid {$coursesqlc}
+                           AND userid {$usersqlc}
+                           AND eventname = :courseevent
+                           AND timecreated > 0
+                      GROUP BY userid, courseid
+                    ) firstaccess
+                    ON firstaccess.userid = enrol.userid
+                   AND firstaccess.courseid = enrol.courseid";
+        } else {
+            $baselinejoin .= "
+             LEFT JOIN (
+                        SELECT 0 AS userid, 0 AS courseid, NULL AS firstaccess
+                    ) firstaccess
+                    ON 1 = 0";
+        }
+
+        $baselinejoin .= "
+            ) baseline
+              ON baseline.userid = cmc.userid
+             AND baseline.courseid = cm.course";
+
+        $sql = "SELECT CONCAT(cmc.userid, '-', cm.course) AS unik,
+                       cmc.userid,
+                       cm.course,
+                       COUNT(DISTINCT cmc.coursemoduleid) AS total
+                  FROM {course_modules_completion} cmc
+                  JOIN {course_modules} cm
+                    ON cm.id = cmc.coursemoduleid
+                  {$baselinejoin}
                  WHERE cm.course {$coursesqlb}
                    AND cmc.userid {$usersqlb}
                    AND cm.visible = 1
                    AND cm.deletioninprogress = 0
                    AND cm.completion > 0
                    AND cmc.completionstate > 0
-                   AND enrol.enroltime IS NOT NULL
+                   AND baseline.basetime IS NOT NULL
                    AND cmc.timemodified > 0
-                   AND cmc.timemodified <= enrol.enroltime + :oneday
+                   AND cmc.timemodified <= baseline.basetime + :oneday
               GROUP BY cmc.userid, cm.course";
         $records = $DB->get_records_sql($sql, $params);
         $result = [];
@@ -575,41 +623,89 @@ class report implements report_interface {
 
         [$coursesql, $courseparams] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED, "course");
         [$usersql, $userparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, "user");
+        $params = $courseparams + $userparams + self::get_exam_name_like_params(2);
 
-        $sql = "SELECT gradebase.userid,
-                       gradebase.courseid,
-                       MAX(CASE WHEN gradebase.itemtype = 'course' THEN gradebase.gradepercent END) AS coursegrade,
-                       AVG(CASE WHEN gradebase.itemtype = 'mod' THEN gradebase.gradepercent END) AS activitygrade
-                  FROM (
-                        SELECT gg.userid,
-                               gi.courseid,
-                               gi.itemtype,
-                               CASE
-                                   WHEN gg.finalgrade IS NULL THEN NULL
-                                   WHEN gi.grademax <= gi.grademin THEN NULL
-                                   ELSE ((gg.finalgrade - gi.grademin) / (gi.grademax - gi.grademin)) * 100
-                               END AS gradepercent
-                          FROM {grade_items} gi
-                          JOIN {grade_grades} gg
-                            ON gg.itemid = gi.id
-                         WHERE gi.courseid {$coursesql}
-                           AND gg.userid {$usersql}
-                           AND gi.itemtype IN ('course', 'mod')
-                           AND gi.hidden = 0
-                   ) gradebase
-              GROUP BY gradebase.userid, gradebase.courseid";
+        $sql = "SELECT gg.userid,
+                       gi.courseid,
+                       AVG(CASE
+                               WHEN gg.finalgrade IS NULL THEN NULL
+                               WHEN gi.grademax <= gi.grademin THEN NULL
+                               ELSE ((gg.finalgrade - gi.grademin) / (gi.grademax - gi.grademin)) * 100
+                           END) AS gradepercent
+                  FROM {grade_items}  gi
+                  JOIN {grade_grades} gg ON gg.itemid = gi.id
+             LEFT JOIN {quiz}         q  ON q.id = gi.iteminstance AND gi.itemmodule = 'quiz'
+                 WHERE gi.courseid     {$coursesql}
+                   AND gg.userid       {$usersql}
+                   AND gi.itemtype   = 'mod'
+                   AND gi.itemmodule = 'quiz'
+                   AND gi.hidden = 0
+                   AND " . self::get_exam_name_sql("COALESCE(gi.itemname, '')", "COALESCE(q.name, '')") . "
+              GROUP BY gg.userid, gi.courseid";
 
-        $records = $DB->get_records_sql($sql, $courseparams + $userparams);
+        $records = $DB->get_records_sql($sql, $params);
         $result = [];
         foreach ($records as $record) {
-            $grade = $record->coursegrade;
-            if ($grade === null) {
-                $grade = $record->activitygrade;
-            }
-
-            $result[$record->userid][$record->courseid] = is_null($grade)
+            $result[$record->userid][$record->courseid] = is_null($record->gradepercent)
                 ? null
-                : round((float) $grade, 1);
+                : round((float) $record->gradepercent, 1);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Returns first course access timestamps by user and course.
+     *
+     * @param array $courseids Course ids.
+     * @param array $userids User ids.
+     * @return array
+     * @throws Exception
+     */
+    protected static function get_first_course_access_times(array $courseids, array $userids): array {
+        global $DB;
+
+        if (empty($userids)) {
+            return [];
+        }
+
+        $dbman = $DB->get_manager();
+        if (!$dbman->table_exists(new xmldb_table("logstore_standard_log")) ||
+            !$dbman->field_exists(new xmldb_table("logstore_standard_log"), new xmldb_field("userid")) ||
+            !$dbman->field_exists(new xmldb_table("logstore_standard_log"), new xmldb_field("courseid")) ||
+            !$dbman->field_exists(new xmldb_table("logstore_standard_log"), new xmldb_field("timecreated")) ||
+            !$dbman->field_exists(new xmldb_table("logstore_standard_log"), new xmldb_field("eventname"))) {
+            return self::get_user_enrolment_times($courseids, $userids);
+        }
+
+        [$coursesql, $courseparams] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED, "course");
+        [$usersql, $userparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, "user");
+        $params = $courseparams + $userparams + [
+                "courseevent" => "\\core\\event\\course_viewed",
+            ];
+
+        $sql = "SELECT CONCAT(userid, '-', courseid) AS unik,
+                       userid,
+                       courseid,
+                       MIN(timecreated) AS firstaccess
+                  FROM {logstore_standard_log}
+                 WHERE courseid {$coursesql}
+                   AND userid {$usersql}
+                   AND eventname = :courseevent
+                   AND timecreated > 0
+              GROUP BY userid, courseid";
+        $records = $DB->get_records_sql($sql, $params);
+        $result = [];
+        foreach ($records as $record) {
+            $result[$record->userid][$record->courseid] = (int) $record->firstaccess;
+        }
+
+        foreach (self::get_user_enrolment_times($courseids, $userids) as $userid => $courses) {
+            foreach ($courses as $courseid => $enroltime) {
+                if (!isset($result[$userid][$courseid]) && $enroltime > 0) {
+                    $result[$userid][$courseid] = $enroltime;
+                }
+            }
         }
 
         return $result;
@@ -737,45 +833,22 @@ class report implements report_interface {
             return [];
         }
 
-        [$coursesqla, $courseparamsa] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED, "coursea");
-        [$coursesqlb, $courseparamsb] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED, "courseb");
-        [$usersqla, $userparamsa] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, "usera");
-        [$usersqlb, $userparamsb] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, "userb");
+        [$coursesql, $courseparams] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED, "course");
+        [$usersql, $userparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, "user");
+        $params = $courseparams + $userparams + self::get_exam_name_like_params(1);
 
-        $sql = "SELECT CONCAT(exams.userid, '-', exams.courseid) AS unik,
-                       exams.userid,
-                       exams.courseid,
-                       COUNT(DISTINCT exams.quizid) AS total
-                  FROM (
-                        SELECT qa.userid,
-                               q.course AS courseid,
-                               q.id AS quizid
-                          FROM {quiz_attempts} qa
-                          JOIN {quiz} q
-                            ON q.id = qa.quiz
-                         WHERE q.course {$coursesqla}
-                           AND qa.userid {$usersqla}
-                           AND qa.state IN ('finished', 'abandoned', 'overdue')
-
-                        UNION
-
-                        SELECT cmc.userid,
-                               cm.course AS courseid,
-                               cm.instance AS quizid
-                          FROM {course_modules_completion} cmc
-                          JOIN {course_modules} cm
-                            ON cm.id = cmc.coursemoduleid
-                          JOIN {modules} m
-                            ON m.id = cm.module
-                         WHERE cm.course {$coursesqlb}
-                           AND cmc.userid {$usersqlb}
-                           AND m.name = 'quiz'
-                           AND cm.visible = 1
-                           AND cm.deletioninprogress = 0
-                           AND cmc.completionstate > 0
-                  ) exams
-              GROUP BY exams.userid, exams.courseid";
-        $params = $courseparamsa + $courseparamsb + $userparamsa + $userparamsb;
+        $sql = "SELECT CONCAT(qa.userid, '-', q.course) AS unik,
+                       qa.userid,
+                       q.course AS courseid,
+                       COUNT(DISTINCT qa.id) AS total
+                  FROM {quiz_attempts} qa
+                  JOIN {quiz} q
+                    ON q.id = qa.quiz
+                 WHERE q.course {$coursesql}
+                   AND qa.userid {$usersql}
+                   AND qa.state IN ('finished', 'abandoned', 'overdue')
+                   AND " . self::get_exam_name_sql("COALESCE(q.name, '')") . "
+              GROUP BY qa.userid, q.course";
         $records = $DB->get_records_sql($sql, $params);
 
         $result = [];
@@ -900,6 +973,53 @@ class report implements report_interface {
     }
 
     /**
+     * Returns pathway memberships keyed by user and course.
+     *
+     * @param array $courseids Course ids.
+     * @param array $userids User ids.
+     * @return array
+     * @throws Exception
+     */
+    protected static function get_user_course_pathways(array $courseids, array $userids): array {
+        global $DB;
+
+        if (empty($courseids) || empty($userids)) {
+            return [];
+        }
+
+        [$coursesql, $courseparams] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED, "course");
+        [$usersql, $userparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, "user");
+        $params = $courseparams + $userparams + [
+                "enroltype" => "cohort",
+            ];
+
+        $sql = "SELECT CONCAT(cm.userid, '-', e.courseid, '-', c.id) AS unik,
+                       cm.userid,
+                       e.courseid,
+                       c.id AS cohortid,
+                       c.name
+                  FROM {cohort_members} cm
+                  JOIN {enrol} e
+                    ON e.customint1 = cm.cohortid
+                   AND e.enrol = :enroltype
+                   AND e.status = 0
+                  JOIN {cohort} c
+                    ON c.id = cm.cohortid
+                 WHERE e.courseid {$coursesql}
+                   AND cm.userid {$usersql}
+              ORDER BY c.name ASC";
+        $records = $DB->get_records_sql($sql, $params);
+
+        $result = [];
+        foreach ($records as $record) {
+            $result[$record->userid][$record->courseid][$record->cohortid] =
+                format_string($record->name, true, ["context" => context_system::instance()]);
+        }
+
+        return $result;
+    }
+
+    /**
      * Builds a single learner summary row.
      *
      * @param stdClass $user User record.
@@ -919,7 +1039,7 @@ class report implements report_interface {
         stdClass $user,
         array $usercourseids,
         array $moduletotals,
-        array $enrolmenttimes,
+        array $firstaccesstimes,
         array $completedmodules,
         array $day1completedmodules,
         array $gradepercentages,
@@ -942,23 +1062,19 @@ class report implements report_interface {
             $trackable = $moduletotals[$courseid] ?? 0;
             $completedmodulescount = $completedmodules[$courseid] ?? 0;
             $day1completedmodulescount = $day1completedmodules[$courseid] ?? 0;
-            $enroltime = $enrolmenttimes[$courseid] ?? 0;
+            $firstaccess = $firstaccesstimes[$courseid] ?? 0;
             $hascoursecompletion = !empty($completions[$courseid]);
             $coursecompleted = $hascoursecompletion || ($trackable > 0 && $completedmodulescount >= $trackable);
-            $completedonday1 = $hascoursecompletion && $enroltime > 0 && $completions[$courseid] <= ($enroltime + DAYSECS);
+            $completedonday1 = $hascoursecompletion && $firstaccess > 0 && $completions[$courseid] <= ($firstaccess + DAYSECS);
 
-            if ($trackable > 0) {
-                $courseprogresses[] = min(100, round(($completedmodulescount / $trackable) * 100, 1));
-                $day1courseprogresses[] = min(100, round(($day1completedmodulescount / $trackable) * 100, 1));
-            } else if ($coursecompleted) {
-                $courseprogresses[] = 100.0;
-                $day1courseprogresses[] = $completedonday1 ? 100.0 : 0.0;
-            } else {
-                $courseprogresses[] = 0.0;
-                $day1courseprogresses[] = 0.0;
-            }
+            $courseprogresses[] = self::calculate_course_progress($trackable, $completedmodulescount, $coursecompleted);
+            $day1courseprogresses[] = self::calculate_course_progress($trackable, $day1completedmodulescount, $completedonday1);
 
-            if (isset($gradepercentages[$courseid]) && $gradepercentages[$courseid] !== null) {
+            if ($coursecompleted &&
+                !empty($examcounts[$courseid]) &&
+                isset($gradepercentages[$courseid]) &&
+                $gradepercentages[$courseid] !== null &&
+                $gradepercentages[$courseid] > 0) {
                 $gradevalues[] = (float) $gradepercentages[$courseid];
             }
 
@@ -1024,7 +1140,7 @@ class report implements report_interface {
         array $courses,
         array $usercourseids,
         array $moduletotals,
-        array $enrolmenttimes,
+        array $firstaccesstimes,
         array $completedmodules,
         array $day1completedmodules,
         array $gradepercentages,
@@ -1033,6 +1149,7 @@ class report implements report_interface {
         array $examcounts,
         array $lastaccessbycourse,
         array $pathways,
+        array $coursepathways,
         object $selection
     ): array {
         $rows = [];
@@ -1044,28 +1161,27 @@ class report implements report_interface {
 
             $trackable = $moduletotals[$courseid] ?? 0;
             $completedmodulescount = $completedmodules[$courseid] ?? 0;
-            $enroltime = $enrolmenttimes[$courseid] ?? 0;
+            $firstaccess = $firstaccesstimes[$courseid] ?? 0;
             $hascoursecompletion = !empty($completions[$courseid]);
             $coursecompleted = $hascoursecompletion || ($trackable > 0 && $completedmodulescount >= $trackable);
-            $completedonday1 = $hascoursecompletion && $enroltime > 0 && $completions[$courseid] <= ($enroltime + DAYSECS);
+            $completedonday1 = $hascoursecompletion && $firstaccess > 0 && $completions[$courseid] <= ($firstaccess + DAYSECS);
 
-            if ($trackable > 0) {
-                $progress = min(100, round(($completedmodulescount / $trackable) * 100, 1));
-                $day1progress = min(100, round((($day1completedmodules[$courseid] ?? 0) / $trackable) * 100, 1));
-            } else if ($coursecompleted) {
-                $progress = 100.0;
-                $day1progress = $completedonday1 ? 100.0 : 0.0;
-            } else {
-                $progress = 0.0;
-                $day1progress = 0.0;
-            }
+            $progress = self::calculate_course_progress($trackable, $completedmodulescount, $coursecompleted);
+            $day1progress = self::calculate_course_progress(
+                $trackable,
+                ($day1completedmodules[$courseid] ?? 0),
+                $completedonday1
+            );
+            $grade = $coursecompleted && !empty($examcounts[$courseid]) && !empty($gradepercentages[$courseid])
+                ? (float) $gradepercentages[$courseid]
+                : null;
 
             $lastaccess = ($lastaccessbycourse[$courseid] ?? 0);
             $rows[] = [
                 "course" => format_string($courses[$courseid]->fullname, true, ["context" => context_course::instance($courseid)]),
-                "pathway" => self::render_pathway_links($pathways, $selection),
+                "pathway" => self::render_pathway_links($coursepathways[$courseid] ?? $pathways, $selection),
                 "progress" => self::format_percent($progress),
-                "grade" => self::format_grade($gradepercentages[$courseid] ?? null),
+                "grade" => self::format_grade($grade),
                 "delta" => self::format_percent(round($progress - $day1progress, 1)),
                 "completed" => $coursecompleted ? 1 : 0,
                 "certs" => ($certificatecounts[$courseid] ?? 0),
@@ -1136,6 +1252,26 @@ class report implements report_interface {
     }
 
     /**
+     * Calculates course progress using the same completion percentage used by Moodle course progress.
+     *
+     * @param int $trackable Trackable activity count.
+     * @param int $completed Completed activity count.
+     * @param bool $coursecompleted Course completion fallback when no trackable activities exist.
+     * @return float
+     */
+    protected static function calculate_course_progress(int $trackable, int $completed, bool $coursecompleted): float {
+        if ($trackable > 0) {
+            return min(100.0, round(($completed / $trackable) * 100, 1));
+        }
+
+        if ($coursecompleted) {
+            return 100.0;
+        }
+
+        return 0.0;
+    }
+
+    /**
      * Renders the summary table.
      *
      * @param array $rows Learner rows.
@@ -1150,9 +1286,9 @@ class report implements report_interface {
 
         $templatecontext = [
             "headers" => [
-                ["label" => get_string("firstname", "gimidashboardreports_fullacademydashboard")],
-                ["label" => get_string("lastname", "gimidashboardreports_fullacademydashboard")],
-                ["label" => get_string("email", "gimidashboardreports_fullacademydashboard")],
+                ["label" => get_string("firstname")],
+                ["label" => get_string("lastname")],
+                ["label" => get_string("email")],
                 ["label" => get_string("pathway", "gimidashboardreports_fullacademydashboard")],
                 ["label" => get_string("courses", "gimidashboardreports_fullacademydashboard")],
                 ["label" => get_string("avgscoreprogress", "gimidashboardreports_fullacademydashboard")],
@@ -1193,7 +1329,8 @@ class report implements report_interface {
         }
 
         $pageLength = optional_param("plugin", false, PARAM_COMPONENT) ? 50 : 5;
-        $PAGE->requires->js_call_amd("local_gimidashboard/dashboard", "datatable", ["#fullacademydashboard-summary_table", $pageLength]
+        $PAGE->requires->js_call_amd(
+            "local_gimidashboard/dashboard", "datatable", ["#fullacademydashboard-summary_table", $pageLength]
         );
         return $OUTPUT->render_from_template(
             "gimidashboardreports_fullacademydashboard/summary_table",
@@ -1246,7 +1383,9 @@ class report implements report_interface {
         }
 
         $pageLength = optional_param("plugin", false, PARAM_COMPONENT) ? 50 : 5;
-        $PAGE->requires->js_call_amd("local_gimidashboard/dashboard", "datatable", ["#fullacademydashboard-detail_table", $pageLength]);
+        $PAGE->requires->js_call_amd(
+            "local_gimidashboard/dashboard", "datatable", ["#fullacademydashboard-detail_table", $pageLength]
+        );
         return $OUTPUT->render_from_template(
             "gimidashboardreports_fullacademydashboard/detail_table",
             $templatecontext
@@ -1291,6 +1430,46 @@ class report implements report_interface {
     }
 
     /**
+     * Returns the SQL clause used to detect exam activities.
+     *
+     * @param string $primaryexpr Primary SQL expression.
+     * @param string|null $secondaryexpr Optional secondary SQL expression.
+     * @return string
+     */
+    protected static function get_exam_name_sql(string $primaryexpr, ?string $secondaryexpr = null): string {
+        $expressions = [$primaryexpr];
+        if ($secondaryexpr !== null) {
+            $expressions[] = $secondaryexpr;
+        }
+
+        $parts = [];
+        foreach ($expressions as $key => $expression) {
+            $parts[] = "LOWER({$expression}) LIKE :examterm_a{$key}_1";
+            $parts[] = "LOWER({$expression}) LIKE :examterm_a{$key}_2";
+            $parts[] = "LOWER({$expression}) LIKE :examterm_a{$key}_3";
+        }
+
+        return '(' . implode(' OR ', $parts) . ')';
+    }
+
+    /**
+     * Returns the LIKE params used to detect exam activities.
+     *
+     * @return array
+     */
+    protected static function get_exam_name_like_params(int $num): array {
+        $params = [];
+        for ($key = 0; $key < $num; $key++) {
+            $params += [
+                "examterm_a{$key}_1" => "%exam%",
+                "examterm_a{$key}_2" => "%final assessment%",
+                "examterm_a{$key}_3" => "%final test%",
+            ];
+        }
+        return $params;
+    }
+
+    /**
      * Formats a percentage value.
      *
      * @param float|null $value Value.
@@ -1319,7 +1498,7 @@ class report implements report_interface {
             return get_string("dash", "gimidashboardreports_fullacademydashboard");
         }
 
-        return number_format($value, 1);
+        return number_format($value, 1) . "%";
     }
 
     /**
