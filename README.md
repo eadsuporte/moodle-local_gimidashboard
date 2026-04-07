@@ -16,7 +16,7 @@ The reports themselves live as subplugins under:
 
 ```text
 local/gimidashboard/reports/
-````
+```
 
 Each report subplugin is an isolated plugin with its own:
 
@@ -26,13 +26,14 @@ Each report subplugin is an isolated plugin with its own:
 * `templates/...`
 * any extra classes needed for SQL, tables, services, formatters, or builders
 
-## Access model
+## Access and selection model
 
-The access control is implemented mainly in:
+The access control and selector building are implemented mainly in:
 
 * `classes/access/access_manager.php`
 * `classes/access/config.php`
 * `classes/settings/capability_options.php`
+* `classes/page/selection_resolver.php`
 
 ### Important detail
 
@@ -40,8 +41,7 @@ Although the setting is called `reportcapabilities`, the current code stores and
 
 So the effective rule is:
 
-* the user must have `local/gimidashboard:view` in the course context;
-* the user must also have one of the configured roles considered valid for reports;
+* the user must match one of the configured roles considered valid for reports;
 * site admins bypass the role restriction.
 
 ### Supported role scopes
@@ -66,9 +66,75 @@ Instead it:
 2. reads the category path of those courses;
 3. keeps only courses inside the selected category tree.
 
-This ensures category reports never receive courses outside the user’s allowed scope.
+This ensures category reports never receive courses outside the user's allowed scope.
 
-### Discovery
+## Selector structure
+
+The selector target always uses one of these values:
+
+* `category-{id}`
+* `course-{id}`
+
+For documentation purposes, the selector can be represented as **groups** ready for `<optgroup>` rendering.
+A grouped structure is easier to reason about than a single flat list when documenting the category tree.
+
+Example:
+
+```php
+[
+    [
+        "label" => "Category: Programs",
+        "options" => [
+            [
+                "value" => "category-12",
+                "name" => "Programs",
+                "selected" => false,
+            ],
+            [
+                "value" => "course-34",
+                "name" => "Leadership Basics",
+                "selected" => true,
+            ],
+            [
+                "value" => "course-35",
+                "name" => "People Management",
+                "selected" => false,
+            ],
+        ],
+    ],
+    [
+        "label" => "Category: Compliance",
+        "options" => [
+            [
+                "value" => "category-18",
+                "name" => "Compliance",
+                "selected" => false,
+            ],
+            [
+                "value" => "course-41",
+                "name" => "Code of Conduct",
+                "selected" => false,
+            ],
+        ],
+    ],
+]
+```
+
+A Mustache template using `<optgroup>` can render it like this:
+
+```mustache
+<select name="target" id="local-gimidashboard-target" class="custom-select">
+    {{#groups}}
+        <optgroup label="{{label}}">
+            {{#options}}
+                <option value="{{value}}" {{#selected}}selected{{/selected}}>{{{name}}}</option>
+            {{/options}}
+        </optgroup>
+    {{/groups}}
+</select>
+```
+
+## Discovery
 
 The manager uses Moodle plugin discovery:
 
@@ -94,7 +160,7 @@ Example for folder `fullacademydashboard`:
 ]
 ```
 
-### Compatibility with selection type
+## Compatibility with selection type
 
 Before rendering, the parent plugin checks whether the report class:
 
@@ -104,7 +170,7 @@ Before rendering, the parent plugin checks whether the report class:
 
 Only then `render($courses)` is called.
 
-### Rendering wrapper
+## Rendering wrapper
 
 The report HTML is wrapped by:
 
@@ -187,13 +253,17 @@ For a category selection, it looks like:
 A report that supports categories should always work with `IN (...)` SQL over the received course IDs.
 It must not assume a single course unless `supports_category()` is `false`.
 
-## Existing example: `fullacademydashboard`
+## Existing reports in this package
 
-The uploaded package contains one concrete report subplugin:
+The uploaded package contains these concrete report subplugins:
 
 ```text
 reports/fullacademydashboard/
+reports/accesscompletiontrend/
+reports/leaderboard/
 ```
+
+### `fullacademydashboard`
 
 Main characteristics found in the code:
 
@@ -201,9 +271,41 @@ Main characteristics found in the code:
 * contract class: `classes/report.php`
 * supports both course and category selections
 * uses Mustache templates for rendering
-* builds summary KPIs, learner table, detail table, and export pipeline
+* builds summary KPI cards
+* renders a learner summary table
+* supports learner and cohort/pathway filtering
+* renders a detail table with course breakdown when applicable
 
-This subplugin is the best reference when creating new reports.
+This subplugin is a strong reference for reports that need richer drill-down and learner-level detail.
+
+### `accesscompletiontrend`
+
+Main characteristics found in the code:
+
+* namespace: `gimidashboardreports_accesscompletiontrend`
+* contract class: `classes/report.php`
+* supports both course and category selections
+* uses Mustache templates for rendering
+* builds a 12-month trend visualization
+* compares course accesses and course completions over time
+* renders summary KPI cards and a tabular breakdown by course
+
+This subplugin is a good reference for reports focused on time-series aggregates.
+
+### `leaderboard`
+
+Main characteristics found in the code:
+
+* namespace: `gimidashboardreports_leaderboard`
+* contract class: `classes/report.php`
+* supports both course and category selections
+* uses Mustache templates for rendering
+* works with pathway selection through linked cohorts
+* can auto-select the pathway when there is only one valid option
+* renders KPI cards plus ranking boards
+* includes different boards for grade, progress, and speed to finish depending on the current scope
+
+This subplugin is a good reference for reports that rank learners and branch behavior by scope.
 
 ## Administration page for subplugins
 
