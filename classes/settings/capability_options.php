@@ -28,13 +28,13 @@ use coding_exception;
 use dml_exception;
 
 /**
- * Builds the capability list used by the plugin settings.
+ * Builds the role list used by the plugin settings.
  *
  * @package   local_gimidashboard
  */
 class capability_options {
     /**
-     * Returns the capabilities that can be used to access reports.
+     * Returns the roles that can be used to access reports.
      *
      * @return array
      * @throws coding_exception
