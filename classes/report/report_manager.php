@@ -151,20 +151,22 @@ class report_manager {
         global $OUTPUT;
 
         $reports = [];
+        $selectedcomponent = $selectedplugin !== "" ? "gimidashboardreports_{$selectedplugin}" : "";
+
         foreach (self::get_ordered_reports() as $report) {
             $component = $report["component"];
             /** @var report_interface $classname */
             $classname = $report["classname"];
 
-            if (!self::is_enabled($component)) {
+            if ($selectedcomponent !== "") {
+                if ($selectedcomponent !== $component) {
+                    continue;
+                }
+            } else if (!self::is_enabled($component)) {
                 continue;
             }
 
             if (!self::supports_selection($component, $selectiontype)) {
-                continue;
-            }
-
-            if ($selectedplugin !== "" && "gimidashboardreports_{$selectedplugin}" !== $component) {
                 continue;
             }
 
