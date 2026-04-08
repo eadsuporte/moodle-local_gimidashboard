@@ -261,6 +261,7 @@ The uploaded package contains these concrete report subplugins:
 reports/fullacademydashboard/
 reports/accesscompletiontrend/
 reports/leaderboard/
+reports/atrisk/
 ```
 
 ### `fullacademydashboard`
@@ -306,6 +307,20 @@ Main characteristics found in the code:
 * includes different boards for grade, progress, and speed to finish depending on the current scope
 
 This subplugin is a good reference for reports that rank learners and branch behavior by scope.
+
+### `atrisk`
+
+Main characteristics found in the code:
+
+* namespace: `gimidashboardreports_atrisk`
+* contract class: `classes/report.php`
+* supports both course and category selections
+* uses Mustache templates for rendering
+* builds KPI cards for total learners, high risk, medium risk, never accessed, and 30+ days inactive
+* applies a heuristic risk model based on inactivity, no access, low progress, low grades, and missing completions
+* renders a flagged learners table with pathways, risk score, progress, grade, completions, activity, reasons, and a learner detail link
+
+This subplugin is a good reference for reports focused on risk detection and intervention prioritization.
 
 ## Administration page for subplugins
 
