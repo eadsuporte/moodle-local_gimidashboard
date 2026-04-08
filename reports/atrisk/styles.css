@@ -10,13 +10,13 @@
 .gimi-atrisk-report .gimi-atrisk-kpis {
   margin-bottom: 1rem;
 }
-.gimi-atrisk-report .gimi-atrisk-table {
+.gimi-atrisk-report #gimi-atrisk-table {
   margin-bottom: 0;
 }
-.gimi-atrisk-report .gimi-atrisk-table th {
+.gimi-atrisk-report #gimi-atrisk-table th {
   white-space: nowrap;
 }
-.gimi-atrisk-report .gimi-atrisk-table td {
+.gimi-atrisk-report #gimi-atrisk-table td {
   vertical-align: top;
 }
 .gimi-atrisk-report .gimi-atrisk-learner-name {

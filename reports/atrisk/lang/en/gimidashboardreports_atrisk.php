@@ -31,7 +31,7 @@ $string['heuristicnote'] = 'Heuristic model based on inactivity, no access, low 
 $string['totallearners'] = 'Total learners';
 $string['highriskcount'] = 'High risk';
 $string['mediumriskcount'] = 'Medium risk';
-$string['neveraccessedcount'] = 'Never accessed';
+$string['neveraccessedcount'] = 'Never accessed all selected courses';
 $string['inactive30count'] = '30+ days inactive';
 
 $string['learner'] = 'Learner';
@@ -61,6 +61,7 @@ $string['neveraccessedcourses'] = 'Never accessed {$a} selected course(s)';
 $string['inactive60days'] = 'Inactive for 60+ days';
 $string['inactive30days'] = 'Inactive for 30+ days';
 $string['inactive15days'] = 'Inactive for 15+ days';
+$string['noaccesssinceenrol'] = 'No access for {$a} day(s) since enrolment';
 $string['noprogressafterdays'] = 'No measurable progress after {$a} days';
 $string['progressbelow10'] = 'Average progress below 10%';
 $string['progressbelow25'] = 'Average progress below 25%';

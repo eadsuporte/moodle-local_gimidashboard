@@ -24,6 +24,7 @@
 
 namespace gimidashboardreports_atrisk;
 
+use coding_exception;
 use context_system;
 use core_text;
 use Exception;
@@ -47,7 +48,7 @@ class report implements report_interface {
      * @throws Exception
      */
     public static function get_header(array $courses, $extra = ""): string {
-        global $OUTPUT;
+        global $OUTPUT, $PAGE;
 
         $reportdata = self::prepare_report_data($courses);
         if (empty($reportdata->courseids)) {
@@ -71,6 +72,9 @@ class report implements report_interface {
                 userdate(time(), get_string("strftimedatefullshort", "langconfig"))
             ),
         ];
+
+        $pageLength = optional_param("plugin", false, PARAM_COMPONENT) ? 50 : 5;
+        $PAGE->requires->js_call_amd("local_gimidashboard/dashboard", "datatable", ["#gimi-atrisk-table", $pageLength]);
 
         return $OUTPUT->render_from_template("local_gimidashboard/content_title", [
             "academyname" => $academyname,
@@ -265,6 +269,7 @@ class report implements report_interface {
      * @param array $lastaccesses Last accesses keyed by course id.
      * @param array $pathways Pathway names keyed by cohort id.
      * @return array
+     * @throws coding_exception
      */
     protected static function build_user_row(
         stdClass $user,
@@ -330,7 +335,8 @@ class report implements report_interface {
         );
 
         $activitydisplay = self::format_activity_display($latestaccess, $daysinactive, $dayssinceenrol);
-        $pathwaysdisplay = !empty($pathways) ? implode(", ", array_values($pathways)) : get_string("nopathways", "gimidashboardreports_atrisk");
+        $pathwaysdisplay =
+            !empty($pathways) ? implode(", ", array_values($pathways)) : get_string("nopathways", "gimidashboardreports_atrisk");
 
         return [
             "userid" => (int) $user->id,
@@ -360,7 +366,8 @@ class report implements report_interface {
             "reasons" => $reasons,
             "detailurl" => self::build_learner_url($selection->target, (int) $user->id),
             "neveraccessedall" => $coursecount > 0 && $neveraccessedcourses === $coursecount,
-            "inactive30flag" => ($daysinactive !== null && $daysinactive >= 30) || ($daysinactive === null && $dayssinceenrol >= 30),
+            "inactive30flag" => ($daysinactive !== null && $daysinactive >= 30) ||
+                ($daysinactive === null && $dayssinceenrol >= 30),
         ];
     }
 
@@ -375,6 +382,7 @@ class report implements report_interface {
      * @param int|null $daysinactive Days inactive.
      * @param int $dayssinceenrol Days since first enrolment.
      * @return array
+     * @throws coding_exception
      */
     protected static function calculate_risk(
         int $coursecount,
@@ -904,13 +912,14 @@ class report implements report_interface {
      *
      * @param float|null $value Numeric value.
      * @return string
+     * @throws coding_exception
      */
     protected static function format_percent(?float $value): string {
         if ($value === null) {
             return get_string("notavailable", "gimidashboardreports_atrisk");
         }
 
-        return format_float($value, 1) . "%";
+        return format_float($value) . "%";
     }
 
     /**
@@ -920,6 +929,7 @@ class report implements report_interface {
      * @param int|null $daysinactive Days inactive.
      * @param int $dayssinceenrol Days since enrolment.
      * @return string
+     * @throws coding_exception
      */
     protected static function format_activity_display(int $latestaccess, ?int $daysinactive, int $dayssinceenrol): string {
         if ($latestaccess <= 0) {
@@ -950,6 +960,7 @@ class report implements report_interface {
      * @param string $target Current selection target.
      * @param int $userid Learner id.
      * @return string
+     * @throws Exception
      */
     protected static function build_learner_url(string $target, int $userid): string {
         $params = [
