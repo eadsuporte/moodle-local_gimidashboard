@@ -1518,16 +1518,15 @@ class report implements report_interface {
      * @throws Exception
      */
     protected static function build_url(string $target, int $learnerid = 0, int $cohortid = 0): moodle_url {
+        $params = [];
         if ($learnerid > 0) {
             $params["learnerid"] = $learnerid;
         }
         if ($cohortid > 0) {
             $params["cohortid"] = $cohortid;
         }
-        $params = [
-            "target" => $target,
-            "plugin" => "fullacademydashboard",
-        ];
+        $params["target"] = $target;
+        $params["plugin"] = "fullacademydashboard";
 
         return new moodle_url("/local/gimidashboard/", $params);
     }

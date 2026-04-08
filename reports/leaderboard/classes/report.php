@@ -1365,13 +1365,12 @@ class report implements report_interface {
      * @throws Exception
      */
     protected static function build_url(string $target, int $cohortid = 0): moodle_url {
-        $params = [
-            "target" => $target,
-            "plugin" => "leaderboard",
-        ];
+        $params = [];
         if ($cohortid > 0) {
             $params["cohortid"] = $cohortid;
         }
+        $params["target"] = $target;
+        $params["plugin"] = "leaderboard";
 
         return new moodle_url("/local/gimidashboard/", $params);
     }
