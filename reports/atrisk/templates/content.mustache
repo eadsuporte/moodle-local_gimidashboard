@@ -24,7 +24,8 @@
 <div class="gimi-atrisk-report">
     <div class="gimi-atrisk-note">{{#str}}heuristicnote, gimidashboardreports_atrisk{{/str}}</div>
 
-    <div class="gimi-atrisk-kpis gimi-kpi-grid">
+    <div class="gimi-atrisk-kpis gimi-kpi-grid"
+         style="grid-template-columns: repeat(5, minmax(0, 1fr));">
         {{#kpis}}
             <div class="gimi-atrisk-kpi gimi-kpi-card">
                 <div class="gimi-kpi-card-label">{{label}}</div>
