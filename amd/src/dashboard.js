@@ -53,7 +53,7 @@ define([
 
             $(element).DataTable({
                 autoWidth: false,
-                responsive: true,
+                responsive: false,
                 pageLength: pageLength,
                 lengthMenu: [5, 10, 25, 50, 100],
                 scrollX: true,
