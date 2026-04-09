@@ -108,8 +108,10 @@ class plugin_admin_page {
             get_string("actions", "local_gimidashboard"),
         ]);
         $table->set_attribute("class", "generaltable table-sm");
-        $table->baseurl= "/local/gimidashboard/admin_plugins.php";
+        $table->baseurl = "/local/gimidashboard/admin_plugins.php";
         $table->setup();
+
+        global $OUTPUT;
 
         $reports = report_manager::get_ordered_reports();
         $total = count($reports);
@@ -119,11 +121,30 @@ class plugin_admin_page {
             $enabled = report_manager::is_enabled($component);
             $supports = [];
             if (report_manager::supports_selection($component, "course")) {
-                $supports[] = get_string("course", "local_gimidashboard");
+                $supports[] = html_writer::tag("span", get_string("course", "local_gimidashboard"), [
+                    "class" => "badge text-bg-light local-gimidashboard-admin-badge",
+                ]);
             }
             if (report_manager::supports_selection($component, "category")) {
-                $supports[] = get_string("category", "local_gimidashboard");
+                $supports[] = html_writer::tag("span", get_string("category", "local_gimidashboard"), [
+                    "class" => "badge text-bg-light local-gimidashboard-admin-badge",
+                ]);
             }
+
+            $previewurl = new moodle_url("/local/gimidashboard/view.php", [
+                "target" => "course-1",
+                "plugin" => $report["name"],
+            ]);
+            $pluginlabel = html_writer::link(
+                $previewurl,
+                format_string($report["displayname"], true, ["context" => context_system::instance()]),
+                [
+                    "class" => "local-gimidashboard-admin-plugin-link",
+                    "title" => get_string("openonlyreport", "local_gimidashboard"),
+                    "target" => "_blank",
+                ]
+            );
+            $pluginmeta = html_writer::tag("small", s($component), ["class" => "text-muted d-block mt-1"]);
 
             $actions = [];
             if ($index > 0) {
@@ -133,7 +154,12 @@ class plugin_admin_page {
                         "component" => $component,
                         "sesskey" => sesskey(),
                     ]),
-                    get_string("moveup", "local_gimidashboard")
+                    $OUTPUT->pix_icon("t/up", get_string("moveup", "local_gimidashboard")),
+                    [
+                        "class" => "btn btn-light btn-sm local-gimidashboard-admin-action",
+                        "title" => get_string("moveup", "local_gimidashboard"),
+                        "aria-label" => get_string("moveup", "local_gimidashboard"),
+                    ]
                 );
             }
             if ($index < ($total - 1)) {
@@ -143,7 +169,12 @@ class plugin_admin_page {
                         "component" => $component,
                         "sesskey" => sesskey(),
                     ]),
-                    get_string("movedown", "local_gimidashboard")
+                    $OUTPUT->pix_icon("t/down", get_string("movedown", "local_gimidashboard")),
+                    [
+                        "class" => "btn btn-light btn-sm local-gimidashboard-admin-action",
+                        "title" => get_string("movedown", "local_gimidashboard"),
+                        "aria-label" => get_string("movedown", "local_gimidashboard"),
+                    ]
                 );
             }
             $actions[] = html_writer::link(
@@ -152,15 +183,28 @@ class plugin_admin_page {
                     "component" => $component,
                     "sesskey" => sesskey(),
                 ]),
-                $enabled ? get_string("disable", "local_gimidashboard") : get_string("enable", "local_gimidashboard")
+                $enabled
+                    ? $OUTPUT->pix_icon("t/hide", get_string("disable", "local_gimidashboard"))
+                    : $OUTPUT->pix_icon("t/show", get_string("enable", "local_gimidashboard")),
+                [
+                    "class" => "btn btn-light btn-sm local-gimidashboard-admin-action",
+                    "title" => $enabled ? get_string("disable", "local_gimidashboard") :
+                        get_string("enable", "local_gimidashboard"),
+                    "aria-label" => $enabled ? get_string("disable", "local_gimidashboard") :
+                        get_string("enable", "local_gimidashboard"),
+                ]
             );
 
+            $statuslabel = $enabled ? get_string("enabled", "local_gimidashboard") : get_string("disabled", "local_gimidashboard");
+            $statusclass =
+                $enabled ? "local-gimidashboard-admin-status is-enabled" : "local-gimidashboard-admin-status is-disabled";
+
             $table->add_data([
-                 ($index + 1),
-                format_string($report["displayname"], true, ["context" => context_system::instance()]) . "<br>" . html_writer::tag("small", s($component), ["class" => "text-muted"]),
-                $enabled ? get_string("enabled", "local_gimidashboard") : get_string("disabled", "local_gimidashboard"),
-                implode(", ", $supports),
-                implode(" | ", $actions),
+                html_writer::tag("span", (string) ($index + 1), ["class" => "local-gimidashboard-admin-position"]),
+                html_writer::tag("div", $pluginlabel . $pluginmeta, ["class" => "local-gimidashboard-admin-plugin"]),
+                html_writer::tag("span", $statuslabel, ["class" => $statusclass]),
+                html_writer::tag("div", implode(" ", $supports), ["class" => "local-gimidashboard-admin-supports"]),
+                html_writer::tag("div", implode("", $actions), ["class" => "local-gimidashboard-admin-actions"]),
             ]);
         }
 

@@ -2503,4 +2503,107 @@ a[href="https://conecti.me"] {
   visibility: hidden !important;
 }
 
+.local-gimidashboard-admin .generaltable {
+  margin-bottom: 0;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+.local-gimidashboard-admin .generaltable thead th {
+  border-top: 0;
+  border-bottom: 1px solid var(--gimi-border);
+  color: var(--gimi-muted);
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  background: rgba(248, 250, 252, 0.9);
+  padding: 0.95rem 1rem;
+}
+.local-gimidashboard-admin .generaltable tbody td {
+  padding: 1rem;
+  vertical-align: middle;
+  border-top: 1px solid rgba(15, 23, 42, 0.06);
+}
+.local-gimidashboard-admin .local-gimidashboard-admin-position {
+  display: inline-flex;
+  min-width: 2rem;
+  height: 2rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--gimi-bg-soft);
+  color: var(--gimi-title);
+  font-weight: 800;
+}
+.local-gimidashboard-admin .local-gimidashboard-admin-plugin-link {
+  color: var(--gimi-title);
+  font-weight: 800;
+  text-decoration: none;
+}
+.local-gimidashboard-admin .local-gimidashboard-admin-plugin-link:hover, .local-gimidashboard-admin .local-gimidashboard-admin-plugin-link:focus {
+  color: var(--gimi-accent);
+  text-decoration: none;
+}
+.local-gimidashboard-admin .local-gimidashboard-admin-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.38rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+}
+.local-gimidashboard-admin .local-gimidashboard-admin-status.is-enabled {
+  color: #166534;
+  background: rgba(22, 163, 74, 0.12);
+  border-color: rgba(22, 163, 74, 0.18);
+}
+.local-gimidashboard-admin .local-gimidashboard-admin-status.is-disabled {
+  color: #991b1b;
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.16);
+}
+.local-gimidashboard-admin .local-gimidashboard-admin-supports,
+.local-gimidashboard-admin .local-gimidashboard-admin-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+.local-gimidashboard-admin .local-gimidashboard-admin-badge.badge {
+  padding: 0.45rem 0.8rem;
+}
+.local-gimidashboard-admin .local-gimidashboard-admin-action.btn {
+  display: inline-flex;
+  width: 2.35rem;
+  height: 2.35rem;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border-radius: 999px;
+  border-color: var(--gimi-border);
+  box-shadow: none;
+  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+}
+.local-gimidashboard-admin .local-gimidashboard-admin-action.btn:hover, .local-gimidashboard-admin .local-gimidashboard-admin-action.btn:focus {
+  transform: translateY(-1px);
+  border-color: rgba(37, 99, 235, 0.25);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+}
+.local-gimidashboard-admin .local-gimidashboard-admin-action.btn .icon {
+  margin: 0;
+}
+@media (max-width: 767.98px) {
+  .local-gimidashboard-admin .generaltable thead th,
+  .local-gimidashboard-admin .generaltable tbody td {
+    padding: 0.85rem 0.75rem;
+  }
+  .local-gimidashboard-admin .local-gimidashboard-admin-actions {
+    gap: 0.35rem;
+  }
+}
+
 /*# sourceMappingURL=styles.css.map */
