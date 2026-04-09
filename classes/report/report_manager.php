@@ -170,6 +170,14 @@ class report_manager {
                 continue;
             }
 
+            if ($selectiontype === "category" && !$classname::supports_category()) {
+                continue;
+            }
+
+            if ($selectiontype !== "category" && !$classname::supports_course()) {
+                continue;
+            }
+
             $content = $classname::render($courses);
             $reportparams = $currentparams;
             $reportparams["target"] = $target;
