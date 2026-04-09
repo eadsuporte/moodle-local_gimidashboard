@@ -1,0 +1,36 @@
+{{!
+    @template gimidashboardreports_gradebookoverview/learner_table
+}}
+<div style="width:100%;overflow-x:auto;">
+    <table id="gradebookoverview-learner-table" class="table table-bordered">
+        <thead>
+        <tr>
+            {{#headers}}
+                <th class="text-nowrap">{{{label}}}</th>
+            {{/headers}}
+        </tr>
+        </thead>
+        <tbody>
+        {{#hasrows}}
+            {{#rows}}
+                <tr>
+                    <td><a href="{{{learnerfilterurl}}}">{{{learner}}}</a></td>
+                    <td>{{{email}}}</td>
+                    <td class="text-center text-nowrap">{{{coursecount}}}</td>
+                    <td class="text-center text-nowrap">{{{activitycount}}}</td>
+                    <td class="text-center text-nowrap">{{{avggrade}}}</td>
+                    <td class="text-center text-nowrap">{{{lowestgrade}}}</td>
+                    <td class="text-center text-nowrap">{{{gradingrate}}}</td>
+                    <td class="text-center text-nowrap">{{{completionrate}}}</td>
+                    <td class="text-center text-nowrap">{{{lastgraded}}}</td>
+                </tr>
+            {{/rows}}
+        {{/hasrows}}
+        {{^hasrows}}
+            <tr>
+                <td colspan="9">{{{emptymessage}}}</td>
+            </tr>
+        {{/hasrows}}
+        </tbody>
+    </table>
+</div>

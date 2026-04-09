@@ -1,0 +1,41 @@
+{{!
+    @template gimidashboardreports_gradebookoverview/activity_table
+}}
+<div style="width:100%;overflow-x:auto;">
+    <table id="gradebookoverview-activity-table" class="table table-bordered">
+        <thead>
+        <tr>
+            {{#headers}}
+                <th class="text-nowrap">{{{label}}}</th>
+            {{/headers}}
+        </tr>
+        </thead>
+        <tbody>
+        {{#hasrows}}
+            {{#rows}}
+                <tr>
+                    <td>{{{course}}}</td>
+                    <td>
+                        <a href="{{{activityfilterurl}}}">{{{activity}}}</a>
+                        {{#activityurl}}
+                            <div><a class="small text-muted" href="{{{activityurl}}}">{{#str}}openactivity, gimidashboardreports_gradebookoverview{{/str}}</a></div>
+                        {{/activityurl}}
+                    </td>
+                    <td>{{{teacher}}}</td>
+                    <td class="text-center text-nowrap">{{{avggrade}}}</td>
+                    <td class="text-center text-nowrap">{{{lowestgrade}}}</td>
+                    <td class="text-center text-nowrap">{{{gradedcount}}}</td>
+                    <td class="text-center text-nowrap">{{{gradingrate}}}</td>
+                    <td class="text-center text-nowrap">{{{completionrate}}}</td>
+                    <td class="text-center text-nowrap">{{{lastgraded}}}</td>
+                </tr>
+            {{/rows}}
+        {{/hasrows}}
+        {{^hasrows}}
+            <tr>
+                <td colspan="9">{{{emptymessage}}}</td>
+            </tr>
+        {{/hasrows}}
+        </tbody>
+    </table>
+</div>

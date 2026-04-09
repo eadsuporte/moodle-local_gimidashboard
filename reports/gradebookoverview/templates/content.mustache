@@ -1,0 +1,74 @@
+{{!
+    @template gimidashboardreports_gradebookoverview/content
+}}
+<div class="gimi-gradebookoverview-report">
+    <div class="gimi-kpi-grid" style="grid-template-columns: repeat(5, minmax(0, 1fr));">
+        {{#kpis}}
+            <div class="gimi-kpi-card">
+                <div class="gimi-kpi-card-label">{{{label}}}</div>
+                <div class="gimi-kpi-card-value">{{{value}}}</div>
+            </div>
+        {{/kpis}}
+    </div>
+
+    {{#hasfilters}}
+        <div class="gimi-filter-bar">
+            {{#filters}}
+                <div class="gimi-filter-pill">
+                    <strong>{{{label}}}:</strong>
+                    <span>{{{value}}}</span>
+                    <a href="{{{clearurl}}}">×</a>
+                </div>
+            {{/filters}}
+            <div class="gimi-filter-pill">
+                <a href="{{{reseturl}}}">{{#str}}resetfilters, gimidashboardreports_gradebookoverview{{/str}}</a>
+            </div>
+        </div>
+    {{/hasfilters}}
+    {{^hasfilters}}
+        <div class="gimi-gradebookoverview-note">{{{helptext}}}</div>
+    {{/hasfilters}}
+
+    <div class="gimi-gradebookoverview-grid">
+        <div class="gimi-gradebookoverview-card">
+            <div class="gimi-gradebookoverview-card-title">{{#str}}lowestaverageactivity, gimidashboardreports_gradebookoverview{{/str}}</div>
+            {{#haslowestactivities}}
+                <div class="gimi-gradebookoverview-low-list">
+                    {{#lowestactivities}}
+                        <a class="gimi-gradebookoverview-low-item" href="{{{filterurl}}}">
+                            <span class="gimi-gradebookoverview-low-name">{{{activitylabel}}}</span>
+                            <span class="gimi-gradebookoverview-low-grade">{{{avggrade}}}</span>
+                        </a>
+                    {{/lowestactivities}}
+                </div>
+            {{/haslowestactivities}}
+            {{^haslowestactivities}}
+                <div class="gimi-empty-state">{{{emptylabel}}}</div>
+            {{/haslowestactivities}}
+        </div>
+
+        <div class="gimi-gradebookoverview-card">
+            <div class="gimi-gradebookoverview-card-title">{{#str}}pluginname, gimidashboardreports_gradebookoverview{{/str}}</div>
+            <div class="gimi-gradebookoverview-coverage-grid">
+                {{#coveragecards}}
+                    <div class="gimi-gradebookoverview-coverage-item">
+                        <span class="gimi-gradebookoverview-coverage-label">{{{label}}}</span>
+                        <strong class="gimi-gradebookoverview-coverage-value">{{{value}}}</strong>
+                    </div>
+                {{/coveragecards}}
+            </div>
+        </div>
+    </div>
+
+    <div class="gimi-gradebookoverview-section-title">{{#str}}activities, gimidashboardreports_gradebookoverview{{/str}}</div>
+    {{{activitytablehtml}}}
+
+    <div class="gimi-gradebookoverview-section-title">{{#str}}gradedlearners, gimidashboardreports_gradebookoverview{{/str}}</div>
+    {{{learnertablehtml}}}
+
+    {{#hasdetailtable}}
+        <div class="gimi-gradebookoverview-section-title">{{{detailtitle}}}</div>
+        {{{detailtablehtml}}}
+    {{/hasdetailtable}}
+</div>
+<link rel="stylesheet" href="/local/gimidashboard/reports/gradebookoverview/styles.css">
