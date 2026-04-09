@@ -1,0 +1,173 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template gimidashboardreports_quizprogress/content
+
+    Example context (json):
+    {
+    }
+}}
+<div class="gimi-quizprogress-report">
+    {{#hasmessage}}
+        <div class="gimi-quizprogress-notice">{{message}}</div>
+    {{/hasmessage}}
+
+    {{#showcohortoptions}}
+        <div class="gimi-quizprogress-toolbar">
+            <div class="gimi-toolbar-title">{{#str}}cohort, gimidashboardreports_quizprogress{{/str}}</div>
+            <div class="gimi-toolbar-actions">
+                {{#cohortoptions}}
+                    <a class="gimi-pathway-chip{{#selected}} is-active{{/selected}}" href="{{{url}}}">{{name}}</a>
+                {{/cohortoptions}}
+            </div>
+        </div>
+    {{/showcohortoptions}}
+
+    {{#hasfilters}}
+        <div class="gimi-filter-bar">
+            {{#filters}}
+                <div class="gimi-filter-pill">
+                    <strong>{{label}}:</strong>
+                    <span>{{value}}</span>
+                    <a href="{{{clearurl}}}">×</a>
+                </div>
+            {{/filters}}
+            <div class="gimi-filter-pill">
+                <a href="{{{reseturl}}}">{{#str}}resetfilters, gimidashboardreports_quizprogress{{/str}}</a>
+            </div>
+        </div>
+    {{/hasfilters}}
+
+    <div class="gimi-quizprogress-kpis gimi-kpi-grid" style="grid-template-columns: repeat(5, minmax(0, 1fr));">
+        {{#kpis}}
+            <div class="gimi-quizprogress-kpi gimi-kpi-card">
+                <div class="gimi-kpi-card-label">{{label}}</div>
+                <div class="gimi-kpi-card-value">{{value}}</div>
+            </div>
+        {{/kpis}}
+    </div>
+
+    {{#hascourserows}}
+        <section class="gimi-quizprogress-section">
+            <h4>{{#str}}coursebreakdown, gimidashboardreports_quizprogress{{/str}}</h4>
+            <div class="table-responsive">
+                <table class="table table-sm gimi-quizprogress-table" data-title="Quiz progress by course">
+                    <thead>
+                    <tr>
+                        <th>{{#str}}course, gimidashboardreports_quizprogress{{/str}}</th>
+                        <th>{{#str}}totalquizzes, gimidashboardreports_quizprogress{{/str}}</th>
+                        <th>{{#str}}submittedquizzes, gimidashboardreports_quizprogress{{/str}}</th>
+                        <th>{{#str}}totalattempts, gimidashboardreports_quizprogress{{/str}}</th>
+                        <th>{{#str}}learnerswithattempts, gimidashboardreports_quizprogress{{/str}}</th>
+                        <th>{{#str}}submissionrate, gimidashboardreports_quizprogress{{/str}}</th>
+                        <th>{{#str}}score, gimidashboardreports_quizprogress{{/str}}</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {{#courserows}}
+                        <tr>
+                            <td>{{{coursehtml}}}</td>
+                            <td>{{quizzesavailable}}</td>
+                            <td>{{quizzessubmitted}}</td>
+                            <td>{{attempts}}</td>
+                            <td>{{learnerswithattempts}}</td>
+                            <td>{{submissiondisplay}}</td>
+                            <td>{{scoredisplay}}</td>
+                        </tr>
+                    {{/courserows}}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    {{/hascourserows}}
+
+    {{#haslearnerrows}}
+        <section class="gimi-quizprogress-section">
+            <h4>{{#str}}learnerbreakdown, gimidashboardreports_quizprogress{{/str}}</h4>
+            <div class="table-responsive">
+                <table class="table table-sm gimi-quizprogress-table" data-title="Quiz progress by learner">
+                    <thead>
+                    <tr>
+                        <th>{{#str}}learner, gimidashboardreports_quizprogress{{/str}}</th>
+                        <th>{{#str}}cohort, gimidashboardreports_quizprogress{{/str}}</th>
+                        <th>{{#str}}lastaccess, gimidashboardreports_quizprogress{{/str}}</th>
+                        <th>{{#str}}submittedquizzes, gimidashboardreports_quizprogress{{/str}}</th>
+                        <th>{{#str}}attempts, gimidashboardreports_quizprogress{{/str}}</th>
+                        <th>{{#str}}submissionrate, gimidashboardreports_quizprogress{{/str}}</th>
+                        <th>{{#str}}score, gimidashboardreports_quizprogress{{/str}}</th>
+                        <th>{{#str}}status, gimidashboardreports_quizprogress{{/str}}</th>
+                        <th>{{#str}}actions, gimidashboardreports_quizprogress{{/str}}</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {{#learnerrows}}
+                        <tr>
+                            <td>
+                                <div class="gimi-quizprogress-learner-name">{{learnername}}</div>
+                                <div class="gimi-quizprogress-learner-email">{{email}}</div>
+                            </td>
+                            <td>{{cohortsdisplay}}</td>
+                            <td>{{lastaccessdisplay}}</td>
+                            <td>{{quizzesdisplay}}</td>
+                            <td>{{attemptsdisplay}}</td>
+                            <td>{{submissiondisplay}}</td>
+                            <td>{{scoredisplay}}</td>
+                            <td><span class="gimi-status-pill {{statusclass}}">{{statusdisplay}}</span></td>
+                            <td><a class="btn btn-sm btn-outline-primary" href="{{{focusurl}}}">{{#str}}focuslearner, gimidashboardreports_quizprogress{{/str}}</a></td>
+                        </tr>
+                    {{/learnerrows}}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    {{/haslearnerrows}}
+
+    {{#hasquestionrows}}
+        <section class="gimi-quizprogress-section">
+            <h4>{{#str}}topwrongquestions, gimidashboardreports_quizprogress{{/str}}</h4>
+            <div class="table-responsive">
+                <table class="table table-sm gimi-quizprogress-table" data-title="Top incorrect quiz questions">
+                    <thead>
+                    <tr>
+                        <th>{{#str}}question, gimidashboardreports_quizprogress{{/str}}</th>
+                        <th>{{#str}}quiz, gimidashboardreports_quizprogress{{/str}}</th>
+                        <th>{{#str}}course, gimidashboardreports_quizprogress{{/str}}</th>
+                        <th>{{#str}}wronganswers, gimidashboardreports_quizprogress{{/str}}</th>
+                        <th>{{#str}}responses, gimidashboardreports_quizprogress{{/str}}</th>
+                        <th>{{#str}}learnersaffected, gimidashboardreports_quizprogress{{/str}}</th>
+                        <th>{{#str}}errorrate, gimidashboardreports_quizprogress{{/str}}</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {{#questionrows}}
+                        <tr>
+                            <td>{{questionname}}</td>
+                            <td>{{quizname}}</td>
+                            <td>{{coursename}}</td>
+                            <td>{{wrongcount}}</td>
+                            <td>{{responsecount}}</td>
+                            <td>{{learnercount}}</td>
+                            <td>{{errordisplay}}</td>
+                        </tr>
+                    {{/questionrows}}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    {{/hasquestionrows}}
+</div>
+<link rel="stylesheet" href="/local/gimidashboard/reports/quizprogress/styles.css">
