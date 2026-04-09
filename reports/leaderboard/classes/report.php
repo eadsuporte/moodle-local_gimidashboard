@@ -45,6 +45,24 @@ use xmldb_table;
  */
 class report implements report_interface {
     /**
+     * Returns true for course selections.
+     *
+     * @return bool
+     */
+    public static function supports_course(): bool {
+        return true;
+    }
+
+    /**
+     * Returns true for category selections.
+     *
+     * @return bool
+     */
+    public static function supports_category(): bool {
+        return false;
+    }
+
+    /**
      * Returns the report header.
      *
      * @param array $courses Accessible course records.
@@ -92,24 +110,6 @@ class report implements report_interface {
     }
 
     /**
-     * Returns true for course selections.
-     *
-     * @return bool
-     */
-    public static function supports_course(): bool {
-        return true;
-    }
-
-    /**
-     * Returns true for category selections.
-     *
-     * @return bool
-     */
-    public static function supports_category(): bool {
-        return true;
-    }
-
-    /**
      * Renders the report HTML.
      *
      * @param array $courses Accessible course records.
@@ -140,8 +140,8 @@ class report implements report_interface {
             $message = get_string("scopenotice", "gimidashboardreports_leaderboard");
         }
 
-        //$pageLength = optional_param("plugin", false, PARAM_COMPONENT) ? 50 : 5;
-        //$PAGE->requires->js_call_amd("local_gimidashboard/dashboard", "datatable", [".gimi-leaderboard-table", $pageLength]);
+        $pageLength = optional_param("plugin", false, PARAM_COMPONENT) ? 50 : 5;
+        $PAGE->requires->js_call_amd("local_gimidashboard/dashboard", "datatable", ["#gimi-leaderboard-table", $pageLength]);
         return $OUTPUT->render_from_template("gimidashboardreports_leaderboard/content", [
             "hasmessage" => $message !== "",
             "message" => $message,
@@ -235,7 +235,7 @@ class report implements report_interface {
         $completedmodules = self::get_completed_module_totals($courseids, $userids);
         $grades = self::get_course_grade_percentages($courseids, $userids);
         $completions = self::get_course_completions($courseids, $userids);
-        $enroltimes = self::get_enrolment_times($courseids, $userids);
+        //$enroltimes = self::get_enrolment_times($courseids, $userids);
         $firstaccesstimes = self::get_first_course_access_times($courseids, $userids);
         $certificatetimes = self::get_certificate_issue_times($courseids, $userids);
         $coursenames = self::get_course_names($courseids);
@@ -811,7 +811,7 @@ class report implements report_interface {
      * Builds the pathway Best Grade board.
      *
      * @param array $users Users.
-     * @param array $courseids Selected course ids.
+     * @param array $usercourses Selected course ids.
      * @param array $grades Grades.
      * @return array
      * @throws coding_exception
@@ -851,7 +851,7 @@ class report implements report_interface {
      * Builds the pathway Most Progress board.
      *
      * @param array $users Users.
-     * @param array $courseids Selected course ids.
+     * @param array $usercourses Selected course ids.
      * @param array $moduletotals Trackable totals.
      * @param array $completedmodules Completed modules.
      * @param array $completions Course completions.
@@ -900,7 +900,7 @@ class report implements report_interface {
      * Builds the pathway Fastest to Finish Top 5 board.
      *
      * @param array $users Users.
-     * @param array $courseids Selected course ids.
+     * @param array $usercourses Selected course ids.
      * @param array $firstaccesstimes First access timestamps.
      * @param array $certificatetimes Certificate issue timestamps.
      * @param array $coursenames Course names.
@@ -1055,11 +1055,11 @@ class report implements report_interface {
      * Builds the course Fastest to Finish board.
      *
      * @param array $users Users.
-     * @param array $enroltimes Enrolment times.
+     * @param array $firstaccesstimes
      * @param array $certificatetimes Certificate times.
      * @param int $courseid Course id.
      * @return array
-     * @throws coding_exception
+     * @throws \coding_exception
      */
     protected static function build_course_fastest_board(array $users, array $firstaccesstimes, array $certificatetimes, int $courseid
     ): array {
@@ -1143,11 +1143,10 @@ class report implements report_interface {
      * @param array $rows Rows.
      * @param bool $rankall Whether everyone is ranked.
      * @param bool $descending Whether higher is better.
-     * @param int $limit Limit rows.
      * @param bool $hideunranked Hide unranked rows.
      * @param string $boardclass Extra CSS class.
      * @return array
-     * @throws coding_exception
+     * @throws \coding_exception
      */
     protected static function build_board(
         string $title,
