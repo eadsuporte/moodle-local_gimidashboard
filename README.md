@@ -262,6 +262,8 @@ reports/fullacademydashboard/
 reports/accesscompletiontrend/
 reports/leaderboard/
 reports/atrisk/
+reports/gradebookoverview/
+reports/quizprogress/
 ```
 
 ### `fullacademydashboard`
@@ -299,14 +301,14 @@ Main characteristics found in the code:
 
 * namespace: `gimidashboardreports_leaderboard`
 * contract class: `classes/report.php`
-* supports both course and category selections
+* supports course selections only
 * uses Mustache templates for rendering
 * works with pathway selection through linked cohorts
 * can auto-select the pathway when there is only one valid option
 * renders KPI cards plus ranking boards
-* includes different boards for grade, progress, and speed to finish depending on the current scope
+* includes different boards for grade, progress, and speed to finish for the selected course
 
-This subplugin is a good reference for reports that rank learners and branch behavior by scope.
+This subplugin is a good reference for reports that rank learners inside a single course scope.
 
 ### `atrisk`
 
@@ -318,9 +320,45 @@ Main characteristics found in the code:
 * uses Mustache templates for rendering
 * builds KPI cards for total learners, high risk, medium risk, never accessed, and 30+ days inactive
 * applies a heuristic risk model based on inactivity, no access, low progress, low grades, and missing completions
-* renders a flagged learners table with pathways, risk score, progress, grade, completions, activity, reasons, and a learner detail link
+* renders a flagged learners table with pathways, risk score, progress, grade, completed courses, recent activity, reasons, and a learner detail link
+* now also includes an **Engaged vs not engaged** section with its own KPI cards, per-course chart, and learner table using enrolment, access, progress, and completion signals
 
-This subplugin is a good reference for reports focused on risk detection and intervention prioritization.
+This subplugin is a good reference for reports focused on risk detection, engagement monitoring, and intervention prioritization.
+
+### `gradebookoverview`
+
+Main characteristics found in the code:
+
+* namespace: `gimidashboardreports_gradebookoverview`
+* contract class: `classes/report.php`
+* supports both course and category selections
+* uses Mustache templates for rendering
+* builds KPI cards for tracked activities, grade records, overall average, average completion, and lowest average activity
+* renders an activity summary table with average grade, lowest grade, submission rate, completion rate, and responsible teacher
+* renders a learner summary table with graded activities, average grade, lowest grade, completion rate, and last access
+* supports drill-down by **activity** or **learner**, generating a detailed table with evaluation date, graded by, grade, completion status, and completion date
+* exposes filter pills and reset links so managers can pivot quickly between activity-level and learner-level analysis
+* crosses gradebook information with course completion data to highlight the relationship between grading and progress
+
+This subplugin is a good reference for reports that combine academic performance, grading operations, and completion evidence.
+
+### `quizprogress`
+
+Main characteristics found in the code:
+
+* namespace: `gimidashboardreports_quizprogress`
+* contract class: `classes/report.php`
+* supports both course and category selections
+* uses Mustache templates for rendering
+* builds KPI cards for available quizzes, quizzes attempted, total attempts, submission rate, and learners with attempts
+* supports optional filtering by cohort and by learner, with filter pills and direct reset links
+* renders a course breakdown table with quiz volume, attempts, submission rate, and average score per course
+* renders a learner drill-down table with cohort membership, last access, quizzes attempted, attempts, submission rate, average score, and engagement status
+* classifies learners into statuses such as **Not started**, **In progress**, **Engaged**, and **Complete**
+* renders a **Questions with most errors** table based on question attempt data, showing wrong answers, total responses, affected learners, and error rate
+* can be used as a practical reference for reports that mix quiz aggregates, learner drill-down, cohort filtering, and question-level difficulty signals
+
+This subplugin is a strong reference for assessment monitoring and quiz analytics.
 
 ## Administration page for subplugins
 
