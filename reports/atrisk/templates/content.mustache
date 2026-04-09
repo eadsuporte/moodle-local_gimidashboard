@@ -22,79 +22,164 @@
     }
 }}
 <div class="gimi-atrisk-report">
-    <div class="gimi-atrisk-note">{{#str}}heuristicnote, gimidashboardreports_atrisk{{/str}}</div>
+    <div class="gimi-atrisk-section">
+        <div class="gimi-atrisk-note">{{#str}}heuristicnote, gimidashboardreports_atrisk{{/str}}</div>
 
-    <div class="gimi-atrisk-kpis gimi-kpi-grid"
-         style="grid-template-columns: repeat(5, minmax(0, 1fr));">
-        {{#kpis}}
-            <div class="gimi-atrisk-kpi gimi-kpi-card">
-                <div class="gimi-kpi-card-label">{{label}}</div>
-                <div class="gimi-kpi-card-value">{{value}}</div>
+        <div class="gimi-atrisk-kpis gimi-kpi-grid"
+             style="grid-template-columns: repeat(5, minmax(0, 1fr));">
+            {{#kpis}}
+                <div class="gimi-atrisk-kpi gimi-kpi-card">
+                    <div class="gimi-kpi-card-label">{{label}}</div>
+                    <div class="gimi-kpi-card-value">{{value}}</div>
+                </div>
+            {{/kpis}}
+        </div>
+
+        {{#hasrows}}
+            <div class="table-responsive">
+                <table class="table table-sm" id="gimi-atrisk-table"
+                       data-title="{{#str}}pluginname, gimidashboardreports_atrisk{{/str}}">
+                    <thead>
+                    <tr>
+                        <th>{{#str}}learner, gimidashboardreports_atrisk{{/str}}</th>
+                        <th>{{#str}}pathways, gimidashboardreports_atrisk{{/str}}</th>
+                        <th>{{#str}}risk, gimidashboardreports_atrisk{{/str}}</th>
+                        <th>{{#str}}progress, gimidashboardreports_atrisk{{/str}}</th>
+                        <th>{{#str}}grade, gimidashboardreports_atrisk{{/str}}</th>
+                        <th>{{#str}}completedcourses, gimidashboardreports_atrisk{{/str}}</th>
+                        <th>{{#str}}activity, gimidashboardreports_atrisk{{/str}}</th>
+                        <th>{{#str}}reasons, gimidashboardreports_atrisk{{/str}}</th>
+                        <th>{{#str}}actions, gimidashboardreports_atrisk{{/str}}</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {{#rows}}
+                        <tr>
+                            <td>
+                                <div class="gimi-atrisk-learner-name">{{learnername}}</div>
+                                <div class="gimi-atrisk-learner-email">{{email}}</div>
+                            </td>
+                            <td>
+                                <div class="gimi-atrisk-pathways">{{pathwaysdisplay}}</div>
+                            </td>
+                            <td>
+                                <span class="gimi-atrisk-badge {{levelclass}}">{{leveldisplay}}</span>
+                                <div class="gimi-atrisk-score">{{scoredisplay}}</div>
+                            </td>
+                            <td>
+                                <div class="gimi-atrisk-metric">{{progressdisplay}}</div>
+                            </td>
+                            <td>
+                                <div class="gimi-atrisk-metric">{{gradedisplay}}</div>
+                            </td>
+                            <td>
+                                <div class="gimi-atrisk-metric">{{completeddisplay}}</div>
+                            </td>
+                            <td>
+                                <div class="gimi-atrisk-activity">{{activitydisplay}}</div>
+                            </td>
+                            <td>
+                                <div class="gimi-atrisk-reasons">
+                                    {{#reasons}}
+                                        <span class="gimi-atrisk-reason">{{.}}</span>
+                                    {{/reasons}}
+                                </div>
+                            </td>
+                            <td>
+                                <a class="btn btn-sm btn-outline-primary" href="{{{detailurl}}}">{{#str}}viewdetails, gimidashboardreports_atrisk{{/str}}</a>
+                            </td>
+                        </tr>
+                    {{/rows}}
+                    </tbody>
+                </table>
             </div>
-        {{/kpis}}
+        {{/hasrows}}
+
+        {{^hasrows}}
+            <div class="gimi-empty-state">{{#str}}nomatchinglearners, gimidashboardreports_atrisk{{/str}}</div>
+        {{/hasrows}}
     </div>
 
-    {{#hasrows}}
-        <div class="table-responsive">
-            <table class="table table-sm" id="gimi-atrisk-table">
-                <thead>
-                <tr>
-                    <th>{{#str}}learner, gimidashboardreports_atrisk{{/str}}</th>
-                    <th>{{#str}}pathways, gimidashboardreports_atrisk{{/str}}</th>
-                    <th>{{#str}}risk, gimidashboardreports_atrisk{{/str}}</th>
-                    <th>{{#str}}progress, gimidashboardreports_atrisk{{/str}}</th>
-                    <th>{{#str}}grade, gimidashboardreports_atrisk{{/str}}</th>
-                    <th>{{#str}}completedcourses, gimidashboardreports_atrisk{{/str}}</th>
-                    <th>{{#str}}activity, gimidashboardreports_atrisk{{/str}}</th>
-                    <th>{{#str}}reasons, gimidashboardreports_atrisk{{/str}}</th>
-                    <th>{{#str}}actions, gimidashboardreports_atrisk{{/str}}</th>
-                </tr>
-                </thead>
-                <tbody>
-                {{#rows}}
-                    <tr>
-                        <td>
-                            <div class="gimi-atrisk-learner-name">{{learnername}}</div>
-                            <div class="gimi-atrisk-learner-email">{{email}}</div>
-                        </td>
-                        <td>
-                            <div class="gimi-atrisk-pathways">{{pathwaysdisplay}}</div>
-                        </td>
-                        <td>
-                            <span class="gimi-atrisk-badge {{levelclass}}">{{leveldisplay}}</span>
-                            <div class="gimi-atrisk-score">{{scoredisplay}}</div>
-                        </td>
-                        <td>
-                            <div class="gimi-atrisk-metric">{{progressdisplay}}</div>
-                        </td>
-                        <td>
-                            <div class="gimi-atrisk-metric">{{gradedisplay}}</div>
-                        </td>
-                        <td>
-                            <div class="gimi-atrisk-metric">{{completeddisplay}}</div>
-                        </td>
-                        <td>
-                            <div class="gimi-atrisk-activity">{{activitydisplay}}</div>
-                        </td>
-                        <td>
-                            <div class="gimi-atrisk-reasons">
-                                {{#reasons}}
-                                    <span class="gimi-atrisk-reason">{{.}}</span>
-                                {{/reasons}}
-                            </div>
-                        </td>
-                        <td>
-                            <a class="btn btn-sm btn-outline-primary" href="{{{detailurl}}}">{{#str}}viewdetails, gimidashboardreports_atrisk{{/str}}</a>
-                        </td>
-                    </tr>
-                {{/rows}}
-                </tbody>
-            </table>
-        </div>
-    {{/hasrows}}
+    <div class="gimi-atrisk-section gimi-atrisk-section-engagement card border-0 shadow-sm mt-4">
+        <div class="card-body">
+            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-start gap-3 mb-3">
+                <div>
+                    <h5 class="mb-1">{{#str}}engagementsectiontitle, gimidashboardreports_atrisk{{/str}}</h5>
+                    <div class="text-muted">{{#str}}engagementsectionhelp, gimidashboardreports_atrisk{{/str}}</div>
+                </div>
+                <div class="gimi-atrisk-engagement-legend">
+                    {{#engagementchartlegend}}
+                        <span class="gimi-atrisk-engagement-legend-item">
+                            <span class="gimi-atrisk-engagement-legend-dot" style="background:{{{color}}}"></span>
+                            {{{label}}}
+                        </span>
+                    {{/engagementchartlegend}}
+                </div>
+            </div>
 
-    {{^hasrows}}
-        <div class="gimi-empty-state">{{#str}}nomatchinglearners, gimidashboardreports_atrisk{{/str}}</div>
-    {{/hasrows}}
+            <div class="gimi-atrisk-engagement-kpis gimi-kpi-grid"
+                 style="grid-template-columns: repeat(4, minmax(0, 1fr));">
+                {{#engagementkpis}}
+                    <div class="gimi-kpi-card">
+                        <div class="gimi-kpi-card-label">{{label}}</div>
+                        <div class="gimi-kpi-card-value">{{value}}</div>
+                    </div>
+                {{/engagementkpis}}
+            </div>
+
+            <div class="gimi-atrisk-engagement-chart">{{{engagementchartsvg}}}</div>
+
+            {{#hasengagementrows}}
+                <div class="table-responsive mt-3">
+                    <table class="table table-sm" id="gimi-atrisk-engagement-table"
+                           data-title="{{#str}}engagementsectiontitle, gimidashboardreports_atrisk{{/str}}">
+                        <thead>
+                        <tr>
+                            <th>{{#str}}learner, gimidashboardreports_atrisk{{/str}}</th>
+                            <th>{{#str}}pathways, gimidashboardreports_atrisk{{/str}}</th>
+                            <th>{{#str}}status, gimidashboardreports_atrisk{{/str}}</th>
+                            <th>{{#str}}progress, gimidashboardreports_atrisk{{/str}}</th>
+                            <th>{{#str}}completedcourses, gimidashboardreports_atrisk{{/str}}</th>
+                            <th>{{#str}}lastaccess, gimidashboardreports_atrisk{{/str}}</th>
+                            <th>{{#str}}actions, gimidashboardreports_atrisk{{/str}}</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {{#engagementrows}}
+                            <tr>
+                                <td>
+                                    <div class="gimi-atrisk-learner-name">{{learnername}}</div>
+                                    <div class="gimi-atrisk-learner-email">{{email}}</div>
+                                </td>
+                                <td>
+                                    <div class="gimi-atrisk-pathways">{{pathwaysdisplay}}</div>
+                                </td>
+                                <td>
+                                    <span class="gimi-atrisk-status-badge {{statusclass}}">{{statuslabel}}</span>
+                                </td>
+                                <td>
+                                    <div class="gimi-atrisk-metric">{{progressdisplay}}</div>
+                                </td>
+                                <td>
+                                    <div class="gimi-atrisk-metric">{{completeddisplay}}</div>
+                                </td>
+                                <td>
+                                    <div class="gimi-atrisk-activity">{{lastaccessdisplay}}</div>
+                                </td>
+                                <td>
+                                    <a class="btn btn-sm btn-outline-primary" href="{{{detailurl}}}">{{#str}}viewdetails, gimidashboardreports_atrisk{{/str}}</a>
+                                </td>
+                            </tr>
+                        {{/engagementrows}}
+                        </tbody>
+                    </table>
+                </div>
+            {{/hasengagementrows}}
+
+            {{^hasengagementrows}}
+                <div class="gimi-empty-state mt-3">{{#str}}nomatchinglearners, gimidashboardreports_atrisk{{/str}}</div>
+            {{/hasengagementrows}}
+        </div>
+    </div>
 </div>
 <link rel="stylesheet" href="/local/gimidashboard/reports/atrisk/styles.css">

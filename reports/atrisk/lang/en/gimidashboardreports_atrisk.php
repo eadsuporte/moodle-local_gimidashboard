@@ -73,3 +73,16 @@ $string['nocompletionsyet'] = 'No completed courses yet';
 $string['activityneveraccessed'] = 'Never accessed • enrolled {$a} day(s) ago';
 $string['activitylastaccess'] = '{$a->days} day(s) inactive • last access {$a->date}';
 $string['activityrecentaccess'] = 'Last access {$a}';
+
+$string['engagementsectiontitle'] = 'Engaged vs not engaged';
+$string['engagementsectionhelp'] = 'Objective engagement view using enrolment, course access and completion data from the selected scope.';
+$string['engagementchartarialabel'] = 'Bar chart showing engaged, not engaged and completed learners by course';
+$string['enrolledlearners'] = 'Enrolled learners';
+$string['engagedlearners'] = 'Engaged learners';
+$string['notengagedlearners'] = 'Not engaged learners';
+$string['completedlearners'] = 'Completed learners';
+$string['status'] = 'Status';
+$string['lastaccess'] = 'Last access';
+$string['completedstatus'] = 'Completed';
+$string['engagedstatus'] = 'Engaged';
+$string['notengagedstatus'] = 'Not engaged';

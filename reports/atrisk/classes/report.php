@@ -25,6 +25,7 @@
 namespace gimidashboardreports_atrisk;
 
 use coding_exception;
+use context_course;
 use context_system;
 use core_text;
 use Exception;
@@ -48,7 +49,7 @@ class report implements report_interface {
      * @throws Exception
      */
     public static function get_header(array $courses, $extra = ""): string {
-        global $OUTPUT, $PAGE;
+        global $OUTPUT;
 
         $reportdata = self::prepare_report_data($courses);
         if (empty($reportdata->courseids)) {
@@ -72,9 +73,6 @@ class report implements report_interface {
                 userdate(time(), get_string("strftimedatefullshort", "langconfig"))
             ),
         ];
-
-        $pageLength = optional_param("plugin", false, PARAM_COMPONENT) ? 50 : 5;
-        $PAGE->requires->js_call_amd("local_gimidashboard/dashboard", "datatable", ["#gimi-atrisk-table", $pageLength]);
 
         return $OUTPUT->render_from_template("local_gimidashboard/content_title", [
             "academyname" => $academyname,
@@ -110,12 +108,16 @@ class report implements report_interface {
      * @throws Exception
      */
     public static function render(array $courses): string {
-        global $OUTPUT;
+        global $OUTPUT, $PAGE;
 
         $reportdata = self::prepare_report_data($courses);
         if (empty($reportdata->courseids)) {
             return "";
         }
+
+        $pageLength = optional_param("plugin", false, PARAM_COMPONENT) ? 50 : 5;
+        $PAGE->requires->js_call_amd("local_gimidashboard/dashboard", "datatable", ["#gimi-atrisk-table", $pageLength]);
+        $PAGE->requires->js_call_amd("local_gimidashboard/dashboard", "datatable", ["#gimi-atrisk-engagement-table", $pageLength]);
 
         return $OUTPUT->render_from_template("gimidashboardreports_atrisk/content", [
             "kpis" => [
@@ -142,6 +144,41 @@ class report implements report_interface {
             ],
             "rows" => array_values($reportdata->rows),
             "hasrows" => !empty($reportdata->rows),
+            "engagementkpis" => [
+                [
+                    "label" => get_string("enrolledlearners", "gimidashboardreports_atrisk"),
+                    "value" => $reportdata->engagement->summary->enrolled,
+                ],
+                [
+                    "label" => get_string("engagedlearners", "gimidashboardreports_atrisk"),
+                    "value" => $reportdata->engagement->summary->engaged,
+                ],
+                [
+                    "label" => get_string("notengagedlearners", "gimidashboardreports_atrisk"),
+                    "value" => $reportdata->engagement->summary->notengaged,
+                ],
+                [
+                    "label" => get_string("completedlearners", "gimidashboardreports_atrisk"),
+                    "value" => $reportdata->engagement->summary->completed,
+                ],
+            ],
+            "engagementchartsvg" => self::render_engagement_chart_svg($reportdata->engagement->chart),
+            "engagementchartlegend" => [
+                [
+                    "color" => "#2563eb",
+                    "label" => get_string("engagedlearners", "gimidashboardreports_atrisk"),
+                ],
+                [
+                    "color" => "#f59e0b",
+                    "label" => get_string("notengagedlearners", "gimidashboardreports_atrisk"),
+                ],
+                [
+                    "color" => "#16a34a",
+                    "label" => get_string("completedlearners", "gimidashboardreports_atrisk"),
+                ],
+            ],
+            "engagementrows" => array_values($reportdata->engagement->rows),
+            "hasengagementrows" => !empty($reportdata->engagement->rows),
         ]);
     }
 
@@ -174,6 +211,19 @@ class report implements report_interface {
                 "mediumrisk" => 0,
                 "neveraccessed" => 0,
                 "inactive30" => 0,
+            ],
+            "engagement" => (object) [
+                "summary" => (object) [
+                    "enrolled" => 0,
+                    "engaged" => 0,
+                    "notengaged" => 0,
+                    "completed" => 0,
+                ],
+                "chart" => (object) [
+                    "labels" => [],
+                    "series" => [],
+                ],
+                "rows" => [],
             ],
         ];
 
@@ -227,6 +277,14 @@ class report implements report_interface {
         $base->allrows = $allrows;
         $base->rows = $rows;
         $base->summary = self::build_summary($allrows);
+        $base->engagement = self::build_engagement_data(
+            $courses,
+            $allrows,
+            $usercourses,
+            $completions,
+            $lastaccesses,
+            $selection
+        );
 
         $cache = $base;
         return $cache;
@@ -270,6 +328,7 @@ class report implements report_interface {
      * @param array $pathways Pathway names keyed by cohort id.
      * @return array
      * @throws coding_exception
+     * @throws \Exception
      */
     protected static function build_user_row(
         stdClass $user,
@@ -362,6 +421,9 @@ class report implements report_interface {
                 ]
             ),
             "daysinactivevalue" => $daysinactive === null ? $dayssinceenrol : $daysinactive,
+            "latestaccessvalue" => $latestaccess,
+            "completedallcourses" => $coursecount > 0 && $completedcourses >= $coursecount,
+            "engagedflag" => $latestaccess > 0,
             "activitydisplay" => $activitydisplay,
             "reasons" => $reasons,
             "detailurl" => self::build_learner_url($selection->target, (int) $user->id),
@@ -465,6 +527,163 @@ class report implements report_interface {
 
         $reasons = array_values(array_unique($reasons));
         return [$score, $level, $reasons];
+    }
+
+    /**
+     * Builds the engagement summary, chart and learner rows.
+     *
+     * @param array $courses Accessible course records.
+     * @param array $allrows All learner rows.
+     * @param array $usercourses Selected course ids per learner.
+     * @param array $completions Course completions by learner and course.
+     * @param array $lastaccesses Last accesses by learner and course.
+     * @param object $selection Current selection.
+     * @return object
+     * @throws Exception
+     */
+    protected static function build_engagement_data(
+        array $courses,
+        array $allrows,
+        array $usercourses,
+        array $completions,
+        array $lastaccesses,
+        object $selection
+    ): object {
+        $coursemap = [];
+        foreach ($courses as $course) {
+            $coursemap[(int) $course->id] = [
+                "courseid" => (int) $course->id,
+                "coursename" => format_string($course->fullname, true, ["context" => context_course::instance((int) $course->id)]),
+                "enrolled" => 0,
+                "engaged" => 0,
+                "notengaged" => 0,
+                "completed" => 0,
+            ];
+        }
+
+        $rows = [];
+        $summary = (object) [
+            "enrolled" => count($allrows),
+            "engaged" => 0,
+            "notengaged" => 0,
+            "completed" => 0,
+        ];
+
+        foreach ($allrows as $userid => $row) {
+            $selectedcourses = $usercourses[$userid] ?? [];
+            foreach ($selectedcourses as $courseid) {
+                if (!isset($coursemap[$courseid])) {
+                    continue;
+                }
+
+                $coursemap[$courseid]["enrolled"]++;
+                if (!empty($completions[$userid][$courseid])) {
+                    $coursemap[$courseid]["completed"]++;
+                } else if (!empty($lastaccesses[$userid][$courseid])) {
+                    $coursemap[$courseid]["engaged"]++;
+                } else {
+                    $coursemap[$courseid]["notengaged"]++;
+                }
+            }
+
+            if (!empty($row["completedallcourses"])) {
+                $summary->completed++;
+            } else if (!empty($row["engagedflag"])) {
+                $summary->engaged++;
+            } else {
+                $summary->notengaged++;
+            }
+
+            [$statuskey, $statusclass, $statusweight] = self::resolve_engagement_status($row);
+            $rows[] = [
+                "learnername" => $row["learnername"],
+                "email" => $row["email"],
+                "pathwaysdisplay" => $row["pathwaysdisplay"],
+                "statuslabel" => get_string($statuskey, "gimidashboardreports_atrisk"),
+                "statusclass" => $statusclass,
+                "statusweight" => $statusweight,
+                "progressdisplay" => $row["progressdisplay"],
+                "completeddisplay" => $row["completeddisplay"],
+                "progressraw" => $row["avgprogressraw"],
+                "lastaccessdisplay" => self::format_last_access_label((int) $row["latestaccessvalue"]),
+                "daysinactivevalue" => $row["daysinactivevalue"],
+                "detailurl" => self::build_learner_url($selection->target, (int) $row["userid"]),
+            ];
+        }
+
+        usort($rows, static function(array $left, array $right): int {
+            if ($left["statusweight"] !== $right["statusweight"]) {
+                return $left["statusweight"] <=> $right["statusweight"];
+            }
+
+            $leftprogress = (float) $left["progressraw"];
+            $rightprogress = (float) $right["progressraw"];
+            if ($leftprogress !== $rightprogress) {
+                return $leftprogress <=> $rightprogress;
+            }
+
+            if ($left["daysinactivevalue"] !== $right["daysinactivevalue"]) {
+                return $right["daysinactivevalue"] <=> $left["daysinactivevalue"];
+            }
+
+            return core_text::strtolower($left["learnername"]) <=> core_text::strtolower($right["learnername"]);
+        });
+
+        $chartrows = array_values($coursemap);
+        usort($chartrows, static function(array $left, array $right): int {
+            return core_text::strtolower($left["coursename"]) <=> core_text::strtolower($right["coursename"]);
+        });
+
+        return (object) [
+            "summary" => $summary,
+            "chart" => (object) [
+                "labels" => array_map(static function(array $row): string {
+                    return $row["coursename"];
+                }, $chartrows),
+                "series" => [
+                    [
+                        "name" => get_string("engagedlearners", "gimidashboardreports_atrisk"),
+                        "color" => "#2563eb",
+                        "values" => array_map(static function(array $row): int {
+                            return $row["engaged"];
+                        }, $chartrows),
+                    ],
+                    [
+                        "name" => get_string("notengagedlearners", "gimidashboardreports_atrisk"),
+                        "color" => "#f59e0b",
+                        "values" => array_map(static function(array $row): int {
+                            return $row["notengaged"];
+                        }, $chartrows),
+                    ],
+                    [
+                        "name" => get_string("completedlearners", "gimidashboardreports_atrisk"),
+                        "color" => "#16a34a",
+                        "values" => array_map(static function(array $row): int {
+                            return $row["completed"];
+                        }, $chartrows),
+                    ],
+                ],
+            ],
+            "rows" => $rows,
+        ];
+    }
+
+    /**
+     * Resolves the engagement status for a learner.
+     *
+     * @param array $row Learner row.
+     * @return array
+     */
+    protected static function resolve_engagement_status(array $row): array {
+        if (!empty($row["completedallcourses"])) {
+            return ["completedstatus", "is-completed", 2];
+        }
+
+        if (!empty($row["engagedflag"])) {
+            return ["engagedstatus", "is-engaged", 1];
+        }
+
+        return ["notengagedstatus", "is-notengaged", 0];
     }
 
     /**
@@ -893,6 +1112,115 @@ class report implements report_interface {
         }
 
         return $result;
+    }
+
+    /**
+     * Renders the grouped bar chart for engagement by course.
+     *
+     * @param object $chart Chart data.
+     * @return string
+     * @throws Exception
+     */
+    protected static function render_engagement_chart_svg(object $chart): string {
+        $labels = $chart->labels ?? [];
+        $series = $chart->series ?? [];
+        if (empty($labels) || empty($series)) {
+            return "";
+        }
+
+        $count = count($labels);
+        $width = max(980, 180 * $count);
+        $height = 360;
+        $paddingleft = 58;
+        $paddingright = 18;
+        $paddingtop = 18;
+        $paddingbottom = 90;
+        $plotwidth = $width - $paddingleft - $paddingright;
+        $plotheight = $height - $paddingtop - $paddingbottom;
+
+        $maxvalue = 0;
+        foreach ($series as $item) {
+            foreach ($item["values"] as $value) {
+                $maxvalue = max($maxvalue, $value);
+            }
+        }
+
+        if ($maxvalue < 1) {
+            $maxvalue = 1;
+        }
+
+        $parts = [];
+        $parts[] = '<svg viewBox="0 0 ' . $width . ' ' . $height . '" role="img" aria-label="' .
+            s(get_string("engagementchartarialabel", "gimidashboardreports_atrisk")) . '">';
+        $parts[] = '<rect x="0" y="0" width="' . $width . '" height="' . $height . '" rx="18" fill="#ffffff"></rect>';
+
+        for ($step = 0; $step <= 4; $step++) {
+            $value = ($maxvalue / 4) * (4 - $step);
+            $y = $paddingtop + ($plotheight / 4) * $step;
+            $parts[] = '<line x1="' . $paddingleft . '" y1="' . $y . '" x2="' . ($width - $paddingright) .
+                '" y2="' . $y . '" stroke="#e2e8f0" stroke-width="1"></line>';
+            $parts[] = '<text x="' . ($paddingleft - 8) . '" y="' . ($y + 4) .
+                '" text-anchor="end" font-size="11" fill="#64748b">' . format_float($value, 0) . '</text>';
+        }
+
+        $groupwidth = $plotwidth / max(1, $count);
+        $groupinnerpadding = 24;
+        $barspergroup = count($series);
+        $barwidth = min(28, max(14, ($groupwidth - $groupinnerpadding) / max(1, $barspergroup)));
+
+        foreach ($labels as $index => $label) {
+            $groupx = $paddingleft + ($groupwidth * $index);
+            $centerx = $groupx + ($groupwidth / 2);
+            $shortlabel = self::shorten_chart_label($label, 22);
+            $parts[] = '<g><title>' . s($label) . '</title><text x="' . round($centerx, 2) . '" y="' . ($height - 22) .
+                '" text-anchor="middle" font-size="11" fill="#64748b">' . s($shortlabel) . '</text></g>';
+        }
+
+        foreach ($series as $seriesindex => $item) {
+            foreach ($item["values"] as $index => $value) {
+                $groupx = $paddingleft + ($groupwidth * $index);
+                $startx = $groupx + (($groupwidth - ($barwidth * $barspergroup)) / 2);
+                $x = $startx + ($seriesindex * $barwidth);
+                $barheight = ($value / $maxvalue) * $plotheight;
+                $y = $paddingtop + $plotheight - $barheight;
+                $parts[] = '<g><title>' . s($item["name"] . ': ' . format_float($value, 0) . ' • ' . $labels[$index]) . '</title>' .
+                    '<rect x="' . round($x, 2) . '" y="' . round($y, 2) . '" width="' . round($barwidth - 4, 2) .
+                    '" height="' . round($barheight, 2) . '" rx="6" fill="' . $item["color"] . '"></rect></g>';
+            }
+        }
+
+        $parts[] = '</svg>';
+        return implode("", $parts);
+    }
+
+    /**
+     * Shortens chart labels without losing the original tooltip.
+     *
+     * @param string $label Original label.
+     * @param int $maxlength Maximum length.
+     * @return string
+     */
+    protected static function shorten_chart_label(string $label, int $maxlength = 24): string {
+        if (core_text::strlen($label) <= $maxlength) {
+            return $label;
+        }
+
+        return core_text::substr($label, 0, $maxlength - 1) . '…';
+    }
+
+    /**
+     * Formats the last access label for the engagement table.
+     *
+     * @param int $timestamp Last access timestamp.
+     * @return string
+     * @throws coding_exception
+     */
+    protected static function format_last_access_label(int $timestamp): string {
+        if ($timestamp <= 0) {
+            return get_string("never", "gimidashboardreports_atrisk");
+        }
+
+        return userdate($timestamp, get_string("strftimedatefullshort", "langconfig"));
     }
 
     /**

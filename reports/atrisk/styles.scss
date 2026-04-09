@@ -1,4 +1,8 @@
+
 .gimi-atrisk-report {
+    .gimi-atrisk-section + .gimi-atrisk-section {
+        margin-top: 1.5rem;
+    }
     .gimi-atrisk-note {
         margin-bottom: 1rem;
         padding: 0.85rem 1rem;
@@ -8,10 +12,44 @@
         color: #1e3a8a;
         font-size: 0.92rem;
     }
-    .gimi-atrisk-kpis {
+    .gimi-atrisk-kpis,
+    .gimi-atrisk-engagement-kpis {
         margin-bottom: 1rem;
     }
-    #gimi-atrisk-table {
+    .gimi-atrisk-engagement-chart {
+        width: 100%;
+        overflow-x: auto;
+        margin-top: 1rem;
+        svg {
+            min-width: 980px;
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+    }
+    .gimi-atrisk-engagement-legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem 1rem;
+        align-items: center;
+    }
+    .gimi-atrisk-engagement-legend-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+        color: #334155;
+        font-weight: 600;
+    }
+    .gimi-atrisk-engagement-legend-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 999px;
+        display: inline-block;
+        box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.12);
+    }
+    #gimi-atrisk-table,
+    #gimi-atrisk-engagement-table {
         margin-bottom: 0;
         th {
             white-space: nowrap;
@@ -31,7 +69,8 @@
         color: #475569;
         font-size: 0.9rem;
     }
-    .gimi-atrisk-badge {
+    .gimi-atrisk-badge,
+    .gimi-atrisk-status-badge {
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -41,18 +80,24 @@
         font-weight: 700;
         letter-spacing: 0.02em;
         text-transform: uppercase;
-        &.is-high {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-        &.is-medium {
-            background: #fef3c7;
-            color: #92400e;
-        }
-        &.is-low {
-            background: #dcfce7;
-            color: #166534;
-        }
+    }
+    .gimi-atrisk-badge.is-high,
+    .gimi-atrisk-status-badge.is-notengaged {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+    .gimi-atrisk-badge.is-medium {
+        background: #fef3c7;
+        color: #92400e;
+    }
+    .gimi-atrisk-badge.is-low,
+    .gimi-atrisk-status-badge.is-completed {
+        background: #dcfce7;
+        color: #166534;
+    }
+    .gimi-atrisk-status-badge.is-engaged {
+        background: #dbeafe;
+        color: #1d4ed8;
     }
     .gimi-atrisk-metric {
         font-weight: 700;
