@@ -119,7 +119,7 @@ class report implements report_interface {
             "chartlegend" => [
                 [
                     "color" => "#2563eb",
-                    "label" => get_string("courseaccesses", "gimidashboardreports_accesscompletiontrend"),
+                    "label" => get_string("courseaccesses_monthly", "gimidashboardreports_accesscompletiontrend"),
                 ],
                 [
                     "color" => "#16a34a",
@@ -188,7 +188,7 @@ class report implements report_interface {
                 }, $months),
                 "series" => [
                     [
-                        "name" => get_string("courseaccesses", "gimidashboardreports_accesscompletiontrend"),
+                        "name" => get_string("courseaccesses_monthly", "gimidashboardreports_accesscompletiontrend"),
                         "color" => "#2563eb",
                         "values" => $accessseries["values"],
                     ],

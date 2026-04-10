@@ -28,6 +28,7 @@ $string['charthelp'] = 'The line chart consolidates monthly course accesses and 
 $string['completionrate'] = 'Completion rate';
 $string['course'] = 'Course';
 $string['courseaccesses'] = 'Course accesses';
+$string['courseaccesses_monthly'] = 'Monthly course accesses';
 $string['coursecompletions'] = 'Course completions';
 $string['courseswithactivity'] = 'Courses with activity';
 $string['enrolledlearners'] = 'Enrolled learners';
