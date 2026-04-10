@@ -929,7 +929,7 @@ class report implements report_interface {
                     0,
                     $certificatetimes[$userid][$courseid] - $firstaccesstimes[$userid][$courseid]
                 );
-                $metric = round($seconds / DAYSECS, 1);
+                $metric = (float) $seconds;
 
                 if ($bestmetric === null || $metric < $bestmetric) {
                     $bestmetric = $metric;
@@ -953,7 +953,7 @@ class report implements report_interface {
                 $user,
                 $bestmetric,
                 $bestmetric !== null
-                    ? get_string("days", "gimidashboardreports_leaderboard", format_float($bestmetric))
+                    ? self::format_duration((int) round($bestmetric))
                     : "—",
                 $details
             );
@@ -1068,13 +1068,13 @@ class report implements report_interface {
             $metric = null;
             if (!empty($firstaccesstimes[$userid][$courseid]) && !empty($certificatetimes[$userid][$courseid])) {
                 $seconds = max(0, $certificatetimes[$userid][$courseid] - $firstaccesstimes[$userid][$courseid]);
-                $metric = round($seconds / DAYSECS, 1);
+                $metric = (float) $seconds;
             }
 
             $rows[] = self::build_row(
                 $user,
                 $metric,
-                $metric !== null ? get_string("days", "gimidashboardreports_leaderboard", format_float($metric)) : "—",
+                $metric !== null ? self::format_duration((int) round($metric)) : "—",
                 $metric !== null
                     ?
                     get_string("certissuedon", "gimidashboardreports_leaderboard", userdate($certificatetimes[$userid][$courseid]))
@@ -1339,6 +1339,38 @@ class report implements report_interface {
             "examterm_a1_2" => "%final assessment%",
             "examterm_a1_3" => "%final test%",
         ];
+    }
+
+
+    /**
+     * Formats an elapsed duration using days, hours, minutes and seconds.
+     *
+     * @param int $seconds Total seconds.
+     * @return string
+     */
+    protected static function format_duration(int $seconds): string {
+        $seconds = max(0, $seconds);
+
+        $days = intdiv($seconds, DAYSECS);
+        $seconds -= $days * DAYSECS;
+        $hours = intdiv($seconds, HOURSECS);
+        $seconds -= $hours * HOURSECS;
+        $minutes = intdiv($seconds, MINSECS);
+        $seconds -= $minutes * MINSECS;
+
+        $parts = [];
+        if ($days > 0) {
+            $parts[] = $days . 'd';
+        }
+        if ($hours > 0 || !empty($parts)) {
+            $parts[] = $hours . 'h';
+        }
+        if ($minutes > 0 || !empty($parts)) {
+            $parts[] = $minutes . 'm';
+        }
+        $parts[] = $seconds . 's';
+
+        return implode(' ', $parts);
     }
 
     /**
