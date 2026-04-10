@@ -189,3 +189,13 @@
     border: 1px dashed #cbd5e1;
     color: #64748b;
 }
+
+.gimi-leaderboard-card.is-full-width {
+    grid-column: 1 / -1;
+}
+
+@media (max-width: 991.98px) {
+    .gimi-leaderboard-card.is-full-width {
+        grid-column: auto;
+    }
+}
