@@ -190,12 +190,13 @@
     color: #64748b;
 }
 
-.gimi-leaderboard-card.is-full-width {
-    grid-column: 1 / -1;
+
+.gimi-leaderboard-card {
+    &.is-full-width {
+        grid-column: 1 / -1;
+    }
 }
 
-@media (max-width: 991.98px) {
-    .gimi-leaderboard-card.is-full-width {
-        grid-column: auto;
-    }
+.gimi-leaderboard-table {
+    margin-bottom: 0;
 }

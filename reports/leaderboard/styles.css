@@ -131,10 +131,10 @@
   font-weight: 700;
 }
 
-#gimi-leaderboard-table {
+.gimi-leaderboard-table {
   margin-bottom: 0;
 }
-#gimi-leaderboard-table thead th {
+.gimi-leaderboard-table thead th {
   border-top: 0;
   border-bottom: 1px solid #e2e8f0;
   color: #475569;
@@ -142,7 +142,7 @@
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
-#gimi-leaderboard-table tbody td {
+.gimi-leaderboard-table tbody td {
   vertical-align: middle;
   border-color: #eef2f7;
 }
@@ -205,14 +205,13 @@
   color: #64748b;
 }
 
-.gimi-leaderboard-card.is-full-width {
-  grid-column: 1/-1;
-}
-
-@media (max-width: 991.98px) {
-  .gimi-leaderboard-card.is-full-width {
-    grid-column: auto;
-  }
-}
-
 /*# sourceMappingURL=styles.css.map */
+
+
+.gimi-leaderboard-card.is-full-width {
+  grid-column: 1 / -1;
+}
+
+.gimi-leaderboard-table {
+  margin-bottom: 0;
+}
