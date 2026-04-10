@@ -5,6 +5,7 @@ namespace local_gimidashboard\report;
 use core_plugin_manager;
 use Exception;
 use local_gimidashboard\access\config;
+use local_gimidashboard\plugin_metadata;
 use moodle_url;
 
 /**
@@ -29,6 +30,7 @@ class report_manager {
                 "name" => $name,
                 "displayname" => get_string("pluginname", $component),
                 "classname" => "\\{$component}\\report",
+                "release" => plugin_metadata::get_report_release($name),
             ];
         }
 
@@ -199,6 +201,7 @@ class report_manager {
                     "component" => $component,
                     "header" => $classname::get_header($courses, $reportlink),
                     "content" => $content,
+                    "release" => $report['release'],
                 ]),
             ];
         }
