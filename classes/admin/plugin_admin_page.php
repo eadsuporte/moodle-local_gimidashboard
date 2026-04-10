@@ -25,6 +25,7 @@
 namespace local_gimidashboard\admin;
 
 use context_system;
+use core_plugin_manager;
 use flexible_table;
 use html_writer;
 use local_gimidashboard\report\report_manager;
@@ -144,7 +145,14 @@ class plugin_admin_page {
                     "target" => "_blank",
                 ]
             );
-            $pluginmeta = html_writer::tag("small", s($component), ["class" => "text-muted d-block mt-1"]);
+            $plugininfo = core_plugin_manager::instance()->get_plugin_info($component);
+            $version = $plugininfo && !empty($plugininfo->versiondisk) ? (string) $plugininfo->versiondisk : get_string("unknown", "admin");
+            $pluginmeta = html_writer::tag("small", s($component), ["class" => "text-muted d-block mt-1"]) .
+                html_writer::tag(
+                    "small",
+                    get_string("version", "local_gimidashboard") . ": " . s($version),
+                    ["class" => "text-muted d-block"]
+                );
 
             $actions = [];
             if ($index > 0) {
