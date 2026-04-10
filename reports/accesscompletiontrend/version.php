@@ -22,10 +22,10 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined("MOODLE_INTERNAL") || die();
+defined('MOODLE_INTERNAL') || die;
 
+$plugin->version = 2026041000;
+$plugin->release = "1.0.1";
 $plugin->component = "gimidashboardreports_accesscompletiontrend";
-$plugin->version = 2026032400;
 $plugin->requires = 2024042200;
 $plugin->maturity = MATURITY_STABLE;
-$plugin->release = "0.1.0";

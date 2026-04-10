@@ -414,7 +414,7 @@ local/gimidashboard/reports/learnerprogress/
 ```php
 <?php
 
-defined("MOODLE_INTERNAL") || die();
+defined('MOODLE_INTERNAL') || die;
 
 $plugin->component = "gimidashboardreports_learnerprogress";
 $plugin->version = 2026032400;
