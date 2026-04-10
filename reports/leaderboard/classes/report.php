@@ -117,7 +117,7 @@ class report implements report_interface {
      * @throws Exception
      */
     public static function render(array $courses): string {
-        global $OUTPUT;
+        global $OUTPUT, $PAGE;
 
         $reportdata = self::prepare_report_data($courses);
 
