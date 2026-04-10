@@ -2607,3 +2607,11 @@ a[href="https://conecti.me"] {
 }
 
 /*# sourceMappingURL=styles.css.map */
+
+
+.local-gimidashboard .gimi-version-badge {
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  padding: 0.5rem 0.85rem;
+}
