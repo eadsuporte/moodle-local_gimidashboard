@@ -91,8 +91,9 @@
     }
     .gimi-leaderboard-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
         gap: 18px;
+        grid-auto-flow: row;
+        //grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
     }
     .gimi-leaderboard-card {
         padding: 18px;
