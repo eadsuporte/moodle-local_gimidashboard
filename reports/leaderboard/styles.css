@@ -5,7 +5,7 @@
 .gimi-leaderboard-report .dt-search,
 .gimi-leaderboard-report .dt-layout-cell.dt-layout-start,
 .gimi-leaderboard-report .dt-layout-cell.dt-layout-end {
-  display: none;
+  display: none !important;
 }
 .gimi-leaderboard-report .gimi-leaderboard-notice,
 .gimi-leaderboard-report .gimi-leaderboard-help {

@@ -4,7 +4,7 @@
     .dt-search,
     .dt-layout-cell.dt-layout-start,
     .dt-layout-cell.dt-layout-end {
-        display: none;
+        display: none !important;
     }
     .gimi-leaderboard-notice,
     .gimi-leaderboard-help {
