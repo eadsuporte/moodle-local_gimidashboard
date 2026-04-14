@@ -49,7 +49,6 @@
     'use strict';
     var DataTable = $.fn.dataTable;
 
-
     $.extend(DataTable.ext.buttons, {
         // A collection of column visibility buttons
         colvis: function (dt, conf) {
@@ -255,7 +254,6 @@
             hide: []
         }
     });
-
 
     return DataTable;
 }));

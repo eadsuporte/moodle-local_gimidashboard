@@ -59,7 +59,7 @@ class report implements report_interface {
      * @return bool
      */
     public static function supports_category(): bool {
-        return false;
+        return true;
     }
 
     /**
@@ -251,7 +251,7 @@ class report implements report_interface {
             $base->boards = [
                 self::build_pathway_best_grade_board($users, $usercourses, $grades),
                 self::build_pathway_progress_board($users, $usercourses, $moduletotals, $completedmodules, $completions),
-                self::build_pathway_fastest_board($users, $usercourses, $firstaccesstimes, $certificatetimes, $coursenames),
+                // self::build_pathway_fastest_board($users, $usercourses, $firstaccesstimes, $certificatetimes, $coursenames),
             ];
         }
 
@@ -966,8 +966,7 @@ class report implements report_interface {
             $rows,
             false,
             false,
-            true,
-            "is-full-width"
+            true
         );
     }
 
@@ -1144,7 +1143,6 @@ class report implements report_interface {
      * @param bool $rankall Whether everyone is ranked.
      * @param bool $descending Whether higher is better.
      * @param bool $hideunranked Hide unranked rows.
-     * @param string $boardclass Extra CSS class.
      * @return array
      * @throws \coding_exception
      */
@@ -1155,8 +1153,7 @@ class report implements report_interface {
         array $rows,
         bool $rankall,
         bool $descending,
-        bool $hideunranked = false,
-        string $boardclass = ""
+        bool $hideunranked = false
     ): array {
         $rows = self::rank_rows($rows, $rankall, $descending);
 
@@ -1170,7 +1167,6 @@ class report implements report_interface {
             "title" => $title,
             "description" => $description,
             "scopebadge" => $scopebadge,
-            "boardclass" => $boardclass,
             "hasrows" => !empty($rows),
             "rows" => array_slice($rows, 0, 5),
             "emptymessage" => get_string("emptyboard", "gimidashboardreports_leaderboard"),

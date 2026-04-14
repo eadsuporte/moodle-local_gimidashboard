@@ -49,7 +49,6 @@
     'use strict';
     var DataTable = $.fn.dataTable;
 
-
     var _link = document.createElement('a');
 
     /**

@@ -45,7 +45,6 @@
     'use strict';
     var DataTable = $.fn.dataTable;
 
-
     // Used for namespacing events added to the document by each instance, so they
     // can be removed on destroy
     var _instCounter = 0;

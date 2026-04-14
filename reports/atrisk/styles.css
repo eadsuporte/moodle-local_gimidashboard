@@ -10,10 +10,6 @@
   color: #1e3a8a;
   font-size: 0.92rem;
 }
-.gimi-atrisk-report .gimi-atrisk-kpis,
-.gimi-atrisk-report .gimi-atrisk-engagement-kpis {
-  margin-bottom: 1rem;
-}
 .gimi-atrisk-report .gimi-atrisk-engagement-chart {
   width: 100%;
   overflow-x: auto;

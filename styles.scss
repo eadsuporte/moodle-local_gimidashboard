@@ -269,9 +269,9 @@
     .gimi-kpi {
         &-grid {
             display: grid;
-            grid-template-columns: repeat(6, minmax(0, 1fr));
-            gap: 0.9rem;
-            margin-bottom: 1.25rem;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 14px;
+            margin-bottom: 20px;
             @media (max-width: 1199.98px) {
                 grid-template-columns: repeat(3, minmax(0, 1fr));
             }
@@ -315,7 +315,6 @@ a[href="https://conecti.me"] {
     display: none !important;
     visibility: hidden !important;
 }
-
 
 .local-gimidashboard-admin {
     .generaltable {
@@ -440,7 +439,6 @@ a[href="https://conecti.me"] {
         }
     }
 }
-
 
     .gimi-version-badge {
         font-size: 0.78rem;

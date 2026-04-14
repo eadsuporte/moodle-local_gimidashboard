@@ -14,10 +14,18 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/**
+ * version.php
+ *
+ * @package   gimidashboardreports_gradebookoverview
+ * @copyright 2026 Eduardo Kraus {@link https://eduardokraus.com}
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 defined('MOODLE_INTERNAL') || die;
 
+$plugin->version = 2026041300;
+$plugin->release = "1.0.0";
 $plugin->component = "gimidashboardreports_gradebookoverview";
-$plugin->version = 2026040800;
 $plugin->requires = 2023042400;
 $plugin->maturity = MATURITY_STABLE;
-$plugin->release = "0.1.0";

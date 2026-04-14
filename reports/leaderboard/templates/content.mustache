@@ -43,7 +43,7 @@
     {{/showpathwayoptions}}
 
     {{#haskpis}}
-        <div class="gimi-leaderboard-kpis gimi-kpi-grid">
+        <div class="gimi-leaderboard-kpis">
             {{#kpis}}
                 <div class="gimi-leaderboard-kpi gimi-kpi-card">
                     <div class="gimi-leaderboard-kpi-label gimi-kpi-card-label">{{label}}</div>
@@ -56,13 +56,12 @@
     {{#hasboards}}
         <div class="gimi-leaderboard-grid">
             {{#boards}}
-                <section class="gimi-leaderboard-card {{boardclass}}">
+                <section class="gimi-leaderboard-card">
                     <div class="gimi-leaderboard-card-head">
                         <div>
                             <h4>{{title}}</h4>
                             <p>{{description}}</p>
                         </div>
-                        <div class="gimi-leaderboard-badge">{{scopebadge}}</div>
                     </div>
 
                     {{#hasrows}}

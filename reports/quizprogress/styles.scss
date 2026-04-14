@@ -8,7 +8,6 @@
         color: #1e3a8a;
         font-size: 0.92rem;
     }
-
     .gimi-quizprogress-toolbar {
         display: flex;
         flex-wrap: wrap;
@@ -17,19 +16,16 @@
         gap: 0.75rem;
         margin-bottom: 1rem;
     }
-
     .gimi-toolbar-title {
         font-size: 0.92rem;
         font-weight: 700;
         color: #334155;
     }
-
     .gimi-toolbar-actions {
         display: flex;
         flex-wrap: wrap;
         gap: 0.55rem;
     }
-
     .gimi-pathway-chip {
         display: inline-flex;
         align-items: center;
@@ -37,32 +33,28 @@
         padding: 0.45rem 0.85rem;
         border-radius: 999px;
         border: 1px solid rgba(15, 23, 42, 0.08);
-        background: #fff;
+        background: #ffffff;
         color: #0f172a;
         text-decoration: none;
         font-size: 0.88rem;
         transition: all 0.15s ease;
-
         &:hover,
         &:focus {
             text-decoration: none;
             border-color: rgba(37, 99, 235, 0.35);
         }
-
         &.is-active {
             background: #2563eb;
             border-color: #2563eb;
-            color: #fff;
+            color: #ffffff;
         }
     }
-
     .gimi-filter-bar {
         display: flex;
         flex-wrap: wrap;
         gap: 0.6rem;
         margin-bottom: 1rem;
     }
-
     .gimi-filter-pill {
         display: inline-flex;
         align-items: center;
@@ -73,33 +65,24 @@
         background: #f8fafc;
         color: #0f172a;
         font-size: 0.88rem;
-
         strong {
             font-weight: 800;
         }
-
         a {
             color: #2563eb;
             text-decoration: none;
-
             &:hover,
             &:focus {
                 text-decoration: underline;
             }
         }
     }
-
-    .gimi-quizprogress-kpis {
-        margin-bottom: 1rem;
-    }
-
     .gimi-quizprogress-section {
         margin-top: 1.15rem;
         padding: 1rem;
         border: 1px solid rgba(15, 23, 42, 0.06);
         border-radius: 1rem;
-        background: #fff;
-
+        background: #ffffff;
         h4 {
             margin-bottom: 0.9rem;
             font-size: 1rem;
@@ -107,29 +90,23 @@
             color: #0f172a;
         }
     }
-
     .gimi-quizprogress-table {
         margin-bottom: 0;
-
         th {
             white-space: nowrap;
         }
-
         td {
             vertical-align: top;
         }
     }
-
     .gimi-quizprogress-learner-name {
         font-weight: 700;
         color: #0f172a;
     }
-
     .gimi-quizprogress-learner-email {
         color: #64748b;
         font-size: 0.88rem;
     }
-
     .gimi-status-pill {
         display: inline-flex;
         align-items: center;
@@ -140,28 +117,23 @@
         font-weight: 700;
         letter-spacing: 0.02em;
         text-transform: uppercase;
-
         &.is-empty {
             background: #e2e8f0;
             color: #334155;
         }
-
         &.is-progress {
             background: #fef3c7;
             color: #92400e;
         }
-
         &.is-engaged {
             background: #dbeafe;
             color: #1d4ed8;
         }
-
         &.is-complete {
             background: #dcfce7;
             color: #166534;
         }
     }
-
     @media (max-width: 767.98px) {
         .gimi-quizprogress-toolbar {
             align-items: flex-start;

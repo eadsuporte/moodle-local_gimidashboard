@@ -54,7 +54,6 @@
     'use strict';
     var DataTable = $.fn.dataTable;
 
-
     // Allow the constructor to pass in JSZip and PDFMake from external requires.
     // Otherwise, use globally defined variables, if they are available.
     var useJszip;
@@ -1440,7 +1439,6 @@
             if (config.customizeZip) {
                 config.customizeZip(zip, data, filename);
             }
-
 
             if (zip.generateAsync) {
                 // JSZip 3+

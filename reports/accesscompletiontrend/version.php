@@ -24,7 +24,7 @@
 
 defined('MOODLE_INTERNAL') || die;
 
-$plugin->version = 2026041000;
+$plugin->version = 2026041300;
 $plugin->release = "1.0.1";
 $plugin->component = "gimidashboardreports_accesscompletiontrend";
 $plugin->requires = 2024042200;

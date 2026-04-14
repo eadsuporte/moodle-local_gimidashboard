@@ -25,7 +25,6 @@
 namespace local_gimidashboard\admin;
 
 use context_system;
-use core_plugin_manager;
 use flexible_table;
 use html_writer;
 use local_gimidashboard\report\report_manager;
@@ -41,6 +40,10 @@ class plugin_admin_page {
      * Processes enable, disable and ordering actions.
      *
      * @return void
+     * @throws \coding_exception
+     * @throws \dml_exception
+     * @throws \moodle_exception
+     * @throws \required_capability_exception
      */
     public function handle_actions(): void {
         $action = optional_param("action", "", PARAM_ALPHA);
@@ -68,6 +71,8 @@ class plugin_admin_page {
      * Configures the page object.
      *
      * @return void
+     * @throws \coding_exception
+     * @throws \dml_exception
      */
     public function set_page(): void {
         global $PAGE;
@@ -83,6 +88,9 @@ class plugin_admin_page {
      * Exports template data for the admin page.
      *
      * @return array
+     * @throws \coding_exception
+     * @throws \core\exception\moodle_exception
+     * @throws \dml_exception
      */
     public function export_for_template(): array {
         return [
@@ -97,6 +105,9 @@ class plugin_admin_page {
      * Renders the plugins table.
      *
      * @return string
+     * @throws \coding_exception
+     * @throws \core\exception\moodle_exception
+     * @throws \dml_exception
      */
     protected function render_table(): string {
         $table = new flexible_table("local-gimidashboard-admin-plugins");
@@ -145,14 +156,7 @@ class plugin_admin_page {
                     "target" => "_blank",
                 ]
             );
-            $plugininfo = core_plugin_manager::instance()->get_plugin_info($component);
-            $version = $plugininfo && !empty($plugininfo->versiondisk) ? (string) $plugininfo->versiondisk : get_string("unknown", "admin");
-            $pluginmeta = html_writer::tag("small", s($component), ["class" => "text-muted d-block mt-1"]) .
-                html_writer::tag(
-                    "small",
-                    get_string("version", "local_gimidashboard") . ": " . s($version),
-                    ["class" => "text-muted d-block"]
-                );
+            $pluginmeta = html_writer::tag("small", s($component), ["class" => "text-muted d-block mt-1"]);
 
             $actions = [];
             if ($index > 0) {
@@ -203,7 +207,9 @@ class plugin_admin_page {
                 ]
             );
 
-            $statuslabel = $enabled ? get_string("enabled", "local_gimidashboard") : get_string("disabled", "local_gimidashboard");
+            $statuslabel = $enabled ?
+                html_writer::tag("small", get_string("enabled", "local_gimidashboard"), ["class" => "badge badge-success"]):
+                html_writer::tag("small", get_string("disabled", "local_gimidashboard"), ["class" => "badge badge-danger"]);
             $statusclass =
                 $enabled ? "local-gimidashboard-admin-status is-enabled" : "local-gimidashboard-admin-status is-disabled";
 

@@ -25,7 +25,7 @@
     <div class="gimi-atrisk-section">
         <div class="gimi-atrisk-note">{{#str}}heuristicnote, gimidashboardreports_atrisk{{/str}}</div>
 
-        <div class="gimi-atrisk-kpis gimi-kpi-grid"
+        <div class="gimi-kpi-grid"
              style="grid-template-columns: repeat(5, minmax(0, 1fr));">
             {{#kpis}}
                 <div class="gimi-atrisk-kpi gimi-kpi-card">
@@ -117,8 +117,7 @@
                 </div>
             </div>
 
-            <div class="gimi-atrisk-engagement-kpis gimi-kpi-grid"
-                 style="grid-template-columns: repeat(4, minmax(0, 1fr));">
+            <div class="gimi-kpi-grid">
                 {{#engagementkpis}}
                     <div class="gimi-kpi-card">
                         <div class="gimi-kpi-card-label">{{label}}</div>
