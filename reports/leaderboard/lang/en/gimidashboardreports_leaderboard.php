@@ -25,7 +25,7 @@
 $string['autopathway'] = 'Pathway auto-selected because only one linked pathway was found.';
 $string['bestgrade'] = 'Best Grade';
 $string['bestgradedesccourse'] = 'Course score for the selected course only.';
-$string['bestgradedescpathway'] = 'Average graded score across pathway courses where a score exists and is greater than zero.';
+$string['bestgradedescpathway'] = 'Average normalized course score across pathway courses where a score exists.';
 $string['certissuedon'] = 'Issued on {$a}';
 $string['choosepathway'] = 'Choose one pathway to lock the leaderboard scope before ranking learners.';
 $string['course'] = 'Course';
