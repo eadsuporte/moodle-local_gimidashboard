@@ -149,7 +149,7 @@ class report implements report_interface {
             "showpathwayoptions" => !empty($reportdata->pathwayoptions),
             "pathwayoptions" => $reportdata->pathwayoptions,
             "hasclearpathway" => $reportdata->cohortid > 0 && count($reportdata->pathwayoptions) > 1,
-            "clearpathwayurl" => self::build_url($reportdata->selection->target),
+            "clearpathwayurl" => self::build_url($reportdata->selection->target, 0, false),
             "haskpis" => !empty($reportdata->kpis),
             "kpis" => $reportdata->kpis,
             "hasboards" => !empty($reportdata->boards),
@@ -1060,7 +1060,8 @@ class report implements report_interface {
      * @return array
      * @throws \coding_exception
      */
-    protected static function build_course_fastest_board(array $users, array $firstaccesstimes, array $certificatetimes, int $courseid
+    protected static function build_course_fastest_board(
+        array $users, array $firstaccesstimes, array $certificatetimes, int $courseid
     ): array {
         $rows = [];
         foreach ($users as $userid => $user) {
@@ -1337,7 +1338,6 @@ class report implements report_interface {
         ];
     }
 
-
     /**
      * Formats an elapsed duration using days, hours, minutes and seconds.
      *
@@ -1388,16 +1388,19 @@ class report implements report_interface {
      *
      * @param string $target Target.
      * @param int $cohortid Cohort id.
+     * @param bool $showplugin
      * @return moodle_url
-     * @throws Exception
+     * @throws \core\exception\moodle_exception
      */
-    protected static function build_url(string $target, int $cohortid = 0): moodle_url {
+    protected static function build_url(string $target, int $cohortid = 0, $showplugin = true): moodle_url {
         $params = [];
         if ($cohortid > 0) {
             $params["cohortid"] = $cohortid;
         }
+        if ($showplugin) {
+            $params["plugin"] = "leaderboard";
+        }
         $params["target"] = $target;
-        $params["plugin"] = "leaderboard";
 
         return new moodle_url("/local/gimidashboard/", $params);
     }
