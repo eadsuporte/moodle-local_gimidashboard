@@ -81,8 +81,8 @@ class report implements report_interface {
             userdate(time(), get_string("strftimedatefullshort", "langconfig"))
         );
 
-        $pageLength = optional_param("plugin", false, PARAM_COMPONENT) ? 50 : 5;
-        $PAGE->requires->js_call_amd("local_gimidashboard/dashboard", "datatable", [".gimi-quizprogress-table", $pageLength]);
+        $pagelength = optional_param("plugin", false, PARAM_COMPONENT) ? 50 : 5;
+        $PAGE->requires->js_call_amd("local_gimidashboard/dashboard", "datatable", [".gimi-quizprogress-table", $pagelength]);
 
         return $OUTPUT->render_from_template("local_gimidashboard/content_title", [
             "academyname" => $academyname,
@@ -335,7 +335,8 @@ class report implements report_interface {
             $errrate = (int) $row->responsecount > 0 ? ((int) $row->wrongcount / (int) $row->responsecount) * 100 : 0;
 
             return [
-                "questionname" => format_string(trim((string) $row->questionname) !== "" ? $row->questionname : "#" . $row->questionid),
+                "questionname" => format_string(trim((string) $row->questionname) !== "" ?
+                    $row->questionname : "#" . $row->questionid),
                 "quizname" => format_string($row->quizname),
                 "coursename" => format_string($row->coursename, true, ["context" => context_course::instance($row->courseid)]),
                 "wrongcount" => (int) $row->wrongcount,
@@ -869,7 +870,9 @@ class report implements report_interface {
         return [
             "learnername" => fullname($user),
             "email" => s($user->email),
-            "cohortsdisplay" => !empty($cohorts) ? s(implode(", ", $cohorts)) : get_string("notavailable", "gimidashboardreports_quizprogress"),
+            "cohortsdisplay" => !empty($cohorts) ?
+                s(implode(", ", $cohorts)) :
+                get_string("notavailable", "gimidashboardreports_quizprogress"),
             "lastaccessdisplay" => $lastaccess > 0
                 ? userdate($lastaccess, get_string("strftimedatetime", "langconfig"))
                 : get_string("never", "gimidashboardreports_quizprogress"),

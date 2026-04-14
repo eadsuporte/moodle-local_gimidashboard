@@ -115,9 +115,9 @@ class report implements report_interface {
             return "";
         }
 
-        $pageLength = optional_param("plugin", false, PARAM_COMPONENT) ? 50 : 5;
-        $PAGE->requires->js_call_amd("local_gimidashboard/dashboard", "datatable", ["#gimi-atrisk-table", $pageLength]);
-        $PAGE->requires->js_call_amd("local_gimidashboard/dashboard", "datatable", ["#gimi-atrisk-engagement-table", $pageLength]);
+        $pagelength = optional_param("plugin", false, PARAM_COMPONENT) ? 50 : 5;
+        $PAGE->requires->js_call_amd("local_gimidashboard/dashboard", "datatable", ["#gimi-atrisk-table", $pagelength]);
+        $PAGE->requires->js_call_amd("local_gimidashboard/dashboard", "datatable", ["#gimi-atrisk-engagement-table", $pagelength]);
 
         return $OUTPUT->render_from_template("gimidashboardreports_atrisk/content", [
             "kpis" => [

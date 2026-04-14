@@ -446,7 +446,8 @@ class report implements report_interface {
                 "activitylabel" => $activityname,
                 "activitymodule" => s($record->itemmodule ?? ""),
                 "activityurl" => $activityurl,
-                "teacher" => s($teacherbycourse[$record->courseid] ?? get_string("notavailable", "gimidashboardreports_gradebookoverview")),
+                "teacher" => s($teacherbycourse[$record->courseid] ??
+                    get_string("notavailable", "gimidashboardreports_gradebookoverview")),
                 "enrolledcount" => $enrolledcount,
                 "gradedcount" => $gradedcount,
                 "gradedcountdisplay" => format_float($gradedcount, 0),
@@ -577,7 +578,8 @@ class report implements report_interface {
                 "completionrateraw" => $completionrate,
                 "completionrate" => self::format_percent($completionrate),
                 "gradingrateraw" => $activitycount > 0 ? round(($gradedcount / $activitycount) * 100, 1) : 0.0,
-                "gradingrate" => $activitycount > 0 ? self::format_percent(round(($gradedcount / $activitycount) * 100, 1)) : self::format_percent(0),
+                "gradingrate" => $activitycount > 0 ?
+                    self::format_percent(round(($gradedcount / $activitycount) * 100, 1)) : self::format_percent(0),
                 "filterurl" => self::build_url(
                     $selection,
                     $activityid,
@@ -694,7 +696,8 @@ class report implements report_interface {
             $learnername = trim($record->firstname . " " . $record->lastname);
             $gradedby = trim(($record->graderfirstname ?? "") . " " . ($record->graderlastname ?? ""));
             if ($gradedby === "") {
-                $gradedby = $teacherbycourse[$record->courseid] ?? get_string("notavailable", "gimidashboardreports_gradebookoverview");
+                $gradedby = $teacherbycourse[$record->courseid] ??
+                    get_string("notavailable", "gimidashboardreports_gradebookoverview");
             }
             $activityurl = null;
             if (!empty($record->cmid) && !empty($record->itemmodule)) {
@@ -822,8 +825,10 @@ class report implements report_interface {
         return (object) [
             "trackedactivities" => count($activityrows),
             "gradedlearners" => $gradedlearners,
-            "overallaverage" => !empty($averagevalues) ? round(array_sum($averagevalues) / count($averagevalues), 1) : null,
-            "averagecompletion" => !empty($completionvalues) ? round(array_sum($completionvalues) / count($completionvalues), 1) : 0,
+            "overallaverage" => !empty($averagevalues) ?
+                round(array_sum($averagevalues) / count($averagevalues), 1) : null,
+            "averagecompletion" => !empty($completionvalues) ?
+                round(array_sum($completionvalues) / count($completionvalues), 1) : 0,
             "lowestactivitylabel" => $lowestactivitylabel,
             "graderecords" => $graderecords,
             "activitieswithgrades" => $activitieswithgrades,
@@ -914,9 +919,9 @@ class report implements report_interface {
             ];
         }
 
-        $pageLength = optional_param("plugin", false, PARAM_COMPONENT) ? 50 : 5;
+        $pagelength = optional_param("plugin", false, PARAM_COMPONENT) ? 50 : 5;
         $PAGE->requires->js_call_amd(
-            "local_gimidashboard/dashboard", "datatable", ["#gradebookoverview-activity-table", $pageLength]
+            "local_gimidashboard/dashboard", "datatable", ["#gradebookoverview-activity-table", $pagelength]
         );
         return $OUTPUT->render_from_template("gimidashboardreports_gradebookoverview/activity_table", $templatecontext);
     }
@@ -965,9 +970,9 @@ class report implements report_interface {
             ];
         }
 
-        $pageLength = optional_param("plugin", false, PARAM_COMPONENT) ? 50 : 5;
+        $pagelength = optional_param("plugin", false, PARAM_COMPONENT) ? 50 : 5;
         $PAGE->requires->js_call_amd(
-            "local_gimidashboard/dashboard", "datatable", ["#gradebookoverview-learner-table", $pageLength]
+            "local_gimidashboard/dashboard", "datatable", ["#gradebookoverview-learner-table", $pagelength]
         );
         return $OUTPUT->render_from_template("gimidashboardreports_gradebookoverview/learner_table", $templatecontext);
     }
@@ -1015,9 +1020,9 @@ class report implements report_interface {
             "emptymessage" => get_string("nodata", "gimidashboardreports_gradebookoverview"),
         ];
 
-        $pageLength = optional_param("plugin", false, PARAM_COMPONENT) ? 50 : 5;
+        $pagelength = optional_param("plugin", false, PARAM_COMPONENT) ? 50 : 5;
         $PAGE->requires->js_call_amd(
-            "local_gimidashboard/dashboard", "datatable", ["#gradebookoverview-detail-table", $pageLength]
+            "local_gimidashboard/dashboard", "datatable", ["#gradebookoverview-detail-table", $pagelength]
         );
         return $OUTPUT->render_from_template("gimidashboardreports_gradebookoverview/detail_table", $templatecontext);
     }

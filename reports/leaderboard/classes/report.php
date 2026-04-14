@@ -140,8 +140,8 @@ class report implements report_interface {
             $message = get_string("scopenotice", "gimidashboardreports_leaderboard");
         }
 
-        $pageLength = optional_param("plugin", false, PARAM_COMPONENT) ? 50 : 5;
-        $PAGE->requires->js_call_amd("local_gimidashboard/dashboard", "datatable", ["#gimi-leaderboard-table", $pageLength]);
+        $pagelength = optional_param("plugin", false, PARAM_COMPONENT) ? 50 : 5;
+        $PAGE->requires->js_call_amd("local_gimidashboard/dashboard", "datatable", ["#gimi-leaderboard-table", $pagelength]);
         return $OUTPUT->render_from_template("gimidashboardreports_leaderboard/content", [
             "hasmessage" => $message !== "",
             "message" => $message,
@@ -235,10 +235,8 @@ class report implements report_interface {
         $completedmodules = self::get_completed_module_totals($courseids, $userids);
         $grades = self::get_course_grade_percentages($courseids, $userids);
         $completions = self::get_course_completions($courseids, $userids);
-        //$enroltimes = self::get_enrolment_times($courseids, $userids);
         $firstaccesstimes = self::get_first_course_access_times($courseids, $userids);
         $certificatetimes = self::get_certificate_issue_times($courseids, $userids);
-        $coursenames = self::get_course_names($courseids);
 
         if ($selection->type === "course") {
             $courseid = reset($courseids);
@@ -251,7 +249,6 @@ class report implements report_interface {
             $base->boards = [
                 self::build_pathway_best_grade_board($users, $usercourses, $grades),
                 self::build_pathway_progress_board($users, $usercourses, $moduletotals, $completedmodules, $completions),
-                // self::build_pathway_fastest_board($users, $usercourses, $firstaccesstimes, $certificatetimes, $coursenames),
             ];
         }
 

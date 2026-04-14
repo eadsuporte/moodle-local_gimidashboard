@@ -26,11 +26,6 @@ defined('MOODLE_INTERNAL') || die;
 
 use local_gimidashboard\settings\capability_options;
 
-/**
- * Plugin settings registration.
- *
- * @package   local_gimidashboard
- */
 if ($hassiteconfig) {
     global $CFG, $PAGE, $ADMIN;
 

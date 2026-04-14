@@ -65,28 +65,26 @@ class selection_resolver {
             $courses = access_manager::get_accessible_courses_for_category($id, $userid);
             if (!empty($courses)) {
                 $labels = category_path_formatter::get_labels([$id]);
-                return self::finalize_options(
-                    $options, $target, (object) [
+                $selection = (object) [
                     "target" => $target,
                     "type" => "category",
                     "label" => $labels[$id] ?? $id,
                     "courses" => $courses,
-                ]
-                );
+                ];
+                return self::finalize_options($options, $target, $selection);
             }
         }
 
         if ($type == "course" && $id > 0) {
             $courses = access_manager::get_accessible_courses($userid);
             if (!empty($courses[$id])) {
-                return self::finalize_options(
-                    $options, $target, (object) [
+                $selection = (object) [
                     "target" => $target,
                     "type" => "course",
                     "label" => format_string($courses[$id]->fullname, true, ["context" => context_course::instance($id)]),
                     "courses" => [$id => $courses[$id]],
-                ]
-                );
+                ];
+                return self::finalize_options($options, $target, $selection);
             }
         }
         return self::resolve($defaulttarget, $userid);

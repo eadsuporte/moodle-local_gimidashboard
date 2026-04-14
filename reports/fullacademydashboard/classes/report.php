@@ -466,7 +466,9 @@ class report implements report_interface {
         [$coursesql, $courseparams] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED, "course");
         [$usersql, $userparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, "user");
 
-        $sql = "SELECT CONCAT(cmc.userid, '-', cm.course) AS unik, cmc.userid, cm.course, COUNT(DISTINCT cmc.coursemoduleid) AS total
+        $sql = "SELECT CONCAT(cmc.userid, '-', cm.course) AS unik,
+                       cmc.userid, cm.course,
+                       COUNT(DISTINCT cmc.coursemoduleid) AS total
                   FROM {course_modules_completion} cmc
                   JOIN {course_modules} cm
                     ON cm.id = cmc.coursemoduleid
@@ -1320,9 +1322,9 @@ class report implements report_interface {
             ];
         }
 
-        $pageLength = optional_param("plugin", false, PARAM_COMPONENT) ? 50 : 5;
+        $pagelength = optional_param("plugin", false, PARAM_COMPONENT) ? 50 : 5;
         $PAGE->requires->js_call_amd(
-            "local_gimidashboard/dashboard", "datatable", ["#fullacademydashboard-summary_table", $pageLength]
+            "local_gimidashboard/dashboard", "datatable", ["#fullacademydashboard-summary_table", $pagelength]
         );
         return $OUTPUT->render_from_template(
             "gimidashboardreports_fullacademydashboard/summary_table",
@@ -1374,9 +1376,9 @@ class report implements report_interface {
             ];
         }
 
-        $pageLength = optional_param("plugin", false, PARAM_COMPONENT) ? 50 : 5;
+        $pagelength = optional_param("plugin", false, PARAM_COMPONENT) ? 50 : 5;
         $PAGE->requires->js_call_amd(
-            "local_gimidashboard/dashboard", "datatable", ["#fullacademydashboard-detail_table", $pageLength]
+            "local_gimidashboard/dashboard", "datatable", ["#fullacademydashboard-detail_table", $pagelength]
         );
         return $OUTPUT->render_from_template(
             "gimidashboardreports_fullacademydashboard/detail_table",

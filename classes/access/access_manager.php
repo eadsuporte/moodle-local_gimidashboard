@@ -347,33 +347,34 @@ class access_manager {
         }
 
         $options = [];
-        $appendcategory = static function(stdClass $category, int $level) use (&$appendcategory, &$options, $children, $coursesbycategory): void {
-            $prefix = str_repeat("&nbsp;&nbsp;&nbsp;&nbsp;", max(0, $level));
-            $prefixtitle = get_string("selectioncategory", "local_gimidashboard");
-            $name = format_string($category->name, true, ["context" => context_system::instance()]);
-            $options[] = [
-                "value" => "category-{$category->id}",
-                "name" => "{$prefix}{$prefixtitle}: {$name}",
-                "selected" => false,
-            ];
+        $appendcategory =
+            static function(stdClass $category, int $level) use (&$appendcategory, &$options, $children, $coursesbycategory): void {
+                $prefix = str_repeat("&nbsp;&nbsp;&nbsp;&nbsp;", max(0, $level));
+                $prefixtitle = get_string("selectioncategory", "local_gimidashboard");
+                $name = format_string($category->name, true, ["context" => context_system::instance()]);
+                $options[] = [
+                    "value" => "category-{$category->id}",
+                    "name" => "{$prefix}{$prefixtitle}: {$name}",
+                    "selected" => false,
+                ];
 
-            if (!empty($coursesbycategory[$category->id])) {
-                foreach ($coursesbycategory[$category->id] as $course) {
-                    $name = format_string($course->fullname, true, ["context" => context_course::instance($course->id)]);
-                    $options[] = [
-                        "value" => "course-{$course->id}",
-                        "name" => "{$prefix}&nbsp;&nbsp;&nbsp;&nbsp;{$name}",
-                        "selected" => false,
-                    ];
+                if (!empty($coursesbycategory[$category->id])) {
+                    foreach ($coursesbycategory[$category->id] as $course) {
+                        $name = format_string($course->fullname, true, ["context" => context_course::instance($course->id)]);
+                        $options[] = [
+                            "value" => "course-{$course->id}",
+                            "name" => "{$prefix}&nbsp;&nbsp;&nbsp;&nbsp;{$name}",
+                            "selected" => false,
+                        ];
+                    }
                 }
-            }
 
-            if (!empty($children[$category->id])) {
-                foreach ($children[$category->id] as $childcategory) {
-                    $appendcategory($childcategory, $level + 1);
+                if (!empty($children[$category->id])) {
+                    foreach ($children[$category->id] as $childcategory) {
+                        $appendcategory($childcategory, $level + 1);
+                    }
                 }
-            }
-        };
+            };
 
         foreach ($children[0] ?? [] as $rootcategory) {
             $appendcategory($rootcategory, 0);

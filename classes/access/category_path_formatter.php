@@ -51,9 +51,9 @@ class category_path_formatter {
 
         $allids = [];
         foreach ($selected as $category) {
-            foreach (explode("/", trim( $category->path, "/")) as $pathid) {
+            foreach (explode("/", trim($category->path, "/")) as $pathid) {
                 if ($pathid !== "") {
-                    $allids[ $pathid] =  $pathid;
+                    $allids[$pathid] = $pathid;
                 }
             }
         }
@@ -68,13 +68,12 @@ class category_path_formatter {
         $labels = [];
         foreach ($selected as $category) {
             $parts = [];
-            foreach (explode("/", trim( $category->path, "/")) as $pathid) {
-                $pathid =  $pathid;
+            foreach (explode("/", trim($category->path, "/")) as $pathid) {
                 if (!empty($allcategories[$pathid])) {
                     $parts[] = format_string($allcategories[$pathid]->name, true, ["context" => context_system::instance()]);
                 }
             }
-            $labels[ $category->id] = implode(" / ", $parts);
+            $labels[$category->id] = implode(" / ", $parts);
         }
 
         return $labels;

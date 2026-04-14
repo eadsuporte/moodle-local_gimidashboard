@@ -208,7 +208,7 @@ class plugin_admin_page {
             );
 
             $statuslabel = $enabled ?
-                html_writer::tag("small", get_string("enabled", "local_gimidashboard"), ["class" => "badge badge-success"]):
+                html_writer::tag("small", get_string("enabled", "local_gimidashboard"), ["class" => "badge badge-success"]) :
                 html_writer::tag("small", get_string("disabled", "local_gimidashboard"), ["class" => "badge badge-danger"]);
             $statusclass =
                 $enabled ? "local-gimidashboard-admin-status is-enabled" : "local-gimidashboard-admin-status is-disabled";
