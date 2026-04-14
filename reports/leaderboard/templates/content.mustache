@@ -54,7 +54,7 @@
     {{/haskpis}}
 
     {{#hasboards}}
-        <div class="gimi-leaderboard-grid">
+        <div class="gimi-leaderboard-grid-">
             {{#boards}}
                 <section class="gimi-leaderboard-card">
                     <div class="gimi-leaderboard-card-head">
@@ -80,7 +80,7 @@
                                 <tbody>
                                 {{#rows}}
                                     <tr class="{{rowclass}}">
-                                        <td>
+                                        <td data-order="{{ranksort}}">
                                             <span class="gimi-rank-pill {{rankclass}}">{{rankdisplay}}</span>
                                         </td>
                                         <td>

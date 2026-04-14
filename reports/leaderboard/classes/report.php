@@ -1238,6 +1238,7 @@ class report implements report_interface {
             }
 
             $rows[$index]["rankdisplay"] = $rows[$index]["rank"] !== null ? (string) $rows[$index]["rank"] : "—";
+             $rows[$index]["ranksort"] = $rows[$index]["rank"] !== null ? $rows[$index]["rank"] : 999999;
             $rows[$index]["rankclass"] = self::get_rank_class($rows[$index]["rank"]);
             $rows[$index]["rowclass"] = $rows[$index]["rank"] === null ? "is-unranked" : "is-ranked";
         }
