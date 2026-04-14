@@ -29,6 +29,7 @@ use context_system;
 use Exception;
 use html_writer;
 use local_gimidashboard\page\selection_resolver;
+use local_gimidashboard\report\grade;
 use local_gimidashboard\report\report_interface;
 use moodle_url;
 use stdClass;
@@ -203,7 +204,7 @@ class report implements report_interface {
             $completedmodules = self::get_completed_module_totals($courseids, $userids);
             $day1completedmodules = self::get_day1_completed_module_totals($courseids, $userids);
             $firstaccesstimes = self::get_first_course_access_times($courseids, $userids);
-            $gradepercentages = self::get_course_grade_percentages($courseids, $userids);
+            $gradepercentages = grade::get_course_grade_percentages($courseids, $userids);
             $completions = self::get_course_completions($courseids, $userids);
             $certificatecounts = self::get_certificate_counts($courseids, $userids);
             $examcounts = self::get_exam_counts($courseids, $userids);
@@ -595,54 +596,6 @@ class report implements report_interface {
         $result = [];
         foreach ($records as $record) {
             $result[$record->userid][$record->course] = $record->total;
-        }
-
-        return $result;
-    }
-
-    /**
-     * Returns course grade percentages by user and course.
-     *
-     * @param array $courseids Course ids.
-     * @param array $userids User ids.
-     * @return array
-     * @throws Exception
-     */
-    protected static function get_course_grade_percentages(array $courseids, array $userids): array {
-        global $DB;
-
-        if (empty($userids)) {
-            return [];
-        }
-
-        [$coursesql, $courseparams] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED, "course");
-        [$usersql, $userparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, "user");
-        $params = $courseparams + $userparams + self::get_exam_name_like_params(2);
-
-        $sql = "SELECT gg.userid,
-                       gi.courseid,
-                       AVG(CASE
-                               WHEN gg.finalgrade IS NULL THEN NULL
-                               WHEN gi.grademax <= gi.grademin THEN NULL
-                               ELSE ((gg.finalgrade - gi.grademin) / (gi.grademax - gi.grademin)) * 100
-                           END) AS gradepercent
-                  FROM {grade_items}  gi
-                  JOIN {grade_grades} gg ON gg.itemid = gi.id
-             LEFT JOIN {quiz}         q  ON q.id = gi.iteminstance AND gi.itemmodule = 'quiz'
-                 WHERE gi.courseid     {$coursesql}
-                   AND gg.userid       {$usersql}
-                   AND gi.itemtype   = 'mod'
-                   AND gi.itemmodule = 'quiz'
-                   AND gi.hidden = 0
-                   AND " . self::get_exam_name_sql("COALESCE(gi.itemname, '')", "COALESCE(q.name, '')") . "
-              GROUP BY gg.userid, gi.courseid";
-
-        $records = $DB->get_records_sql($sql, $params);
-        $result = [];
-        foreach ($records as $record) {
-            $result[$record->userid][$record->courseid] = is_null($record->gradepercent)
-                ? null
-                : round((float) $record->gradepercent, 1);
         }
 
         return $result;
