@@ -28,7 +28,7 @@ require_once($CFG->libdir . "/tablelib.php");
 
 use local_gimidashboard\admin\plugin_admin_page;
 
-require_capability("moodle/site:config", context_system::instance());
+require_admin();
 
 $page = new plugin_admin_page();
 $page->handle_actions();
