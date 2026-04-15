@@ -165,7 +165,7 @@ class report implements report_interface {
      * @return object
      * @throws Exception
      */
-    protected static function prepare_report_data(array $courses): object {
+    protected static function prepare_report_data(array $courses=[]): object {
         global $USER;
 
         static $cache = null;
@@ -786,7 +786,7 @@ class report implements report_interface {
             );
         }
 
-        return self::build_board(
+        $board = self::build_board(
             get_string("bestgrade", "gimidashboardreports_leaderboard"),
             get_string("bestgradedescpathway", "gimidashboardreports_leaderboard"),
             get_string("pathwayleaderboard", "gimidashboardreports_leaderboard"),
@@ -794,6 +794,9 @@ class report implements report_interface {
             false,
             true
         );
+        $board["value_title"] = get_string("gradenoun");
+
+        return $board;
     }
 
     /**
@@ -806,6 +809,7 @@ class report implements report_interface {
      * @param array $completions Course completions.
      * @return array
      * @throws coding_exception
+     * @throws \Exception
      */
     protected static function build_pathway_progress_board(
         array $users,
@@ -835,7 +839,7 @@ class report implements report_interface {
             );
         }
 
-        return self::build_board(
+        $board = self::build_board(
             get_string("mostprogress", "gimidashboardreports_leaderboard"),
             get_string("mostprogressdescpathway", "gimidashboardreports_leaderboard"),
             get_string("pathwayleaderboard", "gimidashboardreports_leaderboard"),
@@ -843,6 +847,14 @@ class report implements report_interface {
             true,
             true
         );
+
+        if (self::prepare_report_data()->selection->type === "course") {
+            $board["value_title"] = "Progress";
+        } else {
+            $board["value_title"] = "Avg Progress";
+        }
+
+        return $board;
     }
 
     /**
@@ -1119,6 +1131,7 @@ class report implements report_interface {
             "scopebadge" => $scopebadge,
             "hasrows" => !empty($rows),
             "rows" => array_slice($rows, 0, 5),
+            "value_title" => get_string("value", "gimidashboardreports_leaderboard"),
             "emptymessage" => get_string("emptyboard", "gimidashboardreports_leaderboard"),
         ];
     }
@@ -1190,7 +1203,7 @@ class report implements report_interface {
             }
 
             $rows[$index]["rankdisplay"] = $rows[$index]["rank"] !== null ? (string) $rows[$index]["rank"] : "—";
-             $rows[$index]["ranksort"] = $rows[$index]["rank"] !== null ? $rows[$index]["rank"] : 999999;
+            $rows[$index]["ranksort"] = $rows[$index]["rank"] !== null ? $rows[$index]["rank"] : 999999;
             $rows[$index]["rankclass"] = self::get_rank_class($rows[$index]["rank"]);
             $rows[$index]["rowclass"] = $rows[$index]["rank"] === null ? "is-unranked" : "is-ranked";
         }
