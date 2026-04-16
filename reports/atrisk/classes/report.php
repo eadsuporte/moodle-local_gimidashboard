@@ -29,6 +29,7 @@ use context_course;
 use context_system;
 use core_text;
 use Exception;
+use local_gimidashboard\local\header_helper;
 use local_gimidashboard\page\selection_resolver;
 use local_gimidashboard\report\grade;
 use local_gimidashboard\report\report_interface;
@@ -57,30 +58,16 @@ class report implements report_interface {
             return "";
         }
 
-        $academyname = strtoupper(
-            strip_tags(
-                $reportdata->selection->label !== ""
-                    ? $reportdata->selection->label
-                    : get_string("pluginname", "gimidashboardreports_atrisk")
-            )
+        return header_helper::render_standard_header(
+            get_string("pluginname", "gimidashboardreports_atrisk"),
+            $reportdata->selection,
+            $reportdata->courseids,
+            [
+                header_helper::get_scope_context_label($reportdata->selection, $reportdata->courseids),
+                get_string("flaggedlabel", "gimidashboardreports_atrisk", count($reportdata->rows)),
+            ],
+            $extra
         );
-
-        $subtitleparts = [
-            get_string("selectionlabel", "gimidashboardreports_atrisk", strip_tags($reportdata->selection->label)),
-            get_string("flaggedlabel", "gimidashboardreports_atrisk", count($reportdata->rows)),
-            get_string(
-                "snapshotlabel",
-                "gimidashboardreports_atrisk",
-                userdate(time(), get_string("strftimedatefullshort", "langconfig"))
-            ),
-        ];
-
-        return $OUTPUT->render_from_template("local_gimidashboard/content_title", [
-            "academyname" => $academyname,
-            "pluginname" => get_string("pluginname", "gimidashboardreports_atrisk"),
-            "subtitle" => implode(" • ", $subtitleparts),
-            "extra_html" => $extra,
-        ]);
     }
 
     /**

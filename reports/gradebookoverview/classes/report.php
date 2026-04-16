@@ -26,6 +26,7 @@ namespace gimidashboardreports_gradebookoverview;
 
 use context_course;
 use Exception;
+use local_gimidashboard\local\header_helper;
 use local_gimidashboard\page\selection_resolver;
 use local_gimidashboard\report\report_interface;
 use moodle_url;
@@ -52,32 +53,18 @@ class report implements report_interface {
             return "";
         }
 
-        $academyname = strtoupper(
-            strip_tags(
-                $data->selection->label !== ""
-                    ? $data->selection->label
-                    : get_string("pluginname", "gimidashboardreports_gradebookoverview")
-            )
+        return header_helper::render_standard_header(
+            get_string("pluginname", "gimidashboardreports_gradebookoverview"),
+            $data->selection,
+            $data->courseids,
+            [
+                header_helper::get_scope_context_label($data->selection, $data->courseids),
+                get_string("courseslabel", "gimidashboardreports_gradebookoverview", count($data->courseids)),
+                get_string("activitieslabel", "gimidashboardreports_gradebookoverview", count($data->activityrows)),
+                get_string("learnerslabel", "gimidashboardreports_gradebookoverview", count($data->learnerrows)),
+            ],
+            $extra
         );
-
-        $subtitleparts = [
-            get_string("selectionlabel", "gimidashboardreports_gradebookoverview", strip_tags($data->selection->label)),
-            get_string("courseslabel", "gimidashboardreports_gradebookoverview", count($data->courseids)),
-            get_string("activitieslabel", "gimidashboardreports_gradebookoverview", count($data->activityrows)),
-            get_string("learnerslabel", "gimidashboardreports_gradebookoverview", count($data->learnerrows)),
-            get_string(
-                "snapshotlabel",
-                "gimidashboardreports_gradebookoverview",
-                userdate(time(), get_string("strftimedatefullshort", "langconfig"))
-            ),
-        ];
-
-        return $OUTPUT->render_from_template("local_gimidashboard/content_title", [
-            "academyname" => $academyname,
-            "pluginname" => strtoupper(get_string("pluginname", "gimidashboardreports_gradebookoverview")),
-            "subtitle" => implode(" • ", $subtitleparts),
-            "extra_html" => $extra,
-        ]);
     }
 
     /**

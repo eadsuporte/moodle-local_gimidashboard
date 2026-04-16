@@ -22,15 +22,23 @@
     }
 }}
 
-<div class="gimi-dashboard-header">
+<div class="gimi-dashboard-header gimi-dashboard-header--{{scope_class}}">
     <div class="gimi-dashboard-header-main d-flex justify-content-between align-items-start gap-3">
         <div style="width:100%">
-            <h3>{{{academyname}}}
-                {{#pluginname}}
-                    <span class="gimi-dashboard-plugin-name">- {{{pluginname}}}</span>
-                {{/pluginname}}
-            </h3>
-            <div class="gimi-dashboard-header-sub">{{{subtitle}}}</div>
+            {{#title}}
+                <h3 class="gimi-dashboard-header-title">{{{title}}}</h3>
+            {{/title}}
+            {{^title}}
+                <h3 class="gimi-dashboard-header-title">{{{academyname}}}
+                    {{#pluginname}}
+                        <span class="gimi-dashboard-plugin-name">- {{{pluginname}}}</span>
+                    {{/pluginname}}
+                </h3>
+            {{/title}}
+
+            {{#subtitle}}
+                <div class="gimi-dashboard-header-sub">{{{subtitle}}}</div>
+            {{/subtitle}}
         </div>
         <div class="btn-group-vertical gap-2">
             {{{extra_html}}}

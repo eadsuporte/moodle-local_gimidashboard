@@ -28,6 +28,7 @@ use context_course;
 use context_system;
 use Exception;
 use html_writer;
+use local_gimidashboard\local\header_helper;
 use local_gimidashboard\page\selection_resolver;
 use local_gimidashboard\report\grade;
 use local_gimidashboard\report\report_interface;
@@ -58,31 +59,15 @@ class report implements report_interface {
             return "";
         }
 
-        $title = get_string("pluginname", "gimidashboardreports_fullacademydashboard");
-        $academyname = strtoupper(
-            strip_tags(
-                $reportdata->selection->label !== "" ? $reportdata->selection->label : $title
-            )
+        $scope = header_helper::get_scope_data($reportdata->selection, $reportdata->courseids);
+
+        return header_helper::render_standard_header(
+            header_helper::get_dashboard_title($reportdata->selection, $reportdata->courseids),
+            $reportdata->selection,
+            $reportdata->courseids,
+            [$scope->academyname],
+            $extra
         );
-
-        $subtitleparts = [];
-        if ($reportdata->pathwaycount == 1) {
-            $subtitleparts[] = get_string("allpathwayssingle", "gimidashboardreports_fullacademydashboard");
-        } else {
-            $subtitleparts[] = get_string("allpathways", "gimidashboardreports_fullacademydashboard", $reportdata->pathwaycount);
-        }
-
-        $date = userdate(time(), get_string("strftimedatefullshort", "langconfig"));
-        $subtitleparts[] = get_string("learnerscount", "gimidashboardreports_fullacademydashboard", count($reportdata->rows));
-        $subtitleparts[] = get_string("snapshotlabel", "gimidashboardreports_fullacademydashboard", $date);
-        $subtitleparts[] = get_string("poweredby", "gimidashboardreports_fullacademydashboard");
-
-        return $OUTPUT->render_from_template("local_gimidashboard/content_title", [
-            "academyname" => $academyname,
-            "pluginname" => get_string("pluginname", "gimidashboardreports_fullacademydashboard"),
-            "subtitle" => implode(" • ", $subtitleparts),
-            "extra_html" => $extra,
-        ]);
     }
 
     /**
@@ -118,7 +103,7 @@ class report implements report_interface {
             return "";
         }
 
-        return $OUTPUT->render_from_template("gimidashboardreports_fullacademydashboard/content", [
+        $mustachedata = [
             "pluginname" => strtoupper(get_string("pluginname", "gimidashboardreports_fullacademydashboard")),
             "kpis" => [
                 [
@@ -155,7 +140,8 @@ class report implements report_interface {
             "hasfilters" => !empty($reportdata->filters),
             "filters" => $reportdata->filters,
             "reseturl" => self::build_url($reportdata->selection->target),
-        ]);
+        ];
+        return $OUTPUT->render_from_template("gimidashboardreports_fullacademydashboard/content", $mustachedata);
     }
 
     /**
@@ -1276,13 +1262,8 @@ class report implements report_interface {
         }
 
         $pagelength = optional_param("plugin", false, PARAM_COMPONENT) ? 50 : 5;
-        $PAGE->requires->js_call_amd(
-            "local_gimidashboard/dashboard", "datatable", ["#fullacademydashboard-summary_table", $pagelength]
-        );
-        return $OUTPUT->render_from_template(
-            "gimidashboardreports_fullacademydashboard/summary_table",
-            $templatecontext
-        );
+        $PAGE->requires->js_call_amd("local_gimidashboard/dashboard", "datatable", ["#fullacademydashboard-summary_table", $pagelength]);
+        return $OUTPUT->render_from_template("gimidashboardreports_fullacademydashboard/summary_table", $templatecontext);
     }
 
     /**
@@ -1330,13 +1311,8 @@ class report implements report_interface {
         }
 
         $pagelength = optional_param("plugin", false, PARAM_COMPONENT) ? 50 : 5;
-        $PAGE->requires->js_call_amd(
-            "local_gimidashboard/dashboard", "datatable", ["#fullacademydashboard-detail_table", $pagelength]
-        );
-        return $OUTPUT->render_from_template(
-            "gimidashboardreports_fullacademydashboard/detail_table",
-            $templatecontext
-        );
+        $PAGE->requires->js_call_amd("local_gimidashboard/dashboard", "datatable", ["#fullacademydashboard-detail_table", $pagelength]);
+        return $OUTPUT->render_from_template("gimidashboardreports_fullacademydashboard/detail_table", $templatecontext);
     }
 
     /**

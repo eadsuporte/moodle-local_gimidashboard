@@ -32,12 +32,12 @@ if ($hassiteconfig) {
     $settings = new admin_settingpage("local_gimidashboard", get_string("pluginname", "local_gimidashboard"));
     $ADMIN->add("localplugins", $settings);
 
-    $setting = new admin_setting_configmultiselect(
-        "local_gimidashboard/reportcapabilities",
-        get_string("reportcapabilities", "local_gimidashboard"),
-        get_string("reportcapabilities_desc", "local_gimidashboard"),
-        [],
-        capability_options::get_choices()
-    );
-    $settings->add($setting);
+    //$setting = new admin_setting_configmultiselect(
+    //    "local_gimidashboard/reportcapabilities",
+    //    get_string("reportcapabilities", "local_gimidashboard"),
+    //    get_string("reportcapabilities_desc", "local_gimidashboard"),
+    //    [],
+    //    capability_options::get_choices()
+    //);
+    //$settings->add($setting);
 }

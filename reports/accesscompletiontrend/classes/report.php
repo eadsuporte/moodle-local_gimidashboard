@@ -27,6 +27,7 @@ namespace gimidashboardreports_accesscompletiontrend;
 use context_course;
 use core_text;
 use Exception;
+use local_gimidashboard\local\header_helper;
 use local_gimidashboard\page\selection_resolver;
 use local_gimidashboard\report\report_interface;
 use moodle_url;
@@ -49,18 +50,17 @@ class report implements report_interface {
         global $OUTPUT, $USER;
 
         $selection = selection_resolver::resolve(optional_param("target", "", PARAM_TEXT), $USER->id);
-        $date = userdate(time(), get_string("strftimedatefullshort", "langconfig"));
-        $subtitle = implode(" • ", [
-            get_string("range12months", "gimidashboardreports_accesscompletiontrend"),
-            get_string("selectedscope", "gimidashboardreports_accesscompletiontrend", strip_tags($selection->label ?? "")),
-            get_string("snapshotlabel", "gimidashboardreports_accesscompletiontrend", $date),
-        ]);
 
-        return $OUTPUT->render_from_template("local_gimidashboard/content_title", [
-            "academyname" => get_string("pluginname", "gimidashboardreports_accesscompletiontrend"),
-            "subtitle" => $subtitle,
-            "extra_html" => $extra,
-        ]);
+        return header_helper::render_standard_header(
+            get_string("pluginname", "gimidashboardreports_accesscompletiontrend"),
+            $selection,
+            array_keys($selection->courses ?? []),
+            [
+                header_helper::get_scope_context_label($selection, array_keys($selection->courses ?? [])),
+                get_string("range12months", "gimidashboardreports_accesscompletiontrend"),
+            ],
+            $extra
+        );
     }
 
     /**
