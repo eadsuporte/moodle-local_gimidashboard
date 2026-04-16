@@ -54,7 +54,8 @@ class grade {
                 "gradetypescale" => GRADE_TYPE_SCALE,
             ];
 
-        $sql = "SELECT gg.userid,
+        $sql = "SELECT CONCAT(gg.userid, '-', gi.courseid) as unik,
+                       gg.userid,
                        gi.courseid,
                        CASE
                            WHEN gg.finalgrade IS NULL THEN NULL
