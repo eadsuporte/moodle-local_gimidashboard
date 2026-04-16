@@ -22,9 +22,10 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace local_gimidashboard\local;
+namespace local_gimidashboard;
 
 use context_system;
+use local_gimidashboard\header_color_manager;
 use stdClass;
 
 /**
@@ -203,6 +204,7 @@ class header_helper {
      * @param array $courseids Course ids.
      * @param array $subtitleparts Subtitle fragments.
      * @param string $extrahtml Extra HTML.
+     * @param string $component
      * @return string
      * @throws \coding_exception
      * @throws \dml_exception
@@ -213,7 +215,8 @@ class header_helper {
         object $selection,
         array $courseids = [],
         array $subtitleparts = [],
-        string $extrahtml = ""
+        string $extrahtml = "",
+        string $component = ""
     ): string {
         global $OUTPUT;
 
@@ -224,6 +227,7 @@ class header_helper {
             "title" => $title,
             "subtitle" => implode(" • ", $subtitleparts),
             "scope_class" => $scope->level,
+            "header_style" => header_color_manager::get_header_style($component),
             "extra_html" => $extrahtml,
         ]);
     }

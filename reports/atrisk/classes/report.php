@@ -29,7 +29,7 @@ use context_course;
 use context_system;
 use core_text;
 use Exception;
-use local_gimidashboard\local\header_helper;
+use local_gimidashboard\header_helper;
 use local_gimidashboard\page\selection_resolver;
 use local_gimidashboard\report\grade;
 use local_gimidashboard\report\report_interface;
@@ -66,7 +66,8 @@ class report implements report_interface {
                 header_helper::get_scope_context_label($reportdata->selection, $reportdata->courseids),
                 get_string("flaggedlabel", "gimidashboardreports_atrisk", count($reportdata->rows)),
             ],
-            $extra
+            $extra,
+            "gimidashboardreports_atrisk"
         );
     }
 

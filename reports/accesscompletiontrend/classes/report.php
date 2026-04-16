@@ -27,7 +27,7 @@ namespace gimidashboardreports_accesscompletiontrend;
 use context_course;
 use core_text;
 use Exception;
-use local_gimidashboard\local\header_helper;
+use local_gimidashboard\header_helper;
 use local_gimidashboard\page\selection_resolver;
 use local_gimidashboard\report\report_interface;
 use moodle_url;
@@ -59,7 +59,8 @@ class report implements report_interface {
                 header_helper::get_scope_context_label($selection, array_keys($selection->courses ?? [])),
                 get_string("range12months", "gimidashboardreports_accesscompletiontrend"),
             ],
-            $extra
+            $extra,
+            "gimidashboardreports_accesscompletiontrend"
         );
     }
 

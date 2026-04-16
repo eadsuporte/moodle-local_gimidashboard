@@ -27,7 +27,7 @@ namespace gimidashboardreports_leaderboard;
 use coding_exception;
 use context_system;
 use Exception;
-use local_gimidashboard\local\header_helper;
+use local_gimidashboard\header_helper;
 use local_gimidashboard\page\selection_resolver;
 use local_gimidashboard\report\grade;
 use local_gimidashboard\report\report_interface;
@@ -86,7 +86,8 @@ class report implements report_interface {
                     ? get_string("learners", "gimidashboardreports_leaderboard") . ": " . $reportdata->learnercount
                     : "",
             ],
-            $extra
+            $extra,
+            "gimidashboardreports_leaderboard"
         );
     }
 

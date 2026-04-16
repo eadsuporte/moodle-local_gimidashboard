@@ -2618,6 +2618,11 @@ a[href="https://conecti.me"] {
     gap: 0.35rem;
   }
 }
+.local-gimidashboard-admin input[type=color] {
+  min-width: 63px;
+  padding: 0;
+  border: none;
+}
 
 .gimi-version-badge {
   font-size: 0.78rem;

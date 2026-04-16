@@ -28,6 +28,7 @@ use context_course;
 use context_system;
 use Exception;
 use local_gimidashboard\page\selection_resolver;
+use local_gimidashboard\header_color_manager;
 use local_gimidashboard\report\report_interface;
 use moodle_url;
 
@@ -88,6 +89,7 @@ class report implements report_interface {
             "academyname" => $academyname,
             "pluginname" => get_string("pluginname", "gimidashboardreports_quizprogress"),
             "subtitle" => implode(" • ", $subtitleparts),
+            "header_style" => header_color_manager::get_header_style("gimidashboardreports_quizprogress"),
             "extra_html" => $extra,
         ]);
     }

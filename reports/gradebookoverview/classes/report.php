@@ -26,7 +26,7 @@ namespace gimidashboardreports_gradebookoverview;
 
 use context_course;
 use Exception;
-use local_gimidashboard\local\header_helper;
+use local_gimidashboard\header_helper;
 use local_gimidashboard\page\selection_resolver;
 use local_gimidashboard\report\report_interface;
 use moodle_url;
@@ -63,7 +63,8 @@ class report implements report_interface {
                 get_string("activitieslabel", "gimidashboardreports_gradebookoverview", count($data->activityrows)),
                 get_string("learnerslabel", "gimidashboardreports_gradebookoverview", count($data->learnerrows)),
             ],
-            $extra
+            $extra,
+            "gimidashboardreports_gradebookoverview"
         );
     }
 

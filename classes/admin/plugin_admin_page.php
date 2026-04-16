@@ -25,8 +25,7 @@
 namespace local_gimidashboard\admin;
 
 use context_system;
-use flexible_table;
-use html_writer;
+use local_gimidashboard\header_color_manager;
 use local_gimidashboard\report\report_manager;
 use moodle_url;
 
@@ -62,6 +61,11 @@ class plugin_admin_page {
             report_manager::move($component, -1);
         } else if ($action == "movedown") {
             report_manager::move($component, 1);
+        } else if ($action == "saveheadercolor") {
+            $color = optional_param("basecolor", false, PARAM_RAW_TRIMMED);
+            if ($color) {
+                header_color_manager::set_base_color($component, $color);
+            }
         }
 
         redirect(new moodle_url("/local/gimidashboard/admin_plugins.php"));
@@ -95,7 +99,7 @@ class plugin_admin_page {
     public function export_for_template(): array {
         return [
             "description" => get_string("plugintabledescription", "local_gimidashboard"),
-            "tablehtml" => $this->render_table(),
+            "pluginsrows" => $this->render_table(),
             "dashboardurl" => new moodle_url("/local/gimidashboard/"),
             "dashboardlabel" => get_string("backtodashboard", "local_gimidashboard"),
         ];
@@ -104,126 +108,101 @@ class plugin_admin_page {
     /**
      * Renders the plugins table.
      *
-     * @return string
+     * @return array
      * @throws \coding_exception
      * @throws \core\exception\moodle_exception
      * @throws \dml_exception
      */
-    protected function render_table(): string {
-        $table = new flexible_table("local-gimidashboard-admin-plugins");
-        $table->define_columns(["position", "plugin", "status", "supports", "actions"]);
-        $table->define_headers([
-            get_string("position", "local_gimidashboard"),
-            get_string("reportplugin", "local_gimidashboard"),
-            get_string("status", "local_gimidashboard"),
-            get_string("supports", "local_gimidashboard"),
-            get_string("actions", "local_gimidashboard"),
-        ]);
-        $table->set_attribute("class", "generaltable table-sm");
-        $table->baseurl = "/local/gimidashboard/admin_plugins.php";
-        $table->setup();
-
+    protected function render_table(): array {
         global $OUTPUT;
 
+        $rows = [];
         $reports = report_manager::get_ordered_reports();
         $total = count($reports);
+        $systemcontext = context_system::instance();
 
         foreach ($reports as $index => $report) {
             $component = $report["component"];
             $enabled = report_manager::is_enabled($component);
+
             $supports = [];
             if (report_manager::supports_selection($component, "course")) {
-                $supports[] = html_writer::tag("span", get_string("course", "local_gimidashboard"), [
+                $supports[] = [
+                    "label" => get_string("course", "local_gimidashboard"),
                     "class" => "badge text-bg-light local-gimidashboard-admin-badge",
-                ]);
+                ];
             }
             if (report_manager::supports_selection($component, "category")) {
-                $supports[] = html_writer::tag("span", get_string("category", "local_gimidashboard"), [
+                $supports[] = [
+                    "label" => get_string("category", "local_gimidashboard"),
                     "class" => "badge text-bg-light local-gimidashboard-admin-badge",
-                ]);
+                ];
             }
 
-            $previewurl = new moodle_url("/local/gimidashboard/view.php", [
-                "target" => "course-1",
-                "plugin" => $report["name"],
-            ]);
-            $pluginlabel = html_writer::link(
-                $previewurl,
-                format_string($report["displayname"], true, ["context" => context_system::instance()]),
-                [
-                    "class" => "local-gimidashboard-admin-plugin-link",
-                    "title" => get_string("openonlyreport", "local_gimidashboard"),
-                    "target" => "_blank",
-                ]
-            );
-            $pluginmeta = html_writer::tag("small", s($component), ["class" => "text-muted d-block mt-1"]);
+            $basecolor = header_color_manager::get_base_color($component);
+            $accentcolor = header_color_manager::calculate_accent_color($basecolor);
 
-            $actions = [];
-            if ($index > 0) {
-                $actions[] = html_writer::link(
-                    new moodle_url("/local/gimidashboard/admin_plugins.php", [
-                        "action" => "moveup",
-                        "component" => $component,
-                        "sesskey" => sesskey(),
-                    ]),
-                    $OUTPUT->pix_icon("t/up", get_string("moveup", "local_gimidashboard")),
-                    [
-                        "class" => "btn btn-light btn-sm local-gimidashboard-admin-action",
-                        "title" => get_string("moveup", "local_gimidashboard"),
-                        "aria-label" => get_string("moveup", "local_gimidashboard"),
-                    ]
-                );
-            }
-            if ($index < ($total - 1)) {
-                $actions[] = html_writer::link(
-                    new moodle_url("/local/gimidashboard/admin_plugins.php", [
-                        "action" => "movedown",
-                        "component" => $component,
-                        "sesskey" => sesskey(),
-                    ]),
-                    $OUTPUT->pix_icon("t/down", get_string("movedown", "local_gimidashboard")),
-                    [
-                        "class" => "btn btn-light btn-sm local-gimidashboard-admin-action",
-                        "title" => get_string("movedown", "local_gimidashboard"),
-                        "aria-label" => get_string("movedown", "local_gimidashboard"),
-                    ]
-                );
-            }
-            $actions[] = html_writer::link(
-                new moodle_url("/local/gimidashboard/admin_plugins.php", [
+            $rows[] = [
+                "position" => $index + 1,
+                "pluginname" => format_string($report["displayname"], true, ["context" => $systemcontext]),
+                "previewurl" => new moodle_url("/local/gimidashboard/view.php", [
+                    "target" => "course-1",
+                    "plugin" => $report["name"],
+                ]),
+                "previewtitle" => get_string("openonlyreport", "local_gimidashboard"),
+                "component" => $component,
+
+                "statusclass" => $enabled
+                    ? "local-gimidashboard-admin-status is-enabled"
+                    : "local-gimidashboard-admin-status is-disabled",
+                "statuslabel" => $enabled
+                    ? get_string("enabled", "local_gimidashboard")
+                    : get_string("disabled", "local_gimidashboard"),
+                "statusbadgeclass" => $enabled ? "badge badge-success" : "badge badge-danger",
+
+                "supports" => $supports,
+
+                "basecolor" => $basecolor,
+                "accentcolor" => $accentcolor,
+                "colorpreviewstyle" =>
+                    "display:inline-block;width:22px;height:22px;border-radius:999px;border:1px solid rgba(15,23,42,0.12);" .
+                    "background:linear-gradient(135deg, {$basecolor} 0%, {$accentcolor} 100%);",
+                "savecolorurl" => new moodle_url("/local/gimidashboard/admin_plugins.php"),
+                "sesskey" => sesskey(),
+                "headercolorlabel" => get_string("headercolor", "local_gimidashboard"),
+                "savecolorlabel" => get_string("savecolor", "local_gimidashboard"),
+
+                "canmoveup" => $index > 0,
+                "moveupurl" => new moodle_url("/local/gimidashboard/admin_plugins.php", [
+                    "action" => "moveup",
+                    "component" => $component,
+                    "sesskey" => sesskey(),
+                ]),
+                "moveuplabel" => get_string("moveup", "local_gimidashboard"),
+                "moveupicon" => $OUTPUT->pix_icon("t/up", get_string("moveup", "local_gimidashboard")),
+
+                "canmovedown" => $index < ($total - 1),
+                "movedownurl" => new moodle_url("/local/gimidashboard/admin_plugins.php", [
+                    "action" => "movedown",
+                    "component" => $component,
+                    "sesskey" => sesskey(),
+                ]),
+                "movedownlabel" => get_string("movedown", "local_gimidashboard"),
+                "movedownicon" => $OUTPUT->pix_icon("t/down", get_string("movedown", "local_gimidashboard")),
+
+                "toggleurl" => new moodle_url("/local/gimidashboard/admin_plugins.php", [
                     "action" => "toggle",
                     "component" => $component,
                     "sesskey" => sesskey(),
                 ]),
-                $enabled
+                "togglelabel" => $enabled
+                    ? get_string("disable", "local_gimidashboard")
+                    : get_string("enable", "local_gimidashboard"),
+                "toggleicon" => $enabled
                     ? $OUTPUT->pix_icon("t/hide", get_string("disable", "local_gimidashboard"))
                     : $OUTPUT->pix_icon("t/show", get_string("enable", "local_gimidashboard")),
-                [
-                    "class" => "btn btn-light btn-sm local-gimidashboard-admin-action",
-                    "title" => $enabled ? get_string("disable", "local_gimidashboard") :
-                        get_string("enable", "local_gimidashboard"),
-                    "aria-label" => $enabled ? get_string("disable", "local_gimidashboard") :
-                        get_string("enable", "local_gimidashboard"),
-                ]
-            );
-
-            $statuslabel = $enabled ?
-                html_writer::tag("small", get_string("enabled", "local_gimidashboard"), ["class" => "badge badge-success"]) :
-                html_writer::tag("small", get_string("disabled", "local_gimidashboard"), ["class" => "badge badge-danger"]);
-            $statusclass =
-                $enabled ? "local-gimidashboard-admin-status is-enabled" : "local-gimidashboard-admin-status is-disabled";
-
-            $table->add_data([
-                html_writer::tag("span", (string) ($index + 1), ["class" => "local-gimidashboard-admin-position"]),
-                html_writer::tag("div", $pluginlabel . $pluginmeta, ["class" => "local-gimidashboard-admin-plugin"]),
-                html_writer::tag("span", $statuslabel, ["class" => $statusclass]),
-                html_writer::tag("div", implode(" ", $supports), ["class" => "local-gimidashboard-admin-supports"]),
-                html_writer::tag("div", implode("", $actions), ["class" => "local-gimidashboard-admin-actions"]),
-            ]);
+            ];
         }
-
-        ob_start();
-        $table->finish_output();
-        return ob_get_clean();
+        return $rows;
     }
 }
