@@ -271,16 +271,6 @@ class report implements report_interface {
     }
 
     /**
-     * Extracts course ids from the selection.
-     *
-     * @param array $courses Course records.
-     * @return array
-     */
-    protected static function extract_course_ids(array $courses): array {
-        return parent::extract_course_ids($courses);
-    }
-
-    /**
      * Returns the learners enrolled in the selected courses.
      *
      * @param array $courseids Course ids.
@@ -606,15 +596,18 @@ class report implements report_interface {
      * @param stdClass $user User record.
      * @param array $usercourseids Course ids.
      * @param array $moduletotals Module totals by course.
+     * @param array $firstaccesstimes
      * @param array $completedmodules Completed modules by course.
+     * @param array $day1completedmodules
      * @param array $gradepercentages Grade percentages by course.
      * @param array $completions Completion timestamps by course.
+     * @param array $certificatecounts
      * @param array $examcounts Exam counts by course.
      * @param array $lastaccessbycourse Last access by course.
      * @param array $pathways Pathways.
      * @param object $selection Selection payload.
      * @return object
-     * @throws Exception
+     * @throws \coding_exception
      */
     protected static function build_user_row(
         stdClass $user,
@@ -852,8 +845,8 @@ class report implements report_interface {
                 ["label" => get_string("email")],
                 ["label" => get_string("pathway", "gimidashboardreports_fullacademydashboard")],
                 ["label" => get_string("courses", "gimidashboardreports_fullacademydashboard")],
-                //["label" => get_string("avgscoreprogress", "gimidashboardreports_fullacademydashboard")],
-                //["label" => get_string("avgscoregrade", "gimidashboardreports_fullacademydashboard")],
+                ["label" => get_string("avgscoreprogress", "gimidashboardreports_fullacademydashboard")],
+                ["label" => get_string("avgscoregrade", "gimidashboardreports_fullacademydashboard")],
                 //["label" => get_string("deltavsday1", "gimidashboardreports_fullacademydashboard")],
                 ["label" => get_string("completed", "gimidashboardreports_fullacademydashboard")],
                 ["label" => get_string("certs", "gimidashboardreports_fullacademydashboard")],
@@ -877,8 +870,8 @@ class report implements report_interface {
                 "learnerurl" => $learnerurl,
                 "pathwayshtml" => self::render_pathway_links($row->pathways, $selection),
                 "courses" => $row->coursecount,
-                //"avgprogress" => self::format_percent($row->avgprogress),
-                //"avggrade" => self::format_grade($row->avggrade),
+                "avgprogress" => self::format_percent($row->avgprogress),
+                "avggrade" => self::format_grade($row->avggrade),
                 //"delta" => self::format_percent($row->delta),
                 "completed" => $row->completed,
                 "certs" => $row->certs,
