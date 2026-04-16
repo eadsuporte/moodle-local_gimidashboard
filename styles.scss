@@ -394,15 +394,30 @@ a[href="https://conecti.me"] {
             border-color: rgba(239, 68, 68, 0.16);
         }
     }
-    .local-gimidashboard-admin-supports,
     .local-gimidashboard-admin-actions {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-        align-items: center;
+        a, span {
+            display: flex;
+            align-items: center;
+            border: none;
+            padding: 6px;
+            i {
+                margin: 0;
+                font-size: 20px;
+            }
+        }
     }
-    .local-gimidashboard-admin-badge.badge {
-        padding: 0.45rem 0.8rem;
+    .local-gimidashboard-admin-supports {
+        .badge {
+            font-size: 100%;
+            &:not(:last-child) {
+                padding-right: 0;
+                &::after {
+                    content: "/";
+                    margin-left: 8px;
+                    color: #666666;
+                }
+            }
+        }
     }
     .local-gimidashboard-admin-action.btn {
         display: inline-flex;
@@ -436,10 +451,31 @@ a[href="https://conecti.me"] {
             gap: 0.35rem;
         }
     }
-    input[type=color] {
-        min-width: 63px;
-        padding: 0;
-        border: none;
+    .local-gimidashboard-admin-colorwrap {
+        label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 0;
+        }
+        input[type=color] {
+            width: 33px;
+            min-width: 33px;
+            height: 33px;
+            padding: 0;
+            border: 0;
+            background: transparent;
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+            &::-webkit-color-swatch-wrapper {
+                padding: 0;
+            }
+            &::-moz-color-swatch,
+            &::-webkit-color-swatch {
+                border: none;
+            }
+        }
     }
 }
 .gimi-version-badge {

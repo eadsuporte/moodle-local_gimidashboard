@@ -2579,15 +2579,26 @@ a[href="https://conecti.me"] {
   background: rgba(239, 68, 68, 0.1);
   border-color: rgba(239, 68, 68, 0.16);
 }
-.local-gimidashboard-admin .local-gimidashboard-admin-supports,
-.local-gimidashboard-admin .local-gimidashboard-admin-actions {
+.local-gimidashboard-admin .local-gimidashboard-admin-actions a, .local-gimidashboard-admin .local-gimidashboard-admin-actions span {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
   align-items: center;
+  border: none;
+  padding: 6px;
 }
-.local-gimidashboard-admin .local-gimidashboard-admin-badge.badge {
-  padding: 0.45rem 0.8rem;
+.local-gimidashboard-admin .local-gimidashboard-admin-actions a i, .local-gimidashboard-admin .local-gimidashboard-admin-actions span i {
+  margin: 0;
+  font-size: 20px;
+}
+.local-gimidashboard-admin .local-gimidashboard-admin-supports .badge {
+  font-size: 100%;
+}
+.local-gimidashboard-admin .local-gimidashboard-admin-supports .badge:not(:last-child) {
+  padding-right: 0;
+}
+.local-gimidashboard-admin .local-gimidashboard-admin-supports .badge:not(:last-child)::after {
+  content: "/";
+  margin-left: 8px;
+  color: #666666;
 }
 .local-gimidashboard-admin .local-gimidashboard-admin-action.btn {
   display: inline-flex;
@@ -2618,9 +2629,27 @@ a[href="https://conecti.me"] {
     gap: 0.35rem;
   }
 }
-.local-gimidashboard-admin input[type=color] {
-  min-width: 63px;
+.local-gimidashboard-admin .local-gimidashboard-admin-colorwrap label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+.local-gimidashboard-admin .local-gimidashboard-admin-colorwrap input[type=color] {
+  width: 33px;
+  min-width: 33px;
+  height: 33px;
   padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+}
+.local-gimidashboard-admin .local-gimidashboard-admin-colorwrap input[type=color]::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+.local-gimidashboard-admin .local-gimidashboard-admin-colorwrap input[type=color]::-moz-color-swatch, .local-gimidashboard-admin .local-gimidashboard-admin-colorwrap input[type=color]::-webkit-color-swatch {
   border: none;
 }
 
