@@ -28,6 +28,7 @@ use context_course;
 use Exception;
 use local_gimidashboard\header_helper;
 use local_gimidashboard\page\selection_resolver;
+use local_gimidashboard\report\base_report;
 use local_gimidashboard\report\report_interface;
 use moodle_url;
 
@@ -170,7 +171,7 @@ class report implements report_interface {
             return $cache;
         }
 
-        $courseids = self::extract_course_ids($courses);
+        $courseids = base_report::extract_course_ids($courses);
         $selection = selection_resolver::resolve(optional_param("target", "", PARAM_TEXT), $USER->id);
         $activityid = optional_param("activityid", 0, PARAM_INT);
         $learnerid = optional_param("learnerid", 0, PARAM_INT);
@@ -243,21 +244,6 @@ class report implements report_interface {
             "activitieswithgrades" => 0,
             "completioncrosscount" => 0,
         ];
-    }
-
-    /**
-     * Returns the selected course ids.
-     *
-     * @param array $courses Accessible course records.
-     * @return array
-     */
-    protected static function extract_course_ids(array $courses): array {
-        $courseids = [];
-        foreach ($courses as $course) {
-            $courseids[(int) $course->id] = (int) $course->id;
-        }
-
-        return array_values($courseids);
     }
 
     /**
@@ -434,8 +420,10 @@ class report implements report_interface {
                 "activitylabel" => $activityname,
                 "activitymodule" => s($record->itemmodule ?? ""),
                 "activityurl" => $activityurl,
-                "teacher" => s($teacherbycourse[$record->courseid] ??
-                    get_string("notavailable", "gimidashboardreports_gradebookoverview")),
+                "teacher" => s(
+                    $teacherbycourse[$record->courseid] ??
+                    get_string("notavailable", "gimidashboardreports_gradebookoverview")
+                ),
                 "enrolledcount" => $enrolledcount,
                 "gradedcount" => $gradedcount,
                 "gradedcountdisplay" => format_float($gradedcount, 0),

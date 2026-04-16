@@ -29,6 +29,7 @@ use context_system;
 use Exception;
 use local_gimidashboard\page\selection_resolver;
 use local_gimidashboard\header_color_manager;
+use local_gimidashboard\report\base_report;
 use local_gimidashboard\report\report_interface;
 use moodle_url;
 
@@ -182,7 +183,7 @@ class report implements report_interface {
         }
 
         $selection = selection_resolver::resolve(optional_param("target", "", PARAM_TEXT), $USER->id);
-        $courseids = self::extract_course_ids($courses);
+        $courseids = base_report::extract_course_ids($courses);
         $learnerid = optional_param("learnerid", 0, PARAM_INT);
         $requestedcohortid = optional_param("cohortid", 0, PARAM_INT);
 
@@ -265,9 +266,9 @@ class report implements report_interface {
         }
 
         $userids = array_keys($learners);
-        $usercourses = self::get_user_courses($courseids, $userids);
+        $usercourses = base_report::get_user_courses($courseids, $userids);
         $usercohorts = self::get_user_cohorts($userids, array_keys($availablecohorts));
-        $lastaccessbycourse = self::get_last_access_by_course($courseids, $userids);
+        $lastaccessbycourse = base_report::get_last_access_by_course($courseids, $userids);
         $usermetrics = self::get_attempt_metrics_by_user_course($courseids, $userids);
         $coursemetrics = self::get_course_metrics($courseids, $cohortid, $base->learnerid);
         $wrongquestions = self::get_top_incorrect_questions($courseids, $cohortid, $base->learnerid);
@@ -337,8 +338,10 @@ class report implements report_interface {
             $errrate = (int) $row->responsecount > 0 ? ((int) $row->wrongcount / (int) $row->responsecount) * 100 : 0;
 
             return [
-                "questionname" => format_string(trim((string) $row->questionname) !== "" ?
-                    $row->questionname : "#" . $row->questionid),
+                "questionname" => format_string(
+                    trim((string) $row->questionname) !== "" ?
+                        $row->questionname : "#" . $row->questionid
+                ),
                 "quizname" => format_string($row->quizname),
                 "coursename" => format_string($row->coursename, true, ["context" => context_course::instance($row->courseid)]),
                 "wrongcount" => (int) $row->wrongcount,
@@ -354,18 +357,6 @@ class report implements report_interface {
 
         $cache = $base;
         return $cache;
-    }
-
-    /**
-     * Returns the selected course ids.
-     *
-     * @param array $courses Selected courses.
-     * @return array
-     */
-    protected static function extract_course_ids(array $courses): array {
-        return array_values(array_map(static function($course): int {
-            return (int) $course->id;
-        }, $courses));
     }
 
     /**
@@ -455,80 +446,6 @@ class report implements report_interface {
               ORDER BY u.firstname ASC, u.lastname ASC, u.email ASC";
 
         return $DB->get_records_sql($sql, $params);
-    }
-
-    /**
-     * Returns the enrolled selected courses for each learner.
-     *
-     * @param array $courseids Course ids.
-     * @param array $userids User ids.
-     * @return array
-     * @throws Exception
-     */
-    protected static function get_user_courses(array $courseids, array $userids): array {
-        global $DB;
-
-        if (empty($userids)) {
-            return [];
-        }
-
-        [$coursesql, $courseparams] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED, "course");
-        [$usersql, $userparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, "user");
-
-        $sql = "SELECT DISTINCT CONCAT(ue.userid, '-', e.courseid) AS unik,
-                                ue.userid,
-                                e.courseid
-                  FROM {user_enrolments} ue
-                  JOIN {enrol} e
-                    ON e.id = ue.enrolid
-                 WHERE e.courseid {$coursesql}
-                   AND ue.userid {$usersql}
-                   AND e.status = 0
-                   AND ue.status = 0";
-
-        $records = $DB->get_records_sql($sql, $courseparams + $userparams);
-        $result = [];
-        foreach ($records as $record) {
-            $result[(int) $record->userid][(int) $record->courseid] = (int) $record->courseid;
-        }
-
-        return $result;
-    }
-
-    /**
-     * Returns the last access for each learner and course.
-     *
-     * @param array $courseids Course ids.
-     * @param array $userids User ids.
-     * @return array
-     * @throws Exception
-     */
-    protected static function get_last_access_by_course(array $courseids, array $userids): array {
-        global $DB;
-
-        if (empty($userids)) {
-            return [];
-        }
-
-        [$coursesql, $courseparams] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED, "course");
-        [$usersql, $userparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, "user");
-
-        $sql = "SELECT CONCAT(userid, '-', courseid) AS unik,
-                       userid,
-                       courseid,
-                       MAX(timeaccess) AS timeaccess
-                  FROM {user_lastaccess}
-                 WHERE courseid {$coursesql}
-                   AND userid {$usersql}
-              GROUP BY userid, courseid";
-        $records = $DB->get_records_sql($sql, $courseparams + $userparams);
-
-        $result = [];
-        foreach ($records as $record) {
-            $result[(int) $record->userid][(int) $record->courseid] = (int) $record->timeaccess;
-        }
-
-        return $result;
     }
 
     /**

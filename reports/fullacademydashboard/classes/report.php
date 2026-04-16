@@ -30,6 +30,7 @@ use Exception;
 use html_writer;
 use local_gimidashboard\header_helper;
 use local_gimidashboard\page\selection_resolver;
+use local_gimidashboard\report\base_report;
 use local_gimidashboard\report\grade;
 use local_gimidashboard\report\report_interface;
 use moodle_url;
@@ -160,7 +161,7 @@ class report implements report_interface {
             return $returndata;
         }
 
-        $courseids = self::extract_course_ids($courses);
+        $courseids = base_report::extract_course_ids($courses);
         if (empty($courseids)) {
             return (object) [
                 "courseids" => [],
@@ -186,17 +187,17 @@ class report implements report_interface {
 
         if (!empty($users)) {
             $userids = array_keys($users);
-            $usercourses = self::get_user_courses($courseids, $userids);
-            $moduletotals = self::get_trackable_module_totals($courseids);
-            $completedmodules = self::get_completed_module_totals($courseids, $userids);
+            $usercourses = base_report::get_user_courses($courseids, $userids);
+            $moduletotals = base_report::get_trackable_module_totals($courseids);
+            $completedmodules = base_report::get_completed_module_totals($courseids, $userids);
             $day1completedmodules = self::get_day1_completed_module_totals($courseids, $userids);
-            $firstaccesstimes = self::get_first_course_access_times($courseids, $userids);
+            $firstaccesstimes = base_report::get_first_course_access_times($courseids, $userids);
             $gradepercentages = grade::get_course_grade_percentages($courseids, $userids);
-            $completions = self::get_course_completions($courseids, $userids);
+            $completions = base_report::get_course_completions($courseids, $userids);
             $certificatecounts = self::get_certificate_counts($courseids, $userids);
             $examcounts = self::get_exam_counts($courseids, $userids);
-            $lastaccessbycourse = self::get_last_access_by_course($courseids, $userids);
-            $pathways = self::get_user_pathways($courseids, $userids);
+            $lastaccessbycourse = base_report::get_last_access_by_course($courseids, $userids);
+            $pathways = base_report::get_user_pathways($courseids, $userids);
             $usercoursepathways = self::get_user_course_pathways($courseids, $userids);
 
             foreach ($users as $userid => $user) {
@@ -276,9 +277,7 @@ class report implements report_interface {
      * @return array
      */
     protected static function extract_course_ids(array $courses): array {
-        return array_values(array_map(static function($course): int {
-            return $course->id;
-        }, $courses));
+        return parent::extract_course_ids($courses);
     }
 
     /**
@@ -326,155 +325,6 @@ class report implements report_interface {
               ORDER BY u.firstname ASC, u.lastname ASC, u.email ASC";
 
         return $DB->get_records_sql($sql, $params);
-    }
-
-    /**
-     * Returns the enrolled courses for every selected learner.
-     *
-     * @param array $courseids Course ids.
-     * @param array $userids User ids.
-     * @return array
-     * @throws Exception
-     */
-    protected static function get_user_courses(array $courseids, array $userids): array {
-        global $DB;
-
-        if (empty($userids)) {
-            return [];
-        }
-
-        [$coursesql, $courseparams] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED, "course");
-        [$usersql, $userparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, "user");
-
-        $sql = "SELECT DISTINCT CONCAT(ue.userid, '-', e.courseid) as unik, ue.userid, e.courseid
-                  FROM {user_enrolments} ue
-                  JOIN {enrol} e
-                    ON e.id = ue.enrolid
-                 WHERE e.courseid {$coursesql}
-                   AND ue.userid {$usersql}
-                   AND e.status = 0
-                   AND ue.status = 0";
-
-        $records = $DB->get_records_sql($sql, $courseparams + $userparams);
-        $result = [];
-        foreach ($records as $record) {
-            $result[$record->userid][$record->courseid] = $record->courseid;
-        }
-
-        return $result;
-    }
-
-    /**
-     * Returns the earliest enrolment time for every selected learner and course.
-     *
-     * @param array $courseids Course ids.
-     * @param array $userids User ids.
-     * @return array
-     * @throws Exception
-     */
-    protected static function get_user_enrolment_times(array $courseids, array $userids): array {
-        global $DB;
-
-        if (empty($userids)) {
-            return [];
-        }
-
-        [$coursesql, $courseparams] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED, "course");
-        [$usersql, $userparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, "user");
-
-        $sql = "SELECT CONCAT(ue.userid, '-', e.courseid) AS unik,
-                       ue.userid,
-                       e.courseid,
-                       MIN(CASE
-                               WHEN ue.timecreated > 0 THEN ue.timecreated
-                               WHEN ue.timestart > 0 THEN ue.timestart
-                               ELSE NULL
-                           END) AS enroltime
-                  FROM {user_enrolments} ue
-                  JOIN {enrol} e
-                    ON e.id = ue.enrolid
-                 WHERE e.courseid {$coursesql}
-                   AND ue.userid {$usersql}
-                   AND e.status = 0
-                   AND ue.status = 0
-              GROUP BY ue.userid, e.courseid";
-
-        $records = $DB->get_records_sql($sql, $courseparams + $userparams);
-        $result = [];
-        foreach ($records as $record) {
-            $result[$record->userid][$record->courseid] = $record->enroltime ? (int) $record->enroltime : 0;
-        }
-
-        return $result;
-    }
-
-    /**
-     * Returns the number of trackable modules for each course.
-     *
-     * @param array $courseids Course ids.
-     * @return array
-     * @throws Exception
-     */
-    protected static function get_trackable_module_totals(array $courseids): array {
-        global $DB;
-
-        [$insql, $params] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED, "course");
-        $sql = "SELECT cm.course, COUNT(cm.id) AS total
-                  FROM {course_modules} cm
-                 WHERE cm.course {$insql}
-                   AND cm.visible = 1
-                   AND cm.deletioninprogress = 0
-                   AND cm.completion > 0
-              GROUP BY cm.course";
-        $records = $DB->get_records_sql($sql, $params);
-
-        $result = [];
-        foreach ($records as $record) {
-            $result[$record->course] = $record->total;
-        }
-
-        return $result;
-    }
-
-    /**
-     * Returns completed module counts by user and course.
-     *
-     * @param array $courseids Course ids.
-     * @param array $userids User ids.
-     * @return array
-     * @throws Exception
-     */
-    protected static function get_completed_module_totals(array $courseids, array $userids): array {
-        global $DB;
-
-        if (empty($userids)) {
-            return [];
-        }
-
-        [$coursesql, $courseparams] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED, "course");
-        [$usersql, $userparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, "user");
-
-        $sql = "SELECT CONCAT(cmc.userid, '-', cm.course) AS unik,
-                       cmc.userid, cm.course,
-                       COUNT(DISTINCT cmc.coursemoduleid) AS total
-                  FROM {course_modules_completion} cmc
-                  JOIN {course_modules} cm
-                    ON cm.id = cmc.coursemoduleid
-                 WHERE cm.course {$coursesql}
-                   AND cmc.userid {$usersql}
-                   AND cm.visible = 1
-                   AND cm.deletioninprogress = 0
-                   AND cm.completion > 0
-                   AND cmc.completionstate > 0
-              GROUP BY cmc.userid, cm.course";
-
-        $records = $DB->get_records_sql($sql, $courseparams + $userparams);
-        $result = [];
-        foreach ($records as $record) {
-            $result[$record->userid][$record->course] = $record->total;
-        }
-
-        return $result;
     }
 
     /**
@@ -583,96 +433,6 @@ class report implements report_interface {
         $result = [];
         foreach ($records as $record) {
             $result[$record->userid][$record->course] = $record->total;
-        }
-
-        return $result;
-    }
-
-    /**
-     * Returns first course access timestamps by user and course.
-     *
-     * @param array $courseids Course ids.
-     * @param array $userids User ids.
-     * @return array
-     * @throws Exception
-     */
-    protected static function get_first_course_access_times(array $courseids, array $userids): array {
-        global $DB;
-
-        if (empty($userids)) {
-            return [];
-        }
-
-        $dbman = $DB->get_manager();
-        if (!$dbman->table_exists(new xmldb_table("logstore_standard_log")) ||
-            !$dbman->field_exists(new xmldb_table("logstore_standard_log"), new xmldb_field("userid")) ||
-            !$dbman->field_exists(new xmldb_table("logstore_standard_log"), new xmldb_field("courseid")) ||
-            !$dbman->field_exists(new xmldb_table("logstore_standard_log"), new xmldb_field("timecreated")) ||
-            !$dbman->field_exists(new xmldb_table("logstore_standard_log"), new xmldb_field("eventname"))) {
-            return self::get_user_enrolment_times($courseids, $userids);
-        }
-
-        [$coursesql, $courseparams] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED, "course");
-        [$usersql, $userparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, "user");
-        $params = $courseparams + $userparams + [
-                "courseevent" => "\\core\\event\\course_viewed",
-            ];
-
-        $sql = "SELECT CONCAT(userid, '-', courseid) AS unik,
-                       userid,
-                       courseid,
-                       MIN(timecreated) AS firstaccess
-                  FROM {logstore_standard_log}
-                 WHERE courseid {$coursesql}
-                   AND userid {$usersql}
-                   AND eventname = :courseevent
-                   AND timecreated > 0
-              GROUP BY userid, courseid";
-        $records = $DB->get_records_sql($sql, $params);
-        $result = [];
-        foreach ($records as $record) {
-            $result[$record->userid][$record->courseid] = (int) $record->firstaccess;
-        }
-
-        foreach (self::get_user_enrolment_times($courseids, $userids) as $userid => $courses) {
-            foreach ($courses as $courseid => $enroltime) {
-                if (!isset($result[$userid][$courseid]) && $enroltime > 0) {
-                    $result[$userid][$courseid] = $enroltime;
-                }
-            }
-        }
-
-        return $result;
-    }
-
-    /**
-     * Returns course completions by user and course.
-     *
-     * @param array $courseids Course ids.
-     * @param array $userids User ids.
-     * @return array
-     * @throws Exception
-     */
-    protected static function get_course_completions(array $courseids, array $userids): array {
-        global $DB;
-
-        if (empty($userids)) {
-            return [];
-        }
-
-        [$coursesql, $courseparams] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED, "course");
-        [$usersql, $userparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, "user");
-
-        $sql = "SELECT CONCAT(userid, '-', course, '-', timecompleted) AS unik, userid, course, timecompleted
-                  FROM {course_completions}
-                 WHERE course {$coursesql}
-                   AND userid {$usersql}
-                   AND timecompleted > 0";
-        $records = $DB->get_records_sql($sql, $courseparams + $userparams);
-
-        $result = [];
-        foreach ($records as $record) {
-            $result[$record->userid][$record->course] = $record->timecompleted;
         }
 
         return $result;
@@ -794,119 +554,6 @@ class report implements report_interface {
     }
 
     /**
-     * Returns the last access for each user and course.
-     *
-     * @param array $courseids Course ids.
-     * @param array $userids User ids.
-     * @return array
-     * @throws Exception
-     */
-    protected static function get_last_access_by_course(array $courseids, array $userids): array {
-        global $DB;
-
-        if (empty($userids)) {
-            return [];
-        }
-
-        [$coursesql, $courseparams] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED, "course");
-        [$usersql, $userparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, "user");
-
-        $sql = "SELECT CONCAT(userid, '-', courseid) AS unik, userid, courseid, MAX(timeaccess) AS timeaccess
-                  FROM {user_lastaccess}
-                 WHERE courseid {$coursesql}
-                   AND userid {$usersql}
-              GROUP BY userid, courseid";
-        $records = $DB->get_records_sql($sql, $courseparams + $userparams);
-
-        $result = [];
-        foreach ($records as $record) {
-            $result[$record->userid][$record->courseid] = $record->timeaccess;
-        }
-
-        return $result;
-    }
-
-    /**
-     * Returns user pathways using cohort memberships.
-     *
-     * @param array $courseids Course ids.
-     * @param array $userids User ids.
-     * @return array
-     * @throws Exception
-     */
-    protected static function get_user_pathways(array $courseids, array $userids): array {
-        global $DB;
-
-        if (empty($userids)) {
-            return [];
-        }
-
-        $cohortids = self::get_linked_cohort_ids($courseids);
-        if (empty($cohortids)) {
-            [$usersql, $userparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, "user");
-            $fallbacksql = "SELECT DISTINCT cm.cohortid
-                              FROM {cohort_members} cm
-                             WHERE cm.userid {$usersql}";
-            $fallback = $DB->get_records_sql($fallbacksql, $userparams);
-            foreach ($fallback as $record) {
-                $cohortids[$record->cohortid] = $record->cohortid;
-            }
-        }
-
-        if (empty($cohortids)) {
-            return [];
-        }
-
-        [$usersql, $userparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, "user");
-        [$cohortsql, $cohortparams] = $DB->get_in_or_equal(array_values($cohortids), SQL_PARAMS_NAMED, "cohort");
-
-        $sql = "SELECT CONCAT(cm.userid, '-', c.id) as unik, cm.userid, c.id, c.name
-                  FROM {cohort_members} cm
-                  JOIN {cohort} c
-                    ON c.id = cm.cohortid
-                 WHERE cm.userid {$usersql}
-                   AND c.id {$cohortsql}
-              ORDER BY c.name ASC";
-        $records = $DB->get_records_sql($sql, $userparams + $cohortparams);
-
-        $result = [];
-        foreach ($records as $record) {
-            $result[$record->userid][$record->id] =
-                format_string($record->name, true, ["context" => context_system::instance()]);
-        }
-
-        return $result;
-    }
-
-    /**
-     * Returns linked cohort ids for the selected courses.
-     *
-     * @param array $courseids Course ids.
-     * @return array
-     * @throws Exception
-     */
-    protected static function get_linked_cohort_ids(array $courseids): array {
-        global $DB;
-
-        [$coursesql, $params] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED, "course");
-        $params["enroltype"] = "cohort";
-
-        $sql = "SELECT DISTINCT e.customint1 AS cohortid
-                  FROM {enrol} e
-                 WHERE e.courseid {$coursesql}
-                   AND e.enrol = :enroltype
-                   AND e.customint1 > 0";
-        $records = $DB->get_records_sql($sql, $params);
-
-        $result = [];
-        foreach ($records as $record) {
-            $result[$record->cohortid] = $record->cohortid;
-        }
-
-        return $result;
-    }
-
-    /**
      * Returns pathway memberships keyed by user and course.
      *
      * @param array $courseids Course ids.
@@ -1001,8 +648,8 @@ class report implements report_interface {
             $coursecompleted = $hascoursecompletion || ($trackable > 0 && $completedmodulescount >= $trackable);
             $completedonday1 = $hascoursecompletion && $firstaccess > 0 && $completions[$courseid] <= ($firstaccess + DAYSECS);
 
-            $courseprogresses[] = self::calculate_course_progress($trackable, $completedmodulescount, $coursecompleted);
-            $day1courseprogresses[] = self::calculate_course_progress($trackable, $day1completedmodulescount, $completedonday1);
+            $courseprogresses[] = base_report::calculate_course_progress($trackable, $completedmodulescount, $coursecompleted);
+            $day1courseprogresses[] = base_report::calculate_course_progress($trackable, $day1completedmodulescount, $completedonday1);
 
             if ($coursecompleted &&
                 !empty($examcounts[$courseid]) &&
@@ -1100,8 +747,8 @@ class report implements report_interface {
             $coursecompleted = $hascoursecompletion || ($trackable > 0 && $completedmodulescount >= $trackable);
             $completedonday1 = $hascoursecompletion && $firstaccess > 0 && $completions[$courseid] <= ($firstaccess + DAYSECS);
 
-            $progress = self::calculate_course_progress($trackable, $completedmodulescount, $coursecompleted);
-            $day1progress = self::calculate_course_progress(
+            $progress = base_report::calculate_course_progress($trackable, $completedmodulescount, $coursecompleted);
+            $day1progress = base_report::calculate_course_progress(
                 $trackable,
                 ($day1completedmodules[$courseid] ?? 0),
                 $completedonday1
@@ -1186,26 +833,6 @@ class report implements report_interface {
     }
 
     /**
-     * Calculates course progress using the same completion percentage used by Moodle course progress.
-     *
-     * @param int $trackable Trackable activity count.
-     * @param int $completed Completed activity count.
-     * @param bool $coursecompleted Course completion fallback when no trackable activities exist.
-     * @return float
-     */
-    protected static function calculate_course_progress(int $trackable, int $completed, bool $coursecompleted): float {
-        if ($trackable > 0) {
-            return min(100.0, round(($completed / $trackable) * 100, 1));
-        }
-
-        if ($coursecompleted) {
-            return 100.0;
-        }
-
-        return 0.0;
-    }
-
-    /**
      * Renders the summary table.
      *
      * @param array $rows Learner rows.
@@ -1263,7 +890,9 @@ class report implements report_interface {
         }
 
         $pagelength = optional_param("plugin", false, PARAM_COMPONENT) ? 50 : 5;
-        $PAGE->requires->js_call_amd("local_gimidashboard/dashboard", "datatable", ["#fullacademydashboard-summary_table", $pagelength]);
+        $PAGE->requires->js_call_amd(
+            "local_gimidashboard/dashboard", "datatable", ["#fullacademydashboard-summary_table", $pagelength]
+        );
         return $OUTPUT->render_from_template("gimidashboardreports_fullacademydashboard/summary_table", $templatecontext);
     }
 
@@ -1312,7 +941,9 @@ class report implements report_interface {
         }
 
         $pagelength = optional_param("plugin", false, PARAM_COMPONENT) ? 50 : 5;
-        $PAGE->requires->js_call_amd("local_gimidashboard/dashboard", "datatable", ["#fullacademydashboard-detail_table", $pagelength]);
+        $PAGE->requires->js_call_amd(
+            "local_gimidashboard/dashboard", "datatable", ["#fullacademydashboard-detail_table", $pagelength]
+        );
         return $OUTPUT->render_from_template("gimidashboardreports_fullacademydashboard/detail_table", $templatecontext);
     }
 
