@@ -73,8 +73,15 @@
                                     <th>{{#str}}firstname{{/str}}</th>
                                     <th>{{#str}}lastname{{/str}}</th>
                                     <th>{{#str}}email{{/str}}</th>
-                                    <th>{{{value_title}}}</th>
-                                    <th>{{#str}}details, gimidashboardreports_leaderboard{{/str}}</th>
+                                    {{#hascustomcolumns}}
+                                        {{#customcolumns}}
+                                            <th>{{label}}</th>
+                                        {{/customcolumns}}
+                                    {{/hascustomcolumns}}
+                                    {{^hascustomcolumns}}
+                                        <th>{{{value_title}}}</th>
+                                        <th>{{#str}}details, gimidashboardreports_leaderboard{{/str}}</th>
+                                    {{/hascustomcolumns}}
                                 </tr>
                                 </thead>
                                 <tbody>
@@ -92,12 +99,19 @@
                                         <td>
                                             <div class="gimi-learner-email">{{email}}</div>
                                         </td>
-                                        <td>
-                                            <div class="gimi-metric-value">{{valuedisplay}}</div>
-                                        </td>
-                                        <td>
-                                            <div class="gimi-metric-meta">{{details}}</div>
-                                        </td>
+                                        {{#extracells}}
+                                            <td data-order="{{sortvalue}}">
+                                                <div class="gimi-metric-value">{{value}}</div>
+                                            </td>
+                                        {{/extracells}}
+                                        {{^extracells}}
+                                            <td>
+                                                <div class="gimi-metric-value">{{valuedisplay}}</div>
+                                            </td>
+                                            <td>
+                                                <div class="gimi-metric-meta">{{details}}</div>
+                                            </td>
+                                        {{/extracells}}
                                     </tr>
                                 {{/rows}}
                                 </tbody>

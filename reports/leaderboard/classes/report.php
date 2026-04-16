@@ -247,9 +247,11 @@ class report implements report_interface {
                 self::build_course_fastest_board($users, $firstaccesstimes, $certificatetimes, $courseid),
             ];
         } else {
+            $coursenames = self::get_course_names($courseids);
             $base->boards = [
                 self::build_pathway_best_grade_board($users, $usercourses, $grades),
                 self::build_pathway_progress_board($users, $usercourses, $moduletotals, $completedmodules, $completions),
+                self::build_pathway_fastest_board($users, $usercourses, $firstaccesstimes, $certificatetimes, $coursenames),
             ];
         }
 
@@ -879,6 +881,7 @@ class report implements report_interface {
         foreach ($users as $userid => $user) {
             $bestmetric = null;
             $bestcourseid = 0;
+            $beststarttime = 0;
             $bestcertificatetime = 0;
 
             foreach (array_keys($usercourses[$userid] ?? []) as $courseid) {
@@ -895,6 +898,7 @@ class report implements report_interface {
                 if ($bestmetric === null || $metric < $bestmetric) {
                     $bestmetric = $metric;
                     $bestcourseid = $courseid;
+                    $beststarttime = $firstaccesstimes[$userid][$courseid];
                     $bestcertificatetime = $certificatetimes[$userid][$courseid];
                 }
             }
@@ -914,9 +918,23 @@ class report implements report_interface {
                 $user,
                 $bestmetric,
                 $bestmetric !== null
-                    ? self::format_duration((int) round($bestmetric))
+                    ? self::format_duration_hours((int) round($bestmetric))
                     : "—",
-                $details
+                $details,
+                [
+                    [
+                        "value" => $bestmetric !== null ? self::format_duration_hours((int) round($bestmetric)) : "—",
+                        "sortvalue" => $bestmetric !== null ? (int) round($bestmetric) : 999999999,
+                    ],
+                    [
+                        "value" => $beststarttime > 0 ? userdate($beststarttime) : "—",
+                        "sortvalue" => $beststarttime,
+                    ],
+                    [
+                        "value" => $bestcertificatetime > 0 ? userdate($bestcertificatetime) : "—",
+                        "sortvalue" => $bestcertificatetime,
+                    ],
+                ]
             );
         }
 
@@ -927,7 +945,12 @@ class report implements report_interface {
             $rows,
             false,
             false,
-            true
+            true,
+            [
+                ["label" => get_string("timetocertificate", "gimidashboardreports_leaderboard")],
+                ["label" => get_string("startdate", "gimidashboardreports_leaderboard")],
+                ["label" => get_string("certificateissued", "gimidashboardreports_leaderboard")],
+            ]
         );
     }
 
@@ -1022,24 +1045,44 @@ class report implements report_interface {
      * @throws \coding_exception
      */
     protected static function build_course_fastest_board(
-        array $users, array $firstaccesstimes, array $certificatetimes, int $courseid
+        array $users,
+        array $firstaccesstimes,
+        array $certificatetimes,
+        int $courseid
     ): array {
         $rows = [];
         foreach ($users as $userid => $user) {
             $metric = null;
+            $starttime = 0;
+            $certificatetime = 0;
+
             if (!empty($firstaccesstimes[$userid][$courseid]) && !empty($certificatetimes[$userid][$courseid])) {
-                $seconds = max(0, $certificatetimes[$userid][$courseid] - $firstaccesstimes[$userid][$courseid]);
-                $metric = (float) $seconds;
+                $starttime = (int) $firstaccesstimes[$userid][$courseid];
+                $certificatetime = (int) $certificatetimes[$userid][$courseid];
+                $metric = (float) max(0, $certificatetime - $starttime);
             }
 
             $rows[] = self::build_row(
                 $user,
                 $metric,
-                $metric !== null ? self::format_duration((int) round($metric)) : "—",
+                $metric !== null ? self::format_duration_hours((int) round($metric)) : "—",
                 $metric !== null
-                    ?
-                    get_string("certissuedon", "gimidashboardreports_leaderboard", userdate($certificatetimes[$userid][$courseid]))
-                    : get_string("notrankedcertificate", "gimidashboardreports_leaderboard")
+                    ? get_string("certissuedon", "gimidashboardreports_leaderboard", userdate($certificatetime))
+                    : get_string("notrankedcertificateaccess", "gimidashboardreports_leaderboard"),
+                [
+                    [
+                        "value" => $metric !== null ? self::format_duration_hours((int) round($metric)) : "—",
+                        "sortvalue" => $metric !== null ? (int) round($metric) : 999999999,
+                    ],
+                    [
+                        "value" => $starttime > 0 ? userdate($starttime) : "—",
+                        "sortvalue" => $starttime,
+                    ],
+                    [
+                        "value" => $certificatetime > 0 ? userdate($certificatetime) : "—",
+                        "sortvalue" => $certificatetime,
+                    ],
+                ]
             );
         }
 
@@ -1049,7 +1092,13 @@ class report implements report_interface {
             get_string("courseleaderboard", "gimidashboardreports_leaderboard"),
             $rows,
             false,
-            false
+            false,
+            false,
+            [
+                ["label" => get_string("timetocertificate", "gimidashboardreports_leaderboard")],
+                ["label" => get_string("startdate", "gimidashboardreports_leaderboard")],
+                ["label" => get_string("certificateissued", "gimidashboardreports_leaderboard")],
+            ]
         );
     }
 
@@ -1082,7 +1131,13 @@ class report implements report_interface {
      * @param string $details Details.
      * @return array
      */
-    protected static function build_row(stdClass $user, ?float $metric, string $valuedisplay, string $details): array {
+    protected static function build_row(
+        stdClass $user,
+        ?float $metric,
+        string $valuedisplay,
+        string $details,
+        array $extracells = []
+    ): array {
         return [
             "userid" => $user->id,
             "fullname" => fullname($user),
@@ -1092,6 +1147,7 @@ class report implements report_interface {
             "metric" => $metric,
             "valuedisplay" => $valuedisplay,
             "details" => $details,
+            "extracells" => $extracells,
         ];
     }
 
@@ -1115,7 +1171,8 @@ class report implements report_interface {
         array $rows,
         bool $rankall,
         bool $descending,
-        bool $hideunranked = false
+        bool $hideunranked = false,
+        array $columns = []
     ): array {
         $rows = self::rank_rows($rows, $rankall, $descending);
 
@@ -1125,12 +1182,16 @@ class report implements report_interface {
             }));
         }
 
+        $hascustomcolumns = !empty($columns);
+
         return [
             "title" => $title,
             "description" => $description,
             "scopebadge" => $scopebadge,
             "hasrows" => !empty($rows),
             "rows" => array_slice($rows, 0, 5),
+            "hascustomcolumns" => $hascustomcolumns,
+            "customcolumns" => $columns,
             "value_title" => get_string("value", "gimidashboardreports_leaderboard"),
             "emptymessage" => get_string("emptyboard", "gimidashboardreports_leaderboard"),
         ];
@@ -1307,29 +1368,15 @@ class report implements report_interface {
      * @param int $seconds Total seconds.
      * @return string
      */
-    protected static function format_duration(int $seconds): string {
+    protected static function format_duration_hours(int $seconds): string {
         $seconds = max(0, $seconds);
 
-        $days = intdiv($seconds, DAYSECS);
-        $seconds -= $days * DAYSECS;
         $hours = intdiv($seconds, HOURSECS);
         $seconds -= $hours * HOURSECS;
         $minutes = intdiv($seconds, MINSECS);
         $seconds -= $minutes * MINSECS;
 
-        $parts = [];
-        if ($days > 0) {
-            $parts[] = $days . 'd';
-        }
-        if ($hours > 0 || !empty($parts)) {
-            $parts[] = $hours . 'h';
-        }
-        if ($minutes > 0 || !empty($parts)) {
-            $parts[] = $minutes . 'm';
-        }
-        $parts[] = $seconds . 's';
-
-        return implode(' ', $parts);
+        return $hours . "h " . $minutes . "m " . $seconds . "s";
     }
 
     /**
