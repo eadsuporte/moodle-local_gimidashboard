@@ -1096,7 +1096,7 @@ class report implements report_interface {
             return get_string("dash", "gimidashboardreports_fullacademydashboard");
         }
 
-        return number_format($value, 1) . "%";
+        return number_format($value, 1);
     }
 
     /**
