@@ -345,7 +345,7 @@ class report implements report_interface {
 
             $rows[] = [
                 "course" => format_string($course->fullname, true, ["context" => $context]),
-                "courseurl" => (new moodle_url("/course/", ["id" => $courseid]))->out(false),
+                "courseurl" => new moodle_url("/course/view.php", ["id" => $courseid]),
                 "enrolled" => format_float($enrolledcount, 0),
                 "accesses" => format_float($accesscount, 0),
                 "userswithaccess" => format_float($userswithaccess, 0),
