@@ -31,7 +31,6 @@ use html_writer;
 use local_gimidashboard\header_helper;
 use local_gimidashboard\page\selection_resolver;
 use local_gimidashboard\report\base_report;
-use local_gimidashboard\report\grade;
 use local_gimidashboard\report\report_interface;
 use moodle_url;
 use stdClass;
@@ -192,7 +191,7 @@ class report implements report_interface {
             $completedmodules = base_report::get_completed_module_totals($courseids, $userids);
             $day1completedmodules = self::get_day1_completed_module_totals($courseids, $userids);
             $firstaccesstimes = base_report::get_first_course_access_times($courseids, $userids);
-            $gradepercentages = grade::get_course_grade_percentages($courseids, $userids);
+            $examgrademetrics = self::get_exam_grade_metrics($courseids, $userids);
             $completions = base_report::get_course_completions($courseids, $userids);
             $certificatecounts = self::get_certificate_counts($courseids, $userids);
             $examcounts = self::get_exam_counts($courseids, $userids);
@@ -208,7 +207,7 @@ class report implements report_interface {
                     $firstaccesstimes[$userid] ?? [],
                     $completedmodules[$userid] ?? [],
                     $day1completedmodules[$userid] ?? [],
-                    $gradepercentages[$userid] ?? [],
+                    $examgrademetrics[$userid] ?? [],
                     $completions[$userid] ?? [],
                     $certificatecounts[$userid] ?? [],
                     $examcounts[$userid] ?? [],
@@ -228,7 +227,7 @@ class report implements report_interface {
                     $firstaccesstimes[$learnerid] ?? [],
                     $completedmodules[$learnerid] ?? [],
                     $day1completedmodules[$learnerid] ?? [],
-                    $gradepercentages[$learnerid] ?? [],
+                    $examgrademetrics[$learnerid] ?? [],
                     $completions[$learnerid] ?? [],
                     $certificatecounts[$learnerid] ?? [],
                     $examcounts[$learnerid] ?? [],
@@ -451,6 +450,7 @@ class report implements report_interface {
                 "activitytable" => "customcert",
                 "issuestable" => "customcert_issues",
                 "issuefield" => "customcertid",
+                "coursefield" => "course",
             ];
         }
 
@@ -459,6 +459,7 @@ class report implements report_interface {
                 "activitytable" => "certificate",
                 "issuestable" => "certificate_issues",
                 "issuefield" => "certificateid",
+                "coursefield" => "course",
             ];
         }
 
@@ -468,6 +469,18 @@ class report implements report_interface {
                 "activitytable" => "simplecertificate",
                 "issuestable" => "simplecertificate_issues",
                 "issuefield" => "certificateid",
+                "coursefield" => "course",
+            ];
+        }
+
+        if ($dbman->table_exists(new xmldb_table("tool_certificate_templates")) &&
+            $dbman->table_exists(new xmldb_table("tool_certificate_issues")) &&
+            $dbman->field_exists(new xmldb_table("tool_certificate_templates"), new xmldb_field("courseid"))) {
+            $sources[] = [
+                "activitytable" => "tool_certificate_templates",
+                "issuestable" => "tool_certificate_issues",
+                "issuefield" => "templateid",
+                "coursefield" => "courseid",
             ];
         }
 
@@ -481,14 +494,14 @@ class report implements report_interface {
         $result = [];
         foreach ($sources as $source) {
             $sql = "SELECT issues.userid,
-                           activity.course AS courseid,
+                           activity." . $source["coursefield"] . " AS courseid,
                            COUNT(DISTINCT issues.id) AS total
                       FROM {" . $source["issuestable"] . "} issues
                       JOIN {" . $source["activitytable"] . "} activity
                         ON activity.id = issues." . $source["issuefield"] . "
-                     WHERE activity.course {$coursesql}
+                     WHERE activity." . $source["coursefield"] . " {$coursesql}
                        AND issues.userid {$usersql}
-                  GROUP BY issues.userid, activity.course";
+                  GROUP BY issues.userid, activity." . $source["coursefield"];
 
             $records = $DB->get_records_sql($sql, $courseparams + $userparams);
             foreach ($records as $record) {
@@ -538,6 +551,61 @@ class report implements report_interface {
         $result = [];
         foreach ($records as $record) {
             $result[$record->userid][$record->courseid] = $record->total;
+        }
+
+        return $result;
+    }
+
+    /**
+     * Returns exam grade metrics by user and course.
+     *
+     * The average is based only on attempted exams that have a calculable score,
+     * so unattempted exams are excluded from the denominator.
+     *
+     * @param array $courseids Course ids.
+     * @param array $userids User ids.
+     * @return array
+     * @throws Exception
+     */
+    protected static function get_exam_grade_metrics(array $courseids, array $userids): array {
+        global $DB;
+
+        if (empty($userids)) {
+            return [];
+        }
+
+        [$coursesql, $courseparams] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED, "courseg");
+        [$usersql, $userparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, "userg");
+        $params = $courseparams + $userparams + self::get_exam_name_like_params(1);
+
+        $sql = "SELECT CONCAT(qa.userid, '-', q.course) AS unik,
+                       qa.userid,
+                       q.course AS courseid,
+                       SUM(CASE
+                               WHEN q.sumgrades > 0 AND qa.sumgrades IS NOT NULL THEN (qa.sumgrades / q.sumgrades) * 100
+                               ELSE 0
+                           END) AS scoretotal,
+                       SUM(CASE
+                               WHEN q.sumgrades > 0 AND qa.sumgrades IS NOT NULL THEN 1
+                               ELSE 0
+                           END) AS scorecount
+                  FROM {quiz_attempts} qa
+                  JOIN {quiz} q
+                    ON q.id = qa.quiz
+                 WHERE q.course {$coursesql}
+                   AND qa.userid {$usersql}
+                   AND qa.preview = 0
+                   AND qa.state IN ('finished', 'abandoned', 'overdue')
+                   AND " . self::get_exam_name_sql("COALESCE(q.name, '')") . "
+              GROUP BY qa.userid, q.course";
+        $records = $DB->get_records_sql($sql, $params);
+
+        $result = [];
+        foreach ($records as $record) {
+            $result[(int) $record->userid][(int) $record->courseid] = (object) [
+                "scoretotal" => (float) $record->scoretotal,
+                "scorecount" => (int) $record->scorecount,
+            ];
         }
 
         return $result;
@@ -599,7 +667,7 @@ class report implements report_interface {
      * @param array $firstaccesstimes
      * @param array $completedmodules Completed modules by course.
      * @param array $day1completedmodules
-     * @param array $gradepercentages Grade percentages by course.
+     * @param array $examgrademetrics Exam grade metrics by course.
      * @param array $completions Completion timestamps by course.
      * @param array $certificatecounts
      * @param array $examcounts Exam counts by course.
@@ -616,7 +684,7 @@ class report implements report_interface {
         array $firstaccesstimes,
         array $completedmodules,
         array $day1completedmodules,
-        array $gradepercentages,
+        array $examgrademetrics,
         array $completions,
         array $certificatecounts,
         array $examcounts,
@@ -626,7 +694,8 @@ class report implements report_interface {
     ): object {
         $courseprogresses = [];
         $day1courseprogresses = [];
-        $gradevalues = [];
+        $examscoretotal = 0.0;
+        $examscorecount = 0;
         $completedcount = 0;
         $certtotal = 0;
         $examtotal = 0;
@@ -642,17 +711,16 @@ class report implements report_interface {
             $completedonday1 = $hascoursecompletion && $firstaccess > 0 && $completions[$courseid] <= ($firstaccess + DAYSECS);
 
             $courseprogresses[] = base_report::calculate_course_progress($trackable, $completedmodulescount, $coursecompleted);
-            $day1courseprogresses[] = base_report::calculate_course_progress($trackable, $day1completedmodulescount, $completedonday1);
+            $day1courseprogresses[] =
+                base_report::calculate_course_progress($trackable, $day1completedmodulescount, $completedonday1);
 
-            if ($coursecompleted &&
-                !empty($examcounts[$courseid]) &&
-                isset($gradepercentages[$courseid]) &&
-                $gradepercentages[$courseid] !== null &&
-                $gradepercentages[$courseid] > 0) {
-                $gradevalues[] = (float) $gradepercentages[$courseid];
+            $courseexammetrics = $examgrademetrics[$courseid] ?? null;
+            if ($courseexammetrics !== null && (int) $courseexammetrics->scorecount > 0) {
+                $examscoretotal += (float) $courseexammetrics->scoretotal;
+                $examscorecount += (int) $courseexammetrics->scorecount;
             }
 
-            if ($coursecompleted) {
+            if (!empty($certificatecounts[$courseid])) {
                 $completedcount++;
             }
 
@@ -664,7 +732,7 @@ class report implements report_interface {
         $avgprogress = !empty($courseprogresses) ? round(array_sum($courseprogresses) / count($courseprogresses), 1) : 0.0;
         $avgday1progress =
             !empty($day1courseprogresses) ? round(array_sum($day1courseprogresses) / count($day1courseprogresses), 1) : 0.0;
-        $avggrade = !empty($gradevalues) ? round(array_sum($gradevalues) / count($gradevalues), 1) : null;
+        $avggrade = $examscorecount > 0 ? round($examscoretotal / $examscorecount, 1) : null;
         $status = ($user->suspended == 1 || $user->deleted == 1)
             ? get_string("suspended", "gimidashboardreports_fullacademydashboard")
             : get_string("active", "gimidashboardreports_fullacademydashboard");
@@ -717,7 +785,7 @@ class report implements report_interface {
         array $firstaccesstimes,
         array $completedmodules,
         array $day1completedmodules,
-        array $gradepercentages,
+        array $examgrademetrics,
         array $completions,
         array $certificatecounts,
         array $examcounts,
@@ -746,8 +814,9 @@ class report implements report_interface {
                 ($day1completedmodules[$courseid] ?? 0),
                 $completedonday1
             );
-            $grade = $coursecompleted && !empty($examcounts[$courseid]) && !empty($gradepercentages[$courseid])
-                ? (float) $gradepercentages[$courseid]
+            $courseexammetrics = $examgrademetrics[$courseid] ?? null;
+            $grade = ($courseexammetrics !== null && (int) $courseexammetrics->scorecount > 0)
+                ? round(((float) $courseexammetrics->scoretotal) / (int) $courseexammetrics->scorecount, 1)
                 : null;
 
             $lastaccess = ($lastaccessbycourse[$courseid] ?? 0);
@@ -757,7 +826,7 @@ class report implements report_interface {
                 "progress" => self::format_percent($progress),
                 "grade" => self::format_grade($grade),
                 "delta" => self::format_percent(round($progress - $day1progress, 1)),
-                "completed" => $coursecompleted ? 1 : 0,
+                "completed" => !empty($certificatecounts[$courseid]) ? 1 : 0,
                 "certs" => ($certificatecounts[$courseid] ?? 0),
                 "exams" => ($examcounts[$courseid] ?? 0),
                 "lastaccess" => self::format_date($lastaccess),
@@ -849,7 +918,6 @@ class report implements report_interface {
                 ["label" => get_string("avgscoregrade", "gimidashboardreports_fullacademydashboard")],
                 //["label" => get_string("deltavsday1", "gimidashboardreports_fullacademydashboard")],
                 ["label" => get_string("completed", "gimidashboardreports_fullacademydashboard")],
-                ["label" => get_string("certs", "gimidashboardreports_fullacademydashboard")],
                 ["label" => get_string("exams", "gimidashboardreports_fullacademydashboard")],
                 ["label" => get_string("lastaccess", "gimidashboardreports_fullacademydashboard")],
                 ["label" => get_string("daysinactive", "gimidashboardreports_fullacademydashboard")],
@@ -874,7 +942,6 @@ class report implements report_interface {
                 "avggrade" => self::format_grade($row->avggrade),
                 //"delta" => self::format_percent($row->delta),
                 "completed" => $row->completed,
-                "certs" => $row->certs,
                 "exams" => $row->exams,
                 "lastaccess" => self::format_date($row->lastaccess),
                 "daysinactive" => self::format_days_inactive($row->daysinactive),
@@ -908,7 +975,6 @@ class report implements report_interface {
                 ["label" => get_string("avgscoregrade", "gimidashboardreports_fullacademydashboard")],
                 //["label" => get_string("deltavsday1", "gimidashboardreports_fullacademydashboard")],
                 ["label" => get_string("completed", "gimidashboardreports_fullacademydashboard")],
-                ["label" => get_string("certs", "gimidashboardreports_fullacademydashboard")],
                 ["label" => get_string("exams", "gimidashboardreports_fullacademydashboard")],
                 ["label" => get_string("lastaccess", "gimidashboardreports_fullacademydashboard")],
                 ["label" => get_string("status", "gimidashboardreports_fullacademydashboard")],
@@ -926,7 +992,6 @@ class report implements report_interface {
                 "grade" => $row["grade"],
                 //"delta" => $row["delta"],
                 "completed" => $row["completed"],
-                "certs" => $row["certs"],
                 "exams" => $row["exams"],
                 "lastaccess" => $row["lastaccess"],
                 "status" => s($row["status"]),
