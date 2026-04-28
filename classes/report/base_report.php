@@ -509,4 +509,118 @@ use xmldb_table;
 
         return round(array_sum($progresses) / count($progresses), 1);
     }
+
+     /**
+      * Returns quiz grade metrics using Moodle gradebook final grades.
+      *
+      * This avoids recalculating quiz scores from quiz_attempts.sumgrades / quiz.sumgrades,
+      * because quiz structure changes can make old attempts inconsistent with the current quiz total.
+      *
+      * @param array $courseids Course ids.
+      * @param array $userids User ids.
+      * @param bool $examsonly Whether only exam-like quizzes should be included.
+      * @return array
+      * @throws Exception
+      */
+     public static function get_quiz_grade_metrics(array $courseids, array $userids, bool $examsonly = false): array {
+         global $DB, $CFG;
+
+         require_once("{$CFG->dirroot}/lib/grade/constants.php");
+
+         if (empty($courseids) || empty($userids)) {
+             return [];
+         }
+
+         [$coursesql, $courseparams] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED, "courseg");
+         [$usersql, $userparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, "userg");
+
+         $params = $courseparams + $userparams + [
+                 "itemtype" => "mod",
+                 "itemmodule" => "quiz",
+             ];
+
+         $wheres = [
+             "q.course {$coursesql}",
+             "gg.userid {$usersql}",
+             "gi.itemtype = :itemtype",
+             "gi.itemmodule = :itemmodule",
+             "gi.iteminstance = q.id",
+             "gi.courseid = q.course",
+             "gg.finalgrade IS NOT NULL",
+             "gi.grademax > gi.grademin",
+         ];
+
+         if ($examsonly) {
+             $wheres[] = self::get_exam_name_sql("COALESCE(q.name, '')");
+             $params += self::get_exam_name_like_params();
+         }
+
+         $sql = "SELECT CONCAT(gg.userid, '-', q.course) AS unik,
+                   gg.userid,
+                   q.course AS courseid,
+                   SUM(((gg.finalgrade - gi.grademin) / (gi.grademax - gi.grademin)) * 100) AS scoretotal,
+                   COUNT(gg.id) AS scorecount
+              FROM {quiz} q
+              JOIN {grade_items} gi
+                ON gi.iteminstance = q.id
+              JOIN {grade_grades} gg
+                ON gg.itemid = gi.id
+             WHERE " . implode(" AND ", $wheres) . "
+          GROUP BY gg.userid, q.course";
+
+         $records = $DB->get_records_sql($sql, $params);
+
+         $result = [];
+         foreach ($records as $record) {
+             $result[(int) $record->userid][(int) $record->courseid] = (object) [
+                 "scoretotal" => (float) $record->scoretotal,
+                 "scorecount" => (int) $record->scorecount,
+             ];
+         }
+
+         return $result;
+     }
+
+     /**
+      * Returns the SQL clause used to detect exam activities.
+      *
+      * @param string $primaryexpr Primary SQL expression.
+      * @param string|null $secondaryexpr Optional secondary SQL expression.
+      * @return string
+      */
+     public static function get_exam_name_sql(string $primaryexpr, ?string $secondaryexpr = null): string {
+         $expressions = [$primaryexpr];
+         if ($secondaryexpr !== null) {
+             $expressions[] = $secondaryexpr;
+         }
+
+         $parts = [];
+         foreach ($expressions as $key => $expression) {
+             $parts[] = "LOWER({$expression}) LIKE :examterm_a{$key}_1";
+             $parts[] = "LOWER({$expression}) LIKE :examterm_a{$key}_2";
+             $parts[] = "LOWER({$expression}) LIKE :examterm_a{$key}_3";
+         }
+
+         return "(" . implode(" OR ", $parts) . ")";
+     }
+
+     /**
+      * Returns the LIKE params used to detect exam activities.
+      *
+      * @param int $num Number of SQL expressions.
+      * @return array
+      */
+     public static function get_exam_name_like_params(int $num = 1): array {
+         $params = [];
+
+         for ($key = 0; $key < $num; $key++) {
+             $params += [
+                 "examterm_a{$key}_1" => "%exam%",
+                 "examterm_a{$key}_2" => "%final assessment%",
+                 "examterm_a{$key}_3" => "%final test%",
+             ];
+         }
+
+         return $params;
+     }
 }

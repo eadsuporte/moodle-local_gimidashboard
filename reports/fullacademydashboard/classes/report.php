@@ -52,8 +52,6 @@ class report implements report_interface {
      * @throws Exception
      */
     public static function get_header(array $courses, $extra = ""): string {
-        global $OUTPUT;
-
         $reportdata = self::prepare_report_data($courses);
         if (empty($reportdata->courseids)) {
             return "";
@@ -191,7 +189,7 @@ class report implements report_interface {
             $completedmodules = base_report::get_completed_module_totals($courseids, $userids);
             $day1completedmodules = self::get_day1_completed_module_totals($courseids, $userids);
             $firstaccesstimes = base_report::get_first_course_access_times($courseids, $userids);
-            $examgrademetrics = self::get_exam_grade_metrics($courseids, $userids);
+            $examgrademetrics = base_report::get_quiz_grade_metrics($courseids, $userids, true);
             $completions = base_report::get_course_completions($courseids, $userids);
             $certificatecounts = self::get_certificate_counts($courseids, $userids);
             $examcounts = self::get_exam_counts($courseids, $userids);
@@ -557,61 +555,6 @@ class report implements report_interface {
     }
 
     /**
-     * Returns exam grade metrics by user and course.
-     *
-     * The average is based only on attempted exams that have a calculable score,
-     * so unattempted exams are excluded from the denominator.
-     *
-     * @param array $courseids Course ids.
-     * @param array $userids User ids.
-     * @return array
-     * @throws Exception
-     */
-    protected static function get_exam_grade_metrics(array $courseids, array $userids): array {
-        global $DB;
-
-        if (empty($userids)) {
-            return [];
-        }
-
-        [$coursesql, $courseparams] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED, "courseg");
-        [$usersql, $userparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, "userg");
-        $params = $courseparams + $userparams + self::get_exam_name_like_params(1);
-
-        $sql = "SELECT CONCAT(qa.userid, '-', q.course) AS unik,
-                       qa.userid,
-                       q.course AS courseid,
-                       SUM(CASE
-                               WHEN q.sumgrades > 0 AND qa.sumgrades IS NOT NULL THEN (qa.sumgrades / q.sumgrades) * 100
-                               ELSE 0
-                           END) AS scoretotal,
-                       SUM(CASE
-                               WHEN q.sumgrades > 0 AND qa.sumgrades IS NOT NULL THEN 1
-                               ELSE 0
-                           END) AS scorecount
-                  FROM {quiz_attempts} qa
-                  JOIN {quiz} q
-                    ON q.id = qa.quiz
-                 WHERE q.course {$coursesql}
-                   AND qa.userid {$usersql}
-                   AND qa.preview = 0
-                   AND qa.state IN ('finished', 'abandoned', 'overdue')
-                   AND " . self::get_exam_name_sql("COALESCE(q.name, '')") . "
-              GROUP BY qa.userid, q.course";
-        $records = $DB->get_records_sql($sql, $params);
-
-        $result = [];
-        foreach ($records as $record) {
-            $result[(int) $record->userid][(int) $record->courseid] = (object) [
-                "scoretotal" => (float) $record->scoretotal,
-                "scorecount" => (int) $record->scorecount,
-            ];
-        }
-
-        return $result;
-    }
-
-    /**
      * Returns pathway memberships keyed by user and course.
      *
      * @param array $courseids Course ids.
@@ -767,15 +710,19 @@ class report implements report_interface {
      * @param array $courses Course records.
      * @param array $usercourseids User course ids.
      * @param array $moduletotals Module totals.
+     * @param array $firstaccesstimes
      * @param array $completedmodules Completed modules.
-     * @param array $gradepercentages Grade percentages.
+     * @param array $day1completedmodules
+     * @param array $examgrademetrics
      * @param array $completions Completions.
+     * @param array $certificatecounts
      * @param array $examcounts Exam counts.
      * @param array $lastaccessbycourse Last access by course.
      * @param array $pathways Pathways.
+     * @param array $coursepathways
      * @param object $selection Selection payload.
      * @return array
-     * @throws Exception
+     * @throws \Exception
      */
     protected static function build_detail_rows(
         stdClass $user,
@@ -1054,6 +1001,7 @@ class report implements report_interface {
     /**
      * Returns the LIKE params used to detect exam activities.
      *
+     * @param int $num
      * @return array
      */
     protected static function get_exam_name_like_params(int $num): array {
@@ -1164,7 +1112,7 @@ class report implements report_interface {
         global $DB;
 
         $name = $DB->get_field("cohort", "name", ["id" => $cohortid]);
-        if ($name == false) {
+        if (!$name) {
             return "";
         }
 

@@ -270,7 +270,9 @@ class report implements report_interface {
         $usercohorts = self::get_user_cohorts($userids, array_keys($availablecohorts));
         $lastaccessbycourse = base_report::get_last_access_by_course($courseids, $userids);
         $usermetrics = self::get_attempt_metrics_by_user_course($courseids, $userids);
+        $usergrademetrics = base_report::get_quiz_grade_metrics($courseids, $userids);
         $coursemetrics = self::get_course_metrics($courseids, $cohortid, $base->learnerid);
+        $coursegrademetrics = self::aggregate_grade_metrics_by_course($usergrademetrics);
         $wrongquestions = self::get_top_incorrect_questions($courseids, $cohortid, $base->learnerid);
 
         $learnerrows = [];
@@ -281,6 +283,7 @@ class report implements report_interface {
                 $usercourses[$userid] ?? [],
                 $availablequizzes->bycourse,
                 $usermetrics[$userid] ?? [],
+                $usergrademetrics[$userid] ?? [],
                 $lastaccessbycourse[$userid] ?? [],
                 $usercohorts[$userid] ?? [],
                 $cohortid
@@ -311,7 +314,14 @@ class report implements report_interface {
             $submitted = (int) $metrics->submittedquizzes;
             $attempts = (int) $metrics->attempts;
             $submissionrate = $availablecount > 0 ? ($submitted / $availablecount) * 100 : 0;
-            $avgscore = (int) $metrics->scorecount > 0 ? ((float) $metrics->scoretotal / (int) $metrics->scorecount) : null;
+            $grademetrics = $coursegrademetrics[$courseid] ?? (object) [
+                "scoretotal" => 0,
+                "scorecount" => 0,
+            ];
+
+            $avgscore = (int) $grademetrics->scorecount > 0
+                ? ((float) $grademetrics->scoretotal / (int) $grademetrics->scorecount)
+                : null;
 
             $base->summary->submittedquizzes += $submitted;
             $base->summary->attempts += $attempts;
@@ -467,21 +477,12 @@ class report implements report_interface {
         [$usersql, $userparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, "user");
 
         $sql = "SELECT CONCAT(qa.userid, '-', q.course) AS unik,
-                       qa.userid,
-                       q.course AS courseid,
-                       COUNT(DISTINCT qa.quiz) AS submittedquizzes,
-                       COUNT(DISTINCT qa.id) AS attempts,
-                       SUM(CASE
-                               WHEN q.sumgrades > 0 AND qa.sumgrades IS NOT NULL THEN (qa.sumgrades / q.sumgrades) * 100
-                               ELSE 0
-                           END) AS scoretotal,
-                       SUM(CASE
-                               WHEN q.sumgrades > 0 AND qa.sumgrades IS NOT NULL THEN 1
-                               ELSE 0
-                           END) AS scorecount
+                       qa.userid                        AS userid,
+                       q.course                         AS courseid,
+                       COUNT(DISTINCT qa.quiz)          AS submittedquizzes,
+                       COUNT(DISTINCT qa.id)            AS attempts
                   FROM {quiz_attempts} qa
-                  JOIN {quiz} q
-                    ON q.id = qa.quiz
+                  JOIN {quiz}           q ON q.id = qa.quiz
                  WHERE q.course {$coursesql}
                    AND qa.userid {$usersql}
                    AND qa.preview = 0
@@ -525,21 +526,12 @@ class report implements report_interface {
             $wheres[] = "qa.userid = :learnerid";
         }
 
-        $sql = "SELECT q.course AS courseid,
-                       COUNT(DISTINCT qa.quiz) AS submittedquizzes,
-                       COUNT(DISTINCT qa.id) AS attempts,
-                       COUNT(DISTINCT qa.userid) AS learnerswithattempts,
-                       SUM(CASE
-                               WHEN q.sumgrades > 0 AND qa.sumgrades IS NOT NULL THEN (qa.sumgrades / q.sumgrades) * 100
-                               ELSE 0
-                           END) AS scoretotal,
-                       SUM(CASE
-                               WHEN q.sumgrades > 0 AND qa.sumgrades IS NOT NULL THEN 1
-                               ELSE 0
-                           END) AS scorecount
+        $sql = "SELECT q.course                  AS courseid,
+                       COUNT(DISTINCT qa.quiz)   AS submittedquizzes,
+                       COUNT(DISTINCT qa.id)     AS attempts,
+                       COUNT(DISTINCT qa.userid) AS learnerswithattempts
                   FROM {quiz_attempts} qa
-                  JOIN {quiz} q
-                    ON q.id = qa.quiz
+                  JOIN {quiz}           q ON q.id = qa.quiz
                 {$joins}
                  WHERE " . implode(" AND ", $wheres) . "
               GROUP BY q.course";
@@ -744,10 +736,13 @@ class report implements report_interface {
      * @param array $usercourses User course ids.
      * @param array $availablequizzes Available quizzes by course.
      * @param array $usermetrics Attempt metrics by course.
+     * @param array $usergrademetrics
      * @param array $lastaccessbycourse Last access by course.
      * @param array $cohorts Learner cohorts.
      * @param int $cohortid Selected cohort id.
      * @return array
+     * @throws \coding_exception
+     * @throws \core\exception\moodle_exception
      */
     protected static function build_learner_row(
         object $user,
@@ -755,6 +750,7 @@ class report implements report_interface {
         array $usercourses,
         array $availablequizzes,
         array $usermetrics,
+        array $usergrademetrics,
         array $lastaccessbycourse,
         array $cohorts,
         int $cohortid = 0
@@ -766,11 +762,14 @@ class report implements report_interface {
 
         $submittedquizzes = 0;
         $attempts = 0;
-        $scoretotal = 0.0;
-        $scorecount = 0;
         foreach ($usermetrics as $metric) {
             $submittedquizzes += (int) $metric->submittedquizzes;
             $attempts += (int) $metric->attempts;
+        }
+
+        $scoretotal = 0.0;
+        $scorecount = 0;
+        foreach ($usergrademetrics as $metric) {
             $scoretotal += (float) $metric->scoretotal;
             $scorecount += (int) $metric->scorecount;
         }
@@ -844,6 +843,8 @@ class report implements report_interface {
      * @param int $selectedcohortid Selected cohort id.
      * @param int $learnerid Learner id.
      * @return array
+     * @throws \coding_exception
+     * @throws \core\exception\moodle_exception
      */
     protected static function build_cohort_options(
         string $target,
@@ -876,6 +877,7 @@ class report implements report_interface {
      * @param int $cohortid Cohort id.
      * @param int $learnerid Learner id.
      * @return moodle_url
+     * @throws \core\exception\moodle_exception
      */
     protected static function build_url(string $target, int $cohortid = 0, int $learnerid = 0): moodle_url {
         $params = [
@@ -902,6 +904,7 @@ class report implements report_interface {
      * @param int $cohortid Cohort id.
      * @param int $learnerid Learner id.
      * @return string
+     * @throws \core\exception\moodle_exception
      */
     protected static function format_course_link(object $selection, object $course, int $cohortid = 0, int $learnerid = 0): string {
         $label = format_string($course->fullname, true, ["context" => context_course::instance($course->id)]);
@@ -920,7 +923,7 @@ class report implements report_interface {
      * @return string
      */
     protected static function format_percent(float $value): string {
-        return format_float($value, 1) . "%";
+        return format_float($value) . "%";
     }
 
     /**
@@ -928,6 +931,7 @@ class report implements report_interface {
      *
      * @param float|null $value Value.
      * @return string
+     * @throws \coding_exception
      */
     protected static function format_percent_or_dash(?float $value): string {
         if ($value === null) {
@@ -935,5 +939,33 @@ class report implements report_interface {
         }
 
         return self::format_percent($value);
+    }
+
+    /**
+     * Aggregates gradebook metrics by course.
+     *
+     * @param array $usergrademetrics Grade metrics by learner and course.
+     * @return array
+     */
+    protected static function aggregate_grade_metrics_by_course(array $usergrademetrics): array {
+        $result = [];
+
+        foreach ($usergrademetrics as $gradesbycourse) {
+            foreach ($gradesbycourse as $courseid => $metric) {
+                $courseid = (int) $courseid;
+
+                if (!isset($result[$courseid])) {
+                    $result[$courseid] = (object) [
+                        "scoretotal" => 0.0,
+                        "scorecount" => 0,
+                    ];
+                }
+
+                $result[$courseid]->scoretotal += (float) $metric->scoretotal;
+                $result[$courseid]->scorecount += (int) $metric->scorecount;
+            }
+        }
+
+        return $result;
     }
 }
