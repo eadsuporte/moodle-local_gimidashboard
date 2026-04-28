@@ -295,6 +295,21 @@ use xmldb_table;
         return $result;
     }
 
+     /**
+      * Returns finish timestamps by user and course.
+      *
+      * For now, finish means Moodle course completion.
+      * This keeps leaderboards working even before certificates are issued.
+      *
+      * @param array $courseids Course ids.
+      * @param array $userids User ids.
+      * @return array
+      * @throws Exception
+      */
+     public static function get_course_finish_times(array $courseids, array $userids): array {
+         return self::get_course_completions($courseids, $userids);
+     }
+
     /**
      * Returns the last access for each user and course.
      *
