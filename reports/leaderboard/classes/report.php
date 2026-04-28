@@ -227,7 +227,7 @@ class report implements report_interface {
         $usercourses = base_report::get_user_courses($courseids, $userids);
         $moduletotals = base_report::get_trackable_module_totals($courseids);
         $completedmodules = base_report::get_completed_module_totals($courseids, $userids);
-        $grades = grade::get_course_grade_percentages($courseids, $userids);
+        $examgrademetrics = base_report::get_quiz_grade_metrics($courseids, $userids, true);
         $completions = base_report::get_course_completions($courseids, $userids);
         $firstaccesstimes = base_report::get_first_course_access_times($courseids, $userids);
         $finishtimes = base_report::get_course_finish_times($courseids, $userids);
@@ -235,14 +235,14 @@ class report implements report_interface {
         if ($selection->type === "course") {
             $courseid = reset($courseids);
             $base->boards = [
-                self::build_course_best_grade_board($users, $grades, $courseid),
+                self::build_course_best_grade_board($users, $examgrademetrics, $courseid),
                 self::build_course_progress_board($users, $moduletotals, $completedmodules, $completions, $courseid),
                 self::build_course_fastest_board($users, $firstaccesstimes, $finishtimes, $courseid),
             ];
         } else {
             $coursenames = self::get_course_names($courseids);
             $base->boards = [
-                self::build_pathway_best_grade_board($users, $usercourses, $grades),
+                self::build_pathway_best_grade_board($users, $usercourses, $examgrademetrics),
                 self::build_pathway_progress_board($users, $usercourses, $moduletotals, $completedmodules, $completions),
                 self::build_pathway_fastest_board($users, $usercourses, $firstaccesstimes, $finishtimes, $coursenames),
             ];
@@ -548,33 +548,39 @@ class report implements report_interface {
      *
      * @param array $users Users.
      * @param array $usercourses Selected course ids.
-     * @param array $grades Grades.
+     * @param array $examgrademetrics Exam grade metrics.
      * @return array
      * @throws coding_exception
      */
-    protected static function build_pathway_best_grade_board(array $users, array $usercourses, array $grades): array {
+    protected static function build_pathway_best_grade_board(array $users, array $usercourses, array $examgrademetrics): array {
         $rows = [];
+
         foreach ($users as $userid => $user) {
-            $gradevalues = [];
-            foreach (array_keys($usercourses[$userid] ?? []) as $courseid) {
-                if (isset($grades[$userid][$courseid]) && $grades[$userid][$courseid] !== null && $grades[$userid][$courseid] > 0) {
-                    $gradevalues[] = (float) $grades[$userid][$courseid];
+            $usercourseids = array_keys($usercourses[$userid] ?? []);
+            $usergrademetrics = $examgrademetrics[$userid] ?? [];
+            $gradedcoursecount = 0;
+
+            foreach ($usercourseids as $courseid) {
+                $coursemetrics = $usergrademetrics[$courseid] ?? null;
+
+                if ($coursemetrics !== null && (int) $coursemetrics->scorecount > 0) {
+                    $gradedcoursecount++;
                 }
             }
 
-            $metric = !empty($gradevalues) ? round(array_sum($gradevalues) / count($gradevalues), 1) : null;
+            $metric = base_report::calculate_average_quiz_grade($usercourseids, $usergrademetrics);
+
             $rows[] = self::build_row(
                 $user,
                 $metric,
-                //$metric !== null ? self::format_percent($metric) : "—",
-                $metric !== null ? $metric : "—",
+                self::format_grade($metric),
                 $metric !== null
-                    ? get_string("gradedcourses", "gimidashboardreports_leaderboard", count($gradevalues))
+                    ? get_string("gradedcourses", "gimidashboardreports_leaderboard", $gradedcoursecount)
                     : get_string("notrankedassessment", "gimidashboardreports_leaderboard")
             );
         }
 
-        $board = self::build_board(
+        return self::build_board(
             get_string("bestgrade", "gimidashboardreports_leaderboard"),
             get_string("bestgradedescpathway", "gimidashboardreports_leaderboard"),
             get_string("pathwayleaderboard", "gimidashboardreports_leaderboard"),
@@ -585,8 +591,6 @@ class report implements report_interface {
             [],
             get_string("grade", "gimidashboardreports_leaderboard")
         );
-
-        return $board;
     }
 
     /**
@@ -737,22 +741,21 @@ class report implements report_interface {
      * Builds the course Best Grade board.
      *
      * @param array $users Users.
-     * @param array $grades Grades.
+     * @param array $examgrademetrics Exam grade metrics.
      * @param int $courseid Course id.
      * @return array
      * @throws coding_exception
      */
-    protected static function build_course_best_grade_board(array $users, array $grades, int $courseid): array {
+    protected static function build_course_best_grade_board(array $users, array $examgrademetrics, int $courseid): array {
         $rows = [];
+
         foreach ($users as $userid => $user) {
-            $metric = isset($grades[$userid][$courseid]) && $grades[$userid][$courseid] !== null && $grades[$userid][$courseid] > 0
-                ? (float) $grades[$userid][$courseid]
-                : null;
+            $metric = base_report::calculate_average_quiz_grade([$courseid], $examgrademetrics[$userid] ?? []);
 
             $rows[] = self::build_row(
                 $user,
                 $metric,
-                $metric !== null ? self::format_percent($metric) : "—",
+                self::format_grade($metric),
                 $metric !== null
                     ? get_string("bestgradedesccourse", "gimidashboardreports_leaderboard")
                     : get_string("notrankedassessment", "gimidashboardreports_leaderboard")
@@ -1146,6 +1149,20 @@ class report implements report_interface {
         $seconds -= $minutes * MINSECS;
 
         return $hours . "h " . $minutes . "m " . $seconds . "s";
+    }
+
+    /**
+     * Formats a grade value.
+     *
+     * @param float|null $value Value.
+     * @return string
+     */
+    protected static function format_grade(?float $value): string {
+        if ($value === null) {
+            return "—";
+        }
+
+        return format_float($value, 1);
     }
 
     /**

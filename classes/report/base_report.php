@@ -582,6 +582,32 @@ use xmldb_table;
      }
 
      /**
+      * Calculates the average quiz grade from metrics returned by get_quiz_grade_metrics().
+      *
+      * @param array $courseids Course ids to include.
+      * @param array $grademetrics Grade metrics keyed by course id for one learner.
+      * @return float|null
+      */
+     public static function calculate_average_quiz_grade(array $courseids, array $grademetrics): ?float {
+         $scoretotal = 0.0;
+         $scorecount = 0;
+
+         foreach ($courseids as $courseid) {
+             $courseid = (int) $courseid;
+             $coursemetrics = $grademetrics[$courseid] ?? null;
+
+             if ($coursemetrics === null || (int) $coursemetrics->scorecount <= 0) {
+                 continue;
+             }
+
+             $scoretotal += (float) $coursemetrics->scoretotal;
+             $scorecount += (int) $coursemetrics->scorecount;
+         }
+
+         return $scorecount > 0 ? round($scoretotal / $scorecount, 1) : null;
+     }
+
+     /**
       * Returns the SQL clause used to detect exam activities.
       *
       * @param string $primaryexpr Primary SQL expression.
