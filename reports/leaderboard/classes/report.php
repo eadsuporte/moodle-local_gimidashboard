@@ -569,9 +569,11 @@ class report implements report_interface {
             get_string("pathwayleaderboard", "gimidashboardreports_leaderboard"),
             $rows,
             false,
-            true
+            true,
+            false,
+            [],
+            get_string("grade", "gimidashboardreports_leaderboard")
         );
-        $board["value_title"] = get_string("gradenoun");
 
         return $board;
     }
@@ -612,22 +614,17 @@ class report implements report_interface {
             );
         }
 
-        $board = self::build_board(
+        return self::build_board(
             get_string("mostprogress", "gimidashboardreports_leaderboard"),
             get_string("mostprogressdescpathway", "gimidashboardreports_leaderboard"),
             get_string("pathwayleaderboard", "gimidashboardreports_leaderboard"),
             $rows,
             true,
-            true
+            true,
+            false,
+            [],
+            get_string("progress", "gimidashboardreports_leaderboard")
         );
-
-        if (self::prepare_report_data()->selection->type === "course") {
-            $board["value_title"] = "Progress";
-        } else {
-            $board["value_title"] = "Avg Progress";
-        }
-
-        return $board;
     }
 
     /**
@@ -757,7 +754,10 @@ class report implements report_interface {
             get_string("courseleaderboard", "gimidashboardreports_leaderboard"),
             $rows,
             false,
-            true
+            true,
+            false,
+            [],
+            get_string("grade", "gimidashboardreports_leaderboard")
         );
     }
 
@@ -801,7 +801,10 @@ class report implements report_interface {
             get_string("courseleaderboard", "gimidashboardreports_leaderboard"),
             $rows,
             true,
-            true
+            true,
+            false,
+            [],
+            get_string("progress", "gimidashboardreports_leaderboard")
         );
     }
 
@@ -924,7 +927,8 @@ class report implements report_interface {
         bool $rankall,
         bool $descending,
         bool $hideunranked = false,
-        array $columns = []
+        array $columns = [],
+        string $valuetitle = ""
     ): array {
         $rows = self::rank_rows($rows, $rankall, $descending);
 
@@ -944,7 +948,9 @@ class report implements report_interface {
             "rows" => array_slice($rows, 0, 5),
             "hascustomcolumns" => $hascustomcolumns,
             "customcolumns" => $columns,
-            "value_title" => get_string("value", "gimidashboardreports_leaderboard"),
+            "value_title" => $valuetitle !== ""
+                ? $valuetitle
+                : get_string("value", "gimidashboardreports_leaderboard"),
             "emptymessage" => get_string("emptyboard", "gimidashboardreports_leaderboard"),
         ];
     }
