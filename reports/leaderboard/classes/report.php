@@ -77,12 +77,23 @@ class report implements report_interface {
         $reportdata = self::prepare_report_data($courses);
         $scope = header_helper::get_scope_data($reportdata->selection, $reportdata->courseids);
 
+        $title = get_string("headertitleleaderboardacademy", "local_gimidashboard");
+
+        if (($reportdata->selection->type ?? "") === "course") {
+            $title = get_string("headertitleleaderboardcourse", "local_gimidashboard", $scope->coursename);
+        } else if ($reportdata->pathwayname !== "") {
+            $title = get_string("headertitleleaderboardpathway", "local_gimidashboard", $reportdata->pathwayname);
+        }
+
         return header_helper::render_standard_header(
-            header_helper::get_leaderboard_title($reportdata->selection, $reportdata->courseids),
+            $title,
             $reportdata->selection,
             $reportdata->courseids,
             [
                 $scope->academyname,
+                $reportdata->pathwayname !== ""
+                    ? get_string("pathway", "gimidashboardreports_leaderboard") . ": " . $reportdata->pathwayname
+                    : "",
                 $reportdata->learnercount > 0
                     ? get_string("learners", "gimidashboardreports_leaderboard") . ": " . $reportdata->learnercount
                     : "",
