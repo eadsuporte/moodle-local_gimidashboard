@@ -134,7 +134,8 @@ class header_helper {
             return get_string("headertitledashboardpathway", "local_gimidashboard", $scope->pathwayname);
         }
 
-        return get_string("headertitledashboardacademy", "local_gimidashboard");
+        // return get_string("headertitledashboardacademy", "local_gimidashboard");
+        return "";
     }
 
     /**
