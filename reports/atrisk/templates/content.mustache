@@ -29,8 +29,8 @@
              style="grid-template-columns: repeat(5, minmax(0, 1fr));">
             {{#kpis}}
                 <div class="gimi-atrisk-kpi gimi-kpi-card">
-                    <div class="gimi-kpi-card-label">{{label}}</div>
-                    <div class="gimi-kpi-card-value">{{value}}</div>
+                    <div class="gimi-kpi-card-label">{{{label}}}</div>
+                    <div class="gimi-kpi-card-value">{{{value}}}</div>
                 </div>
             {{/kpis}}
         </div>
@@ -56,27 +56,27 @@
                     {{#rows}}
                         <tr>
                             <td>
-                                <div class="gimi-atrisk-learner-name">{{learnername}}</div>
-                                <div class="gimi-atrisk-learner-email">{{email}}</div>
+                                <div class="gimi-atrisk-learner-name">{{{learnername}}}</div>
+                                <div class="gimi-atrisk-learner-email">{{{email}}}</div>
                             </td>
                             <td>
-                                <div class="gimi-atrisk-pathways">{{pathwaysdisplay}}</div>
+                                <div class="gimi-atrisk-pathways">{{{pathwaysdisplay}}}</div>
                             </td>
                             <td>
-                                <span class="gimi-atrisk-badge {{levelclass}}">{{leveldisplay}}</span>
-                                <div class="gimi-atrisk-score">{{scoredisplay}}</div>
+                                <span class="gimi-atrisk-badge {{{levelclass}}}">{{{leveldisplay}}}</span>
+                                <div class="gimi-atrisk-score">{{{scoredisplay}}}</div>
                             </td>
                             <td>
-                                <div class="gimi-atrisk-metric">{{progressdisplay}}</div>
+                                <div class="gimi-atrisk-metric">{{{progressdisplay}}}</div>
                             </td>
                             <td>
-                                <div class="gimi-atrisk-metric">{{gradedisplay}}</div>
+                                <div class="gimi-atrisk-metric">{{{gradedisplay}}}</div>
                             </td>
                             <td>
-                                <div class="gimi-atrisk-metric">{{completeddisplay}}</div>
+                                <div class="gimi-atrisk-metric">{{{completeddisplay}}}</div>
                             </td>
                             <td>
-                                <div class="gimi-atrisk-activity">{{activitydisplay}}</div>
+                                <div class="gimi-atrisk-activity">{{{activitydisplay}}}</div>
                             </td>
                             <td>
                                 <div class="gimi-atrisk-reasons">
@@ -120,8 +120,8 @@
             <div class="gimi-kpi-grid">
                 {{#engagementkpis}}
                     <div class="gimi-kpi-card">
-                        <div class="gimi-kpi-card-label">{{label}}</div>
-                        <div class="gimi-kpi-card-value">{{value}}</div>
+                        <div class="gimi-kpi-card-label">{{{label}}}</div>
+                        <div class="gimi-kpi-card-value">{{{value}}}</div>
                     </div>
                 {{/engagementkpis}}
             </div>
@@ -147,23 +147,23 @@
                         {{#engagementrows}}
                             <tr>
                                 <td>
-                                    <div class="gimi-atrisk-learner-name">{{learnername}}</div>
-                                    <div class="gimi-atrisk-learner-email">{{email}}</div>
+                                    <div class="gimi-atrisk-learner-name">{{{learnername}}}</div>
+                                    <div class="gimi-atrisk-learner-email">{{{email}}}</div>
                                 </td>
                                 <td>
-                                    <div class="gimi-atrisk-pathways">{{pathwaysdisplay}}</div>
+                                    <div class="gimi-atrisk-pathways">{{{pathwaysdisplay}}}</div>
                                 </td>
                                 <td>
-                                    <span class="gimi-atrisk-status-badge {{statusclass}}">{{statuslabel}}</span>
+                                    <span class="gimi-atrisk-status-badge {{{statusclass}}}">{{{statuslabel}}}</span>
                                 </td>
                                 <td>
-                                    <div class="gimi-atrisk-metric">{{progressdisplay}}</div>
+                                    <div class="gimi-atrisk-metric">{{{progressdisplay}}}</div>
                                 </td>
                                 <td>
-                                    <div class="gimi-atrisk-metric">{{completeddisplay}}</div>
+                                    <div class="gimi-atrisk-metric">{{{completeddisplay}}}</div>
                                 </td>
                                 <td>
-                                    <div class="gimi-atrisk-activity">{{lastaccessdisplay}}</div>
+                                    <div class="gimi-atrisk-activity">{{{lastaccessdisplay}}}</div>
                                 </td>
                                 <td>
                                     <a class="btn btn-sm btn-outline-primary" href="{{{detailurl}}}">{{#str}}viewdetails, gimidashboardreports_atrisk{{/str}}</a>

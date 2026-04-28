@@ -23,7 +23,7 @@
 }}
 <div class="gimi-quizprogress-report">
     {{#hasmessage}}
-        <div class="gimi-quizprogress-notice">{{message}}</div>
+        <div class="gimi-quizprogress-notice">{{{message}}}</div>
     {{/hasmessage}}
 
     {{#showcohortoptions}}
@@ -31,7 +31,7 @@
             <div class="gimi-toolbar-title">{{#str}}cohort, gimidashboardreports_quizprogress{{/str}}</div>
             <div class="gimi-toolbar-actions">
                 {{#cohortoptions}}
-                    <a class="gimi-pathway-chip{{#selected}} is-active{{/selected}}" href="{{{url}}}">{{name}}</a>
+                    <a class="gimi-pathway-chip{{#selected}} is-active{{/selected}}" href="{{{url}}}">{{{name}}}</a>
                 {{/cohortoptions}}
             </div>
         </div>
@@ -41,8 +41,8 @@
         <div class="gimi-filter-bar">
             {{#filters}}
                 <div class="gimi-filter-pill">
-                    <strong>{{label}}:</strong>
-                    <span>{{value}}</span>
+                    <strong>{{{label}}}:</strong>
+                    <span>{{{value}}}</span>
                     <a href="{{{clearurl}}}">×</a>
                 </div>
             {{/filters}}
@@ -55,8 +55,8 @@
     <div class="gimi-kpi-grid">
         {{#kpis}}
             <div class="gimi-quizprogress-kpi gimi-kpi-card">
-                <div class="gimi-kpi-card-label">{{label}}</div>
-                <div class="gimi-kpi-card-value">{{value}}</div>
+                <div class="gimi-kpi-card-label">{{{label}}}</div>
+                <div class="gimi-kpi-card-value">{{{value}}}</div>
             </div>
         {{/kpis}}
     </div>
@@ -81,12 +81,12 @@
                     {{#courserows}}
                         <tr>
                             <td>{{{coursehtml}}}</td>
-                            <td>{{quizzesavailable}}</td>
-                            <td>{{quizzessubmitted}}</td>
-                            <td>{{attempts}}</td>
-                            <td>{{learnerswithattempts}}</td>
-                            <td>{{submissiondisplay}}</td>
-                            <td>{{scoredisplay}}</td>
+                            <td>{{{quizzesavailable}}}</td>
+                            <td>{{{quizzessubmitted}}}</td>
+                            <td>{{{attempts}}}</td>
+                            <td>{{{learnerswithattempts}}}</td>
+                            <td>{{{submissiondisplay}}}</td>
+                            <td>{{{scoredisplay}}}</td>
                         </tr>
                     {{/courserows}}
                     </tbody>
@@ -117,16 +117,16 @@
                     {{#learnerrows}}
                         <tr>
                             <td>
-                                <div class="gimi-quizprogress-learner-name">{{learnername}}</div>
-                                <div class="gimi-quizprogress-learner-email">{{email}}</div>
+                                <div class="gimi-quizprogress-learner-name">{{{learnername}}}</div>
+                                <div class="gimi-quizprogress-learner-email">{{{email}}}</div>
                             </td>
-                            <td>{{cohortsdisplay}}</td>
-                            <td>{{lastaccessdisplay}}</td>
-                            <td>{{quizzesdisplay}}</td>
-                            <td>{{attemptsdisplay}}</td>
-                            <td>{{submissiondisplay}}</td>
-                            <td>{{scoredisplay}}</td>
-                            <td><span class="gimi-status-pill {{statusclass}}">{{statusdisplay}}</span></td>
+                            <td>{{{cohortsdisplay}}}</td>
+                            <td>{{{lastaccessdisplay}}}</td>
+                            <td>{{{quizzesdisplay}}}</td>
+                            <td>{{{attemptsdisplay}}}</td>
+                            <td>{{{submissiondisplay}}}</td>
+                            <td>{{{scoredisplay}}}</td>
+                            <td><span class="gimi-status-pill {{{statusclass}}}">{{{statusdisplay}}}</span></td>
                             <td><a class="btn btn-sm btn-outline-primary" href="{{{focusurl}}}">{{#str}}focuslearner, gimidashboardreports_quizprogress{{/str}}</a></td>
                         </tr>
                     {{/learnerrows}}
@@ -155,13 +155,13 @@
                     <tbody>
                     {{#questionrows}}
                         <tr>
-                            <td>{{questionname}}</td>
-                            <td>{{quizname}}</td>
-                            <td>{{coursename}}</td>
-                            <td>{{wrongcount}}</td>
-                            <td>{{responsecount}}</td>
-                            <td>{{learnercount}}</td>
-                            <td>{{errordisplay}}</td>
+                            <td>{{{questionname}}}</td>
+                            <td>{{{quizname}}}</td>
+                            <td>{{{coursename}}}</td>
+                            <td>{{{wrongcount}}}</td>
+                            <td>{{{responsecount}}}</td>
+                            <td>{{{learnercount}}}</td>
+                            <td>{{{errordisplay}}}</td>
                         </tr>
                     {{/questionrows}}
                     </tbody>

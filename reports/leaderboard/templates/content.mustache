@@ -33,7 +33,7 @@
             <div class="gimi-toolbar-title">{{#str}}switchpathway, gimidashboardreports_leaderboard{{/str}}</div>
             <div class="gimi-toolbar-actions">
                 {{#pathwayoptions}}
-                    <a class="gimi-pathway-chip{{#selected}} is-active{{/selected}}" href="{{{url}}}">{{name}}</a>
+                    <a class="gimi-pathway-chip{{#selected}} is-active{{/selected}}" href="{{{url}}}">{{{name}}}</a>
                 {{/pathwayoptions}}
                 {{#hasclearpathway}}
                     <a class="gimi-pathway-chip is-clear" href="{{{clearpathwayurl}}}">{{#str}}resetpathway, gimidashboardreports_leaderboard{{/str}}</a>
@@ -46,8 +46,8 @@
         <div class="gimi-leaderboard-kpis">
             {{#kpis}}
                 <div class="gimi-leaderboard-kpi gimi-kpi-card">
-                    <div class="gimi-leaderboard-kpi-label gimi-kpi-card-label">{{label}}</div>
-                    <div class="gimi-leaderboard-kpi-value gimi-kpi-card-value">{{value}}</div>
+                    <div class="gimi-leaderboard-kpi-label gimi-kpi-card-label">{{{label}}}</div>
+                    <div class="gimi-leaderboard-kpi-value gimi-kpi-card-value">{{{value}}}</div>
                 </div>
             {{/kpis}}
         </div>
@@ -59,8 +59,8 @@
                 <section class="gimi-leaderboard-card">
                     <div class="gimi-leaderboard-card-head">
                         <div>
-                            <h4>{{title}}</h4>
-                            <p>{{description}}</p>
+                            <h4>{{{title}}}</h4>
+                            <p>{{{description}}}</p>
                         </div>
                     </div>
 
@@ -75,7 +75,7 @@
                                     <th>{{#str}}email{{/str}}</th>
                                     {{#hascustomcolumns}}
                                         {{#customcolumns}}
-                                            <th>{{label}}</th>
+                                            <th>{{{label}}}</th>
                                         {{/customcolumns}}
                                     {{/hascustomcolumns}}
                                     {{^hascustomcolumns}}
@@ -86,30 +86,30 @@
                                 </thead>
                                 <tbody>
                                 {{#rows}}
-                                    <tr class="{{rowclass}}">
-                                        <td data-order="{{ranksort}}">
-                                            <span class="gimi-rank-pill {{rankclass}}">{{rankdisplay}}</span>
+                                    <tr class="{{{rowclass}}}">
+                                        <td data-order="{{{ranksort}}}">
+                                            <span class="gimi-rank-pill {{{rankclass}}}">{{{rankdisplay}}}</span>
                                         </td>
                                         <td>
-                                            <div class="gimi-learner-name">{{firstname}}</div>
+                                            <div class="gimi-learner-name">{{{firstname}}}</div>
                                         </td>
                                         <td>
-                                            <div class="gimi-learner-name">{{lastname}}</div>
+                                            <div class="gimi-learner-name">{{{lastname}}}</div>
                                         </td>
                                         <td>
-                                            <div class="gimi-learner-email">{{email}}</div>
+                                            <div class="gimi-learner-email">{{{email}}}</div>
                                         </td>
                                         {{#extracells}}
-                                            <td data-order="{{sortvalue}}">
-                                                <div class="gimi-metric-value">{{value}}</div>
+                                            <td data-order="{{{sortvalue}}}">
+                                                <div class="gimi-metric-value">{{{value}}}</div>
                                             </td>
                                         {{/extracells}}
                                         {{^extracells}}
                                             <td>
-                                                <div class="gimi-metric-value">{{valuedisplay}}</div>
+                                                <div class="gimi-metric-value">{{{valuedisplay}}}</div>
                                             </td>
                                             <td>
-                                                <div class="gimi-metric-meta">{{details}}</div>
+                                                <div class="gimi-metric-meta">{{{details}}}</div>
                                             </td>
                                         {{/extracells}}
                                     </tr>
@@ -120,7 +120,7 @@
                     {{/hasrows}}
 
                     {{^hasrows}}
-                        <div class="gimi-empty-state">{{emptymessage}}</div>
+                        <div class="gimi-empty-state">{{{emptymessage}}}</div>
                     {{/hasrows}}
                 </section>
             {{/boards}}

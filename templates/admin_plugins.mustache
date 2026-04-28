@@ -61,32 +61,32 @@
                 {{#pluginsrows}}
                     <tr>
                         <td class="local-gimidashboard-admin-col-position">
-                            {{position}}
+                            {{{position}}}
                         </td>
 
                         <td class="local-gimidashboard-admin-col-plugin">
                             <div class="local-gimidashboard-admin-plugininfo">
                                 <div class="local-gimidashboard-admin-pluginname">
-                                    <a href="{{previewurl}}" title="{{previewtitle}}">
-                                        {{pluginname}}
+                                    <a href="{{{previewurl}}}" title="{{{previewtitle}}}">
+                                        {{{pluginname}}}
                                     </a>
                                 </div>
                                 <div class="local-gimidashboard-admin-component text-muted">
-                                    <code>{{component}}</code>
+                                    <code>{{{component}}}</code>
                                 </div>
                             </div>
                         </td>
 
                         <td class="local-gimidashboard-admin-col-status">
-                    <span class="{{statusbadgeclass}}">
-                        {{statuslabel}}
+                    <span class="{{{statusbadgeclass}}}">
+                        {{{statuslabel}}}
                     </span>
                         </td>
 
                         <td class="local-gimidashboard-admin-col-supports">
                             <div class="local-gimidashboard-admin-supports">
                                 {{#supports}}
-                                    <span class="{{class}}">{{label}}</span>
+                                    <span class="{{{class}}}">{{{label}}}</span>
                                 {{/supports}}
                                 {{^supports}}
                                     <span class="text-muted">-</span>
@@ -95,24 +95,24 @@
                         </td>
 
                         <td class="local-gimidashboard-admin-col-color">
-                            <form action="{{savecolorurl}}" method="post" class="local-gimidashboard-admin-colorform">
-                                <input type="hidden" name="sesskey" value="{{sesskey}}">
+                            <form action="{{{savecolorurl}}}" method="post" class="local-gimidashboard-admin-colorform">
+                                <input type="hidden" name="sesskey" value="{{{sesskey}}}">
                                 <input type="hidden" name="action" value="saveheadercolor">
-                                <input type="hidden" name="component" value="{{component}}">
+                                <input type="hidden" name="component" value="{{{component}}}">
 
                                 <div class="local-gimidashboard-admin-colorwrap">
                                     <label>
                                         <input type="color"
-                                               id="headercolor-{{component}}"
+                                               id="headercolor-{{{component}}}"
                                                name="basecolor"
-                                               value="{{basecolor}}"
+                                               value="{{{basecolor}}}"
                                                class="form-control form-control-color">
                                         <button type="submit" class="btn btn-sm btn-primary">
-                                            {{savecolorlabel}}
+                                            {{{savecolorlabel}}}
                                         </button>
                                     </label>
                                     <div class="small text-muted">
-                                        <code>{{basecolor}}</code> → <code>{{accentcolor}}</code>
+                                        <code>{{{basecolor}}}</code> → <code>{{{accentcolor}}}</code>
                                     </div>
                                 </div>
                             </form>
@@ -121,23 +121,23 @@
                         <td class="local-gimidashboard-admin-col-actions">
                             <div class="btn-group local-gimidashboard-admin-actions" role="group">
                                 {{#canmoveup}}
-                                    <a href="{{moveupurl}}" class="btn btn-sm btn-outline-secondary"
-                                       title="{{moveuplabel}}">{{{moveupicon}}}</a>
+                                    <a href="{{{moveupurl}}}" class="btn btn-sm btn-outline-secondary"
+                                       title="{{{moveuplabel}}}">{{{moveupicon}}}</a>
                                 {{/canmoveup}}
                                 {{^canmoveup}}
                                     <span class="btn btn-sm btn-outline-secondary disabled">{{{moveupicon}}}</span>
                                 {{/canmoveup}}
 
                                 {{#canmovedown}}
-                                    <a href="{{movedownurl}}" class="btn btn-sm btn-outline-secondary"
-                                       title="{{movedownlabel}}">{{{movedownicon}}}</a>
+                                    <a href="{{{movedownurl}}}" class="btn btn-sm btn-outline-secondary"
+                                       title="{{{movedownlabel}}}">{{{movedownicon}}}</a>
                                 {{/canmovedown}}
                                 {{^canmovedown}}
                                     <span class="btn btn-sm btn-outline-secondary disabled">{{{movedownicon}}}</span>
                                 {{/canmovedown}}
 
-                                <a href="{{toggleurl}}" class="btn btn-sm btn-outline-primary"
-                                   title="{{togglelabel}}">{{{toggleicon}}}</a>
+                                <a href="{{{toggleurl}}}" class="btn btn-sm btn-outline-primary"
+                                   title="{{{togglelabel}}}">{{{toggleicon}}}</a>
                             </div>
                         </td>
                     </tr>
