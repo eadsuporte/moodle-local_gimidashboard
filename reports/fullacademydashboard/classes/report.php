@@ -192,6 +192,7 @@ class report implements report_interface {
             $examgrademetrics = base_report::get_quiz_grade_metrics($courseids, $userids, true);
             $completions = base_report::get_course_completions($courseids, $userids);
             $certificatecounts = self::get_certificate_counts($courseids, $userids);
+            $courseswithcertificates = self::get_courses_with_certificates($courseids);
             $examcounts = self::get_exam_counts($courseids, $userids);
             $lastaccessbycourse = base_report::get_last_access_by_course($courseids, $userids);
             $pathways = base_report::get_user_pathways($courseids, $userids);
@@ -208,6 +209,7 @@ class report implements report_interface {
                     $examgrademetrics[$userid] ?? [],
                     $completions[$userid] ?? [],
                     $certificatecounts[$userid] ?? [],
+                    $courseswithcertificates,
                     $examcounts[$userid] ?? [],
                     $lastaccessbycourse[$userid] ?? [],
                     $pathways[$userid] ?? [],
@@ -232,7 +234,8 @@ class report implements report_interface {
                     $lastaccessbycourse[$learnerid] ?? [],
                     $pathways[$learnerid] ?? [],
                     $usercoursepathways[$learnerid] ?? [],
-                    $selection
+                    $selection,
+                    $courseswithcertificates
                 );
                 $filters[] = [
                     "label" => get_string("filteredlearner", "gimidashboardreports_fullacademydashboard"),
@@ -428,6 +431,9 @@ class report implements report_interface {
     /**
      * Returns issued certificate counts by user and course.
      *
+     * Only mod_simplecertificate and mod_coursecertificate are supported.
+     * mod_coursecertificate issues are stored by tool_certificate.
+     *
      * @param array $courseids Course ids.
      * @param array $userids User ids.
      * @return array
@@ -436,77 +442,126 @@ class report implements report_interface {
     protected static function get_certificate_counts(array $courseids, array $userids): array {
         global $DB;
 
-        if (empty($userids)) {
+        if (empty($courseids) || empty($userids)) {
             return [];
         }
 
         $dbman = $DB->get_manager();
-        $sources = [];
-
-        if ($dbman->table_exists(new xmldb_table("customcert")) && $dbman->table_exists(new xmldb_table("customcert_issues"))) {
-            $sources[] = [
-                "activitytable" => "customcert",
-                "issuestable" => "customcert_issues",
-                "issuefield" => "customcertid",
-                "coursefield" => "course",
-            ];
-        }
-
-        if ($dbman->table_exists(new xmldb_table("certificate")) && $dbman->table_exists(new xmldb_table("certificate_issues"))) {
-            $sources[] = [
-                "activitytable" => "certificate",
-                "issuestable" => "certificate_issues",
-                "issuefield" => "certificateid",
-                "coursefield" => "course",
-            ];
-        }
-
-        if ($dbman->table_exists(new xmldb_table("simplecertificate")) &&
-            $dbman->table_exists(new xmldb_table("simplecertificate_issues"))) {
-            $sources[] = [
-                "activitytable" => "simplecertificate",
-                "issuestable" => "simplecertificate_issues",
-                "issuefield" => "certificateid",
-                "coursefield" => "course",
-            ];
-        }
-
-        if ($dbman->table_exists(new xmldb_table("tool_certificate_templates")) &&
-            $dbman->table_exists(new xmldb_table("tool_certificate_issues")) &&
-            $dbman->field_exists(new xmldb_table("tool_certificate_templates"), new xmldb_field("courseid"))) {
-            $sources[] = [
-                "activitytable" => "tool_certificate_templates",
-                "issuestable" => "tool_certificate_issues",
-                "issuefield" => "templateid",
-                "coursefield" => "courseid",
-            ];
-        }
-
-        if (empty($sources)) {
-            return [];
-        }
-
         [$coursesql, $courseparams] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED, "course");
         [$usersql, $userparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, "user");
 
         $result = [];
-        foreach ($sources as $source) {
-            $sql = "SELECT issues.userid,
-                           activity." . $source["coursefield"] . " AS courseid,
-                           COUNT(DISTINCT issues.id) AS total
-                      FROM {" . $source["issuestable"] . "} issues
-                      JOIN {" . $source["activitytable"] . "} activity
-                        ON activity.id = issues." . $source["issuefield"] . "
-                     WHERE activity." . $source["coursefield"] . " {$coursesql}
-                       AND issues.userid {$usersql}
-                  GROUP BY issues.userid, activity." . $source["coursefield"];
+
+        if ($dbman->table_exists(new xmldb_table("simplecertificate")) &&
+            $dbman->table_exists(new xmldb_table("simplecertificate_issues"))) {
+
+            $whereextra = "";
+            if ($dbman->field_exists(new xmldb_table("simplecertificate_issues"), new xmldb_field("timedeleted"))) {
+                $whereextra = " AND (issues.timedeleted IS NULL OR issues.timedeleted = 0)";
+            }
+
+            $sql = "SELECT CONCAT(issues.userid, '-', activity.course) AS unik,
+                       issues.userid,
+                       activity.course AS courseid,
+                       COUNT(DISTINCT issues.id) AS total
+                  FROM {simplecertificate_issues} issues
+                  JOIN {simplecertificate} activity
+                    ON activity.id = issues.certificateid
+                 WHERE activity.course {$coursesql}
+                   AND issues.userid {$usersql}
+                   {$whereextra}
+              GROUP BY issues.userid, activity.course";
 
             $records = $DB->get_records_sql($sql, $courseparams + $userparams);
+
             foreach ($records as $record) {
-                if (!isset($result[$record->userid][$record->courseid])) {
-                    $result[$record->userid][$record->courseid] = 0;
-                }
-                $result[$record->userid][$record->courseid] += (int) $record->total;
+                $result[$record->userid][$record->courseid] = ($result[$record->userid][$record->courseid] ?? 0)
+                    + (int) $record->total;
+            }
+        }
+
+        if ($dbman->table_exists(new xmldb_table("coursecertificate")) &&
+            $dbman->table_exists(new xmldb_table("tool_certificate_issues"))) {
+
+            $params = $courseparams + $userparams + [
+                    "coursecertificatecomponent" => "mod_coursecertificate",
+                ];
+
+            $whereextra = "";
+            if ($dbman->field_exists(new xmldb_table("tool_certificate_issues"), new xmldb_field("archived"))) {
+                $whereextra .= " AND issues.archived = 0";
+            }
+
+            $sql = "SELECT CONCAT(issues.userid, '-', activity.course) AS unik,
+                       issues.userid,
+                       activity.course AS courseid,
+                       COUNT(DISTINCT issues.id) AS total
+                  FROM {tool_certificate_issues} issues
+                  JOIN {coursecertificate} activity
+                    ON activity.template = issues.templateid
+                   AND activity.course = issues.courseid
+                 WHERE activity.course {$coursesql}
+                   AND issues.userid {$usersql}
+                   AND issues.component = :coursecertificatecomponent
+                   {$whereextra}
+              GROUP BY issues.userid, activity.course";
+
+            $records = $DB->get_records_sql($sql, $params);
+
+            foreach ($records as $record) {
+                $result[$record->userid][$record->courseid] = ($result[$record->userid][$record->courseid] ?? 0)
+                    + (int) $record->total;
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Returns course ids that have a supported certificate activity configured.
+     *
+     * Supported certificate modules:
+     * - mod_simplecertificate
+     * - mod_coursecertificate using tool_certificate
+     *
+     * @param array $courseids Course ids.
+     * @return array
+     * @throws Exception
+     */
+    protected static function get_courses_with_certificates(array $courseids): array {
+        global $DB;
+
+        if (empty($courseids)) {
+            return [];
+        }
+
+        $dbman = $DB->get_manager();
+        [$coursesql, $courseparams] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED, "course");
+
+        $result = [];
+
+        if ($dbman->table_exists(new xmldb_table("simplecertificate"))) {
+            $sql = "SELECT DISTINCT course
+                  FROM {simplecertificate}
+                 WHERE course {$coursesql}";
+
+            $records = $DB->get_records_sql($sql, $courseparams);
+
+            foreach ($records as $record) {
+                $result[(int) $record->course] = true;
+            }
+        }
+
+        if ($dbman->table_exists(new xmldb_table("coursecertificate"))) {
+            $sql = "SELECT DISTINCT course
+                  FROM {coursecertificate}
+                 WHERE course {$coursesql}
+                   AND template > 0";
+
+            $records = $DB->get_records_sql($sql, $courseparams);
+
+            foreach ($records as $record) {
+                $result[(int) $record->course] = true;
             }
         }
 
@@ -602,17 +657,18 @@ class report implements report_interface {
     }
 
     /**
-     * Builds a single learner summary row.
+     * Builds the summary row for one learner.
      *
      * @param stdClass $user User record.
-     * @param array $usercourseids Course ids.
+     * @param array $usercourseids User course ids.
      * @param array $moduletotals Module totals by course.
-     * @param array $firstaccesstimes
+     * @param array $firstaccesstimes First access timestamps by course.
      * @param array $completedmodules Completed modules by course.
-     * @param array $day1completedmodules
+     * @param array $day1completedmodules Day 1 completed modules by course.
      * @param array $examgrademetrics Exam grade metrics by course.
      * @param array $completions Completion timestamps by course.
-     * @param array $certificatecounts
+     * @param array $certificatecounts Certificate issue counts by course.
+     * @param array $courseswithcertificates Courses that have certificate activities configured.
      * @param array $examcounts Exam counts by course.
      * @param array $lastaccessbycourse Last access by course.
      * @param array $pathways Pathways.
@@ -630,6 +686,7 @@ class report implements report_interface {
         array $examgrademetrics,
         array $completions,
         array $certificatecounts,
+        array $courseswithcertificates,
         array $examcounts,
         array $lastaccessbycourse,
         array $pathways,
@@ -659,7 +716,7 @@ class report implements report_interface {
                 $examscorecount += (int) $courseexammetrics->scorecount;
             }
 
-            if (!empty($certificatecounts[$courseid])) {
+            if (!empty($courseswithcertificates[$courseid]) && !empty($certificatecounts[$courseid])) {
                 $completedcount++;
             }
 
@@ -674,12 +731,16 @@ class report implements report_interface {
             $completedmodules,
             $completions
         );
+
         $avgday1progress =
             !empty($day1courseprogresses) ? round(array_sum($day1courseprogresses) / count($day1courseprogresses), 1) : 0.0;
+
         $avggrade = $examscorecount > 0 ? round($examscoretotal / $examscorecount, 1) : null;
+
         $status = ($user->suspended == 1 || $user->deleted == 1)
             ? get_string("suspended", "gimidashboardreports_fullacademydashboard")
             : get_string("active", "gimidashboardreports_fullacademydashboard");
+
         $daysinactive = $lastaccess > 0 ? floor((time() - $lastaccess) / DAYSECS) : null;
 
         return (object) [
@@ -721,7 +782,9 @@ class report implements report_interface {
      * @param array $pathways Pathways.
      * @param array $coursepathways
      * @param object $selection Selection payload.
+     * @param array $courseswithcertificates
      * @return array
+     * @throws \coding_exception
      * @throws \Exception
      */
     protected static function build_detail_rows(
@@ -740,7 +803,8 @@ class report implements report_interface {
         array $lastaccessbycourse,
         array $pathways,
         array $coursepathways,
-        object $selection
+        object $selection,
+        array $courseswithcertificates,
     ): array {
         $rows = [];
 
@@ -774,7 +838,9 @@ class report implements report_interface {
                 "progress" => self::format_percent($progress),
                 "grade" => self::format_grade($grade),
                 "delta" => self::format_percent(round($progress - $day1progress, 1)),
-                "completed" => !empty($certificatecounts[$courseid]) ? 1 : 0,
+                "completed" => !empty($courseswithcertificates[$courseid])
+                    ? (!empty($certificatecounts[$courseid]) ? 1 : 0)
+                    : get_string("notapplicablecertificate", "gimidashboardreports_fullacademydashboard"),
                 "certs" => ($certificatecounts[$courseid] ?? 0),
                 "exams" => ($examcounts[$courseid] ?? 0),
                 "lastaccess" => self::format_date($lastaccess),

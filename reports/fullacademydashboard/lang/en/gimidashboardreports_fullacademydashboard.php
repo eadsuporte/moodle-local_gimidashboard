@@ -54,6 +54,7 @@ $string['never'] = 'Never';
 $string['neveraccessed'] = 'Never accessed';
 $string['nodata'] = 'No Data';
 $string['nolearners'] = 'No learners were found for the current filters.';
+$string['notapplicablecertificate'] = 'N/A - no certificate added';
 $string['pathway'] = 'Pathway';
 $string['pluginname'] = 'Full Academy Dashboard';
 $string['poweredby'] = 'Powered by GIMI Institute';
