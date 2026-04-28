@@ -692,7 +692,6 @@ class report implements report_interface {
         array $pathways,
         object $selection
     ): object {
-        $courseprogresses = [];
         $day1courseprogresses = [];
         $examscoretotal = 0.0;
         $examscorecount = 0;
@@ -703,14 +702,11 @@ class report implements report_interface {
 
         foreach ($usercourseids as $courseid) {
             $trackable = $moduletotals[$courseid] ?? 0;
-            $completedmodulescount = $completedmodules[$courseid] ?? 0;
             $day1completedmodulescount = $day1completedmodules[$courseid] ?? 0;
             $firstaccess = $firstaccesstimes[$courseid] ?? 0;
             $hascoursecompletion = !empty($completions[$courseid]);
-            $coursecompleted = $hascoursecompletion || ($trackable > 0 && $completedmodulescount >= $trackable);
             $completedonday1 = $hascoursecompletion && $firstaccess > 0 && $completions[$courseid] <= ($firstaccess + DAYSECS);
 
-            $courseprogresses[] = base_report::calculate_course_progress($trackable, $completedmodulescount, $coursecompleted);
             $day1courseprogresses[] =
                 base_report::calculate_course_progress($trackable, $day1completedmodulescount, $completedonday1);
 
@@ -729,7 +725,12 @@ class report implements report_interface {
             $lastaccess = max($lastaccess, ($lastaccessbycourse[$courseid] ?? 0));
         }
 
-        $avgprogress = !empty($courseprogresses) ? round(array_sum($courseprogresses) / count($courseprogresses), 1) : 0.0;
+        $avgprogress = base_report::calculate_average_course_progress(
+            array_values($usercourseids),
+            $moduletotals,
+            $completedmodules,
+            $completions
+        );
         $avgday1progress =
             !empty($day1courseprogresses) ? round(array_sum($day1courseprogresses) / count($day1courseprogresses), 1) : 0.0;
         $avggrade = $examscorecount > 0 ? round($examscoretotal / $examscorecount, 1) : null;

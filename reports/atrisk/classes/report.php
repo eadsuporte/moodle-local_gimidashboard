@@ -337,13 +337,9 @@ class report implements report_interface {
         $neveraccessedcourses = 0;
         $latestaccess = 0;
         $earliestenrol = 0;
-        $progressvalues = [];
         $gradevalues = [];
 
         foreach ($usercourseids as $courseid) {
-            $modules = (int) ($moduletotals[$courseid] ?? 0);
-            $done = (int) ($completedmodules[$courseid] ?? 0);
-            $completed = !empty($completions[$courseid]);
             $lastaccess = (int) ($lastaccesses[$courseid] ?? 0);
             $enroltime = (int) ($enroltimes[$courseid] ?? 0);
 
@@ -357,18 +353,17 @@ class report implements report_interface {
                 $earliestenrol = $enroltime;
             }
 
-            if ($completed) {
-                $progressvalues[] = 100.0;
-            } else if ($modules > 0) {
-                $progressvalues[] = round(($done / max(1, $modules)) * 100, 1);
-            }
-
             if (array_key_exists($courseid, $gradepercentages) && $gradepercentages[$courseid] !== null) {
                 $gradevalues[] = (float) $gradepercentages[$courseid];
             }
         }
 
-        $avgprogress = !empty($progressvalues) ? round(array_sum($progressvalues) / count($progressvalues), 1) : 0.0;
+        $avgprogress = base_report::calculate_average_course_progress(
+            array_values($usercourseids),
+            $moduletotals,
+            $completedmodules,
+            $completions
+        );
         $avggrade = !empty($gradevalues) ? round(array_sum($gradevalues) / count($gradevalues), 1) : null;
         $dayssinceenrol = $earliestenrol > 0 ? (int) floor((time() - $earliestenrol) / DAYSECS) : 0;
         $daysinactive = $latestaccess > 0 ? (int) floor((time() - $latestaccess) / DAYSECS) : null;

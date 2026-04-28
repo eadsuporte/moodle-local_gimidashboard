@@ -420,6 +420,9 @@ use xmldb_table;
     /**
      * Calculates the progress percentage for a course.
      *
+     * Trackable activities are the authoritative source because this is the same basis used by Moodle course cards.
+     * The course completion record is only used as a fallback when the course has no trackable activities.
+     *
      * @param int $trackable Trackable module count.
      * @param int $completed Completed module count.
      * @param bool $coursecompleted Course completion flag.
@@ -435,5 +438,60 @@ use xmldb_table;
         }
 
         return 0.0;
+    }
+
+    /**
+     * Returns course progress values for one learner.
+     *
+     * Every enrolled course is included, even when the progress is zero. This keeps averages consistent across reports.
+     *
+     * @param array $courseids Course ids for the learner.
+     * @param array $moduletotals Trackable module totals keyed by course id.
+     * @param array $completedmodules Completed module totals keyed by course id.
+     * @param array $completions Course completion timestamps keyed by course id.
+     * @return array Progress values keyed by course id.
+     */
+    public static function get_course_progresses(
+        array $courseids,
+        array $moduletotals,
+        array $completedmodules,
+        array $completions
+    ): array {
+        $progresses = [];
+
+        foreach ($courseids as $courseid) {
+            $courseid = (int) $courseid;
+            $progresses[$courseid] = self::calculate_course_progress(
+                (int) ($moduletotals[$courseid] ?? 0),
+                (int) ($completedmodules[$courseid] ?? 0),
+                !empty($completions[$courseid])
+            );
+        }
+
+        return $progresses;
+    }
+
+    /**
+     * Calculates the average progress for one learner across a selected course set.
+     *
+     * @param array $courseids Course ids for the learner.
+     * @param array $moduletotals Trackable module totals keyed by course id.
+     * @param array $completedmodules Completed module totals keyed by course id.
+     * @param array $completions Course completion timestamps keyed by course id.
+     * @return float
+     */
+    public static function calculate_average_course_progress(
+        array $courseids,
+        array $moduletotals,
+        array $completedmodules,
+        array $completions
+    ): float {
+        $progresses = self::get_course_progresses($courseids, $moduletotals, $completedmodules, $completions);
+
+        if (empty($progresses)) {
+            return 0.0;
+        }
+
+        return round(array_sum($progresses) / count($progresses), 1);
     }
 }

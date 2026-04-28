@@ -597,17 +597,13 @@ class report implements report_interface {
     ): array {
         $rows = [];
         foreach ($users as $userid => $user) {
-            $progressvalues = [];
             $usercourseids = array_keys($usercourses[$userid] ?? []);
-            foreach ($usercourseids as $courseid) {
-                $progressvalues[] = base_report::calculate_course_progress(
-                    $moduletotals[$courseid] ?? 0,
-                    $completedmodules[$userid][$courseid] ?? 0,
-                    !empty($completions[$userid][$courseid])
-                );
-            }
-
-            $metric = !empty($progressvalues) ? round(array_sum($progressvalues) / count($progressvalues), 1) : 0.0;
+            $metric = base_report::calculate_average_course_progress(
+                $usercourseids,
+                $moduletotals,
+                $completedmodules[$userid] ?? [],
+                $completions[$userid] ?? []
+            );
             $rows[] = self::build_row(
                 $user,
                 $metric,
