@@ -426,69 +426,12 @@ class report implements report_interface {
     protected static function get_certificate_issue_times(array $courseids, array $userids): array {
         $result = [];
 
-        foreach (self::get_customcert_issue_times($courseids, $userids) as $userid => $courses) {
-            foreach ($courses as $courseid => $timestamp) {
-                if (!isset($result[$userid][$courseid]) || $timestamp < $result[$userid][$courseid]) {
-                    $result[$userid][$courseid] = $timestamp;
-                }
-            }
-        }
-
         foreach (self::get_tool_certificate_issue_times($courseids, $userids) as $userid => $courses) {
             foreach ($courses as $courseid => $timestamp) {
                 if (!isset($result[$userid][$courseid]) || $timestamp < $result[$userid][$courseid]) {
                     $result[$userid][$courseid] = $timestamp;
                 }
             }
-        }
-
-        return $result;
-    }
-
-    /**
-     * Returns custom certificate issue timestamps.
-     *
-     * @param array $courseids Course ids.
-     * @param array $userids User ids.
-     * @return array
-     * @throws Exception
-     */
-    protected static function get_customcert_issue_times(array $courseids, array $userids): array {
-        global $DB;
-
-        if (empty($userids)) {
-            return [];
-        }
-
-        $dbman = $DB->get_manager();
-        if (!$dbman->table_exists(new xmldb_table("customcert")) ||
-            !$dbman->table_exists(new xmldb_table("customcert_issues")) ||
-            !$dbman->field_exists(new xmldb_table("customcert"), new xmldb_field("course")) ||
-            !$dbman->field_exists(new xmldb_table("customcert_issues"), new xmldb_field("customcertid")) ||
-            !$dbman->field_exists(new xmldb_table("customcert_issues"), new xmldb_field("userid")) ||
-            !$dbman->field_exists(new xmldb_table("customcert_issues"), new xmldb_field("timecreated"))) {
-            return [];
-        }
-
-        [$coursesql, $courseparams] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED, "course");
-        [$usersql, $userparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, "user");
-
-        $sql = "SELECT CONCAT(ci.userid, '-', cc.course) AS unik,
-                       ci.userid,
-                       cc.course,
-                       MIN(ci.timecreated) AS timeissued
-                  FROM {customcert_issues} ci
-                  JOIN {customcert} cc
-                    ON cc.id = ci.customcertid
-                 WHERE cc.course {$coursesql}
-                   AND ci.userid {$usersql}
-                   AND ci.timecreated > 0
-              GROUP BY ci.userid, cc.course";
-
-        $records = $DB->get_records_sql($sql, $courseparams + $userparams);
-        $result = [];
-        foreach ($records as $record) {
-            $result[$record->userid][$record->course] = $record->timeissued;
         }
 
         return $result;
@@ -506,16 +449,6 @@ class report implements report_interface {
         global $DB;
 
         if (empty($userids)) {
-            return [];
-        }
-
-        $dbman = $DB->get_manager();
-        if (!$dbman->table_exists(new xmldb_table("tool_certificate_templates")) ||
-            !$dbman->table_exists(new xmldb_table("tool_certificate_issues")) ||
-            !$dbman->field_exists(new xmldb_table("tool_certificate_templates"), new xmldb_field("courseid")) ||
-            !$dbman->field_exists(new xmldb_table("tool_certificate_issues"), new xmldb_field("templateid")) ||
-            !$dbman->field_exists(new xmldb_table("tool_certificate_issues"), new xmldb_field("userid")) ||
-            !$dbman->field_exists(new xmldb_table("tool_certificate_issues"), new xmldb_field("timecreated"))) {
             return [];
         }
 

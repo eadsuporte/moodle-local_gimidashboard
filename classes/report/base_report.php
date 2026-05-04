@@ -221,17 +221,6 @@ use xmldb_table;
             return [];
         }
 
-        $dbman = $DB->get_manager();
-        if (
-            !$dbman->table_exists(new xmldb_table("logstore_standard_log")) ||
-            !$dbman->field_exists(new xmldb_table("logstore_standard_log"), new xmldb_field("userid")) ||
-            !$dbman->field_exists(new xmldb_table("logstore_standard_log"), new xmldb_field("courseid")) ||
-            !$dbman->field_exists(new xmldb_table("logstore_standard_log"), new xmldb_field("timecreated")) ||
-            !$dbman->field_exists(new xmldb_table("logstore_standard_log"), new xmldb_field("eventname"))
-        ) {
-            return [];
-        }
-
         [$coursesql, $courseparams] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED, "course");
         [$usersql, $userparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, "user");
 

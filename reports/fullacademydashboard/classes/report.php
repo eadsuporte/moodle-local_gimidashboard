@@ -339,13 +339,6 @@ class report implements report_interface {
         [$usersqlb, $userparamsb] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, "userb");
         [$usersqlc, $userparamsc] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, "userc");
 
-        $dbman = $DB->get_manager();
-        $haslogtable = $dbman->table_exists(new xmldb_table("logstore_standard_log")) &&
-            $dbman->field_exists(new xmldb_table("logstore_standard_log"), new xmldb_field("userid")) &&
-            $dbman->field_exists(new xmldb_table("logstore_standard_log"), new xmldb_field("courseid")) &&
-            $dbman->field_exists(new xmldb_table("logstore_standard_log"), new xmldb_field("timecreated")) &&
-            $dbman->field_exists(new xmldb_table("logstore_standard_log"), new xmldb_field("eventname"));
-
         $params = $courseparamsa + $courseparamsb + $courseparamsc + $userparamsa + $userparamsb + $userparamsc + [
                 "oneday" => DAYSECS,
                 "courseevent" => "\\core\\event\\course_viewed",
@@ -373,8 +366,7 @@ class report implements report_interface {
                       GROUP BY ue.userid, e.courseid
                   ) enrol";
 
-        if ($haslogtable) {
-            $baselinejoin .= "
+        $baselinejoin .= "
              LEFT JOIN (
                         SELECT userid,
                                courseid,
@@ -388,13 +380,6 @@ class report implements report_interface {
                     ) firstaccess
                     ON firstaccess.userid = enrol.userid
                    AND firstaccess.courseid = enrol.courseid";
-        } else {
-            $baselinejoin .= "
-             LEFT JOIN (
-                        SELECT 0 AS userid, 0 AS courseid, NULL AS firstaccess
-                    ) firstaccess
-                    ON 1 = 0";
-        }
 
         $baselinejoin .= "
             ) baseline
@@ -446,21 +431,11 @@ class report implements report_interface {
             return [];
         }
 
-        $dbman = $DB->get_manager();
         [$coursesql, $courseparams] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED, "course");
         [$usersql, $userparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, "user");
 
         $result = [];
-
-        if ($dbman->table_exists(new xmldb_table("simplecertificate")) &&
-            $dbman->table_exists(new xmldb_table("simplecertificate_issues"))) {
-
-            $whereextra = "";
-            if ($dbman->field_exists(new xmldb_table("simplecertificate_issues"), new xmldb_field("timedeleted"))) {
-                $whereextra = " AND (issues.timedeleted IS NULL OR issues.timedeleted = 0)";
-            }
-
-            $sql = "SELECT CONCAT(issues.userid, '-', activity.course) AS unik,
+        $sql = "SELECT CONCAT(issues.userid, '-', activity.course) AS unik,
                        issues.userid,
                        activity.course AS courseid,
                        COUNT(DISTINCT issues.id) AS total
@@ -469,30 +444,24 @@ class report implements report_interface {
                     ON activity.id = issues.certificateid
                  WHERE activity.course {$coursesql}
                    AND issues.userid {$usersql}
-                   {$whereextra}
+                   AND (issues.timedeleted IS NULL OR issues.timedeleted = 0)
               GROUP BY issues.userid, activity.course";
 
-            $records = $DB->get_records_sql($sql, $courseparams + $userparams);
+        $records = $DB->get_records_sql($sql, $courseparams + $userparams);
 
-            foreach ($records as $record) {
-                $result[$record->userid][$record->courseid] = ($result[$record->userid][$record->courseid] ?? 0)
-                    + (int) $record->total;
-            }
+        foreach ($records as $record) {
+            $result[$record->userid][$record->courseid] = ($result[$record->userid][$record->courseid] ?? 0)
+                + (int) $record->total;
         }
 
-        if ($dbman->table_exists(new xmldb_table("coursecertificate")) &&
-            $dbman->table_exists(new xmldb_table("tool_certificate_issues"))) {
+        $params = $courseparams + $userparams + [
+                "coursecertificatecomponent" => "mod_coursecertificate",
+            ];
 
-            $params = $courseparams + $userparams + [
-                    "coursecertificatecomponent" => "mod_coursecertificate",
-                ];
+        $whereextra = "";
+        $whereextra .= " AND issues.archived = 0";
 
-            $whereextra = "";
-            if ($dbman->field_exists(new xmldb_table("tool_certificate_issues"), new xmldb_field("archived"))) {
-                $whereextra .= " AND issues.archived = 0";
-            }
-
-            $sql = "SELECT CONCAT(issues.userid, '-', activity.course) AS unik,
+        $sql = "SELECT CONCAT(issues.userid, '-', activity.course) AS unik,
                        issues.userid,
                        activity.course AS courseid,
                        COUNT(DISTINCT issues.id) AS total
@@ -506,12 +475,11 @@ class report implements report_interface {
                    {$whereextra}
               GROUP BY issues.userid, activity.course";
 
-            $records = $DB->get_records_sql($sql, $params);
+        $records = $DB->get_records_sql($sql, $params);
 
-            foreach ($records as $record) {
-                $result[$record->userid][$record->courseid] = ($result[$record->userid][$record->courseid] ?? 0)
-                    + (int) $record->total;
-            }
+        foreach ($records as $record) {
+            $result[$record->userid][$record->courseid] = ($result[$record->userid][$record->courseid] ?? 0)
+                + (int) $record->total;
         }
 
         return $result;
@@ -535,34 +503,29 @@ class report implements report_interface {
             return [];
         }
 
-        $dbman = $DB->get_manager();
         [$coursesql, $courseparams] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED, "course");
 
         $result = [];
 
-        if ($dbman->table_exists(new xmldb_table("simplecertificate"))) {
-            $sql = "SELECT DISTINCT course
+        $sql = "SELECT DISTINCT course
                   FROM {simplecertificate}
                  WHERE course {$coursesql}";
 
-            $records = $DB->get_records_sql($sql, $courseparams);
+        $records = $DB->get_records_sql($sql, $courseparams);
 
-            foreach ($records as $record) {
-                $result[(int) $record->course] = true;
-            }
+        foreach ($records as $record) {
+            $result[(int) $record->course] = true;
         }
 
-        if ($dbman->table_exists(new xmldb_table("coursecertificate"))) {
-            $sql = "SELECT DISTINCT course
+        $sql = "SELECT DISTINCT course
                   FROM {coursecertificate}
                  WHERE course {$coursesql}
                    AND template > 0";
 
-            $records = $DB->get_records_sql($sql, $courseparams);
+        $records = $DB->get_records_sql($sql, $courseparams);
 
-            foreach ($records as $record) {
-                $result[(int) $record->course] = true;
-            }
+        foreach ($records as $record) {
+            $result[(int) $record->course] = true;
         }
 
         return $result;
@@ -928,8 +891,8 @@ class report implements report_interface {
                 ["label" => get_string("email")],
                 ["label" => get_string("pathway", "gimidashboardreports_fullacademydashboard")],
                 ["label" => get_string("courses", "gimidashboardreports_fullacademydashboard")],
-                ["label" => get_string("avgscoreprogress", "gimidashboardreports_fullacademydashboard")],
-                ["label" => get_string("avgscoregrade", "gimidashboardreports_fullacademydashboard")],
+                ["label" => get_string("avgprogress", "gimidashboardreports_fullacademydashboard")],
+                ["label" => get_string("avggrade", "gimidashboardreports_fullacademydashboard")],
                 //["label" => get_string("deltavsday1", "gimidashboardreports_fullacademydashboard")],
                 ["label" => get_string("completed", "gimidashboardreports_fullacademydashboard")],
                 ["label" => get_string("exams", "gimidashboardreports_fullacademydashboard")],
@@ -985,8 +948,8 @@ class report implements report_interface {
             "headers" => [
                 ["label" => get_string("coursename", "gimidashboardreports_fullacademydashboard")],
                 ["label" => get_string("pathway", "gimidashboardreports_fullacademydashboard")],
-                ["label" => get_string("avgscoreprogress", "gimidashboardreports_fullacademydashboard")],
-                ["label" => get_string("avgscoregrade", "gimidashboardreports_fullacademydashboard")],
+                ["label" => get_string("avgprogress", "gimidashboardreports_fullacademydashboard")],
+                ["label" => get_string("avggrade", "gimidashboardreports_fullacademydashboard")],
                 //["label" => get_string("deltavsday1", "gimidashboardreports_fullacademydashboard")],
                 ["label" => get_string("completed", "gimidashboardreports_fullacademydashboard")],
                 ["label" => get_string("exams", "gimidashboardreports_fullacademydashboard")],
@@ -1111,7 +1074,7 @@ class report implements report_interface {
             return get_string("dash", "gimidashboardreports_fullacademydashboard");
         }
 
-        return number_format($value, 1);
+        return number_format($value, 1) . "%";
     }
 
     /**
