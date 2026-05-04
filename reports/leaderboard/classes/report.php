@@ -218,7 +218,7 @@ class report implements report_interface {
         $users = self::get_learners($courseids, $cohortid);
         if (empty($users)) {
             $base->state = "nolearners";
-            $base->kpis = self::build_kpis($selection, $base->pathwayname, $courseids, 0);
+            // $base->kpis = self::build_kpis($selection, $base->pathwayname, $courseids, 0);
             $cache = $base;
             return $cache;
         }
@@ -249,7 +249,7 @@ class report implements report_interface {
         }
 
         $base->learnercount = count($users);
-        $base->kpis = self::build_kpis($selection, $base->pathwayname, $courseids, $base->learnercount);
+        // $base->kpis = self::build_kpis($selection, $base->pathwayname, $courseids, $base->learnercount);
         $cache = $base;
         return $cache;
     }
