@@ -121,10 +121,10 @@ class report implements report_interface {
                     "label" => get_string("neveraccessed", "gimidashboardreports_fullacademydashboard"),
                     "value" => $reportdata->summary->neveraccessed,
                 ],
-                [
-                    "label" => get_string("certsearned", "gimidashboardreports_fullacademydashboard"),
-                    "value" => $reportdata->summary->certsearned,
-                ],
+                //[
+                //    "label" => get_string("certsearned", "gimidashboardreports_fullacademydashboard"),
+                //    "value" => $reportdata->summary->certsearned,
+                //],
                 [
                     "label" => get_string("coursescomplete", "gimidashboardreports_fullacademydashboard"),
                     "value" => $reportdata->summary->coursescomplete,
