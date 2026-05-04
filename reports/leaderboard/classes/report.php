@@ -605,17 +605,18 @@ class report implements report_interface {
                     continue;
                 }
 
-                $seconds = max(
-                    0,
-                    $finishtimes[$userid][$courseid] - $firstaccesstimes[$userid][$courseid]
-                );
-                $metric = (float) $seconds;
+                $starttime = (int) $firstaccesstimes[$userid][$courseid];
+                $finishtime = (int) $finishtimes[$userid][$courseid];
+                $durationseconds = self::calculate_finish_duration_seconds($starttime, $finishtime);
+                if ($durationseconds === null) {
+                    continue;
+                }
 
-                if ($bestmetric === null || $metric < $bestmetric) {
-                    $bestmetric = $metric;
+                if ($bestmetric === null || $durationseconds < $bestmetric) {
+                    $bestmetric = $durationseconds;
                     $bestcourseid = $courseid;
-                    $beststarttime = $firstaccesstimes[$userid][$courseid];
-                    $bestfinishtime = $finishtimes[$userid][$courseid];
+                    $beststarttime = $starttime;
+                    $bestfinishtime = $finishtime;
                 }
             }
 
@@ -634,13 +635,13 @@ class report implements report_interface {
                 $user,
                 $bestmetric,
                 $bestmetric !== null
-                    ? self::format_duration_hours((int) round($bestmetric))
+                    ? self::format_finish_duration((int) $bestmetric)
                     : "—",
                 $details,
                 [
                     [
-                        "value" => $bestmetric !== null ? self::format_duration_hours((int) round($bestmetric)) : "—",
-                        "sortvalue" => $bestmetric !== null ? (int) round($bestmetric) : 999999999,
+                        "value" => $bestmetric !== null ? self::format_finish_duration((int) $bestmetric) : "—",
+                        "sortvalue" => $bestmetric !== null ? (int) $bestmetric : 999999999,
                     ],
                     [
                         "value" => $beststarttime > 0 ? userdate($beststarttime) : "—",
@@ -780,20 +781,20 @@ class report implements report_interface {
             if (!empty($firstaccesstimes[$userid][$courseid]) && !empty($finishtimes[$userid][$courseid])) {
                 $starttime = (int) $firstaccesstimes[$userid][$courseid];
                 $finishtime = (int) $finishtimes[$userid][$courseid];
-                $metric = (float) max(0, $finishtime - $starttime);
+                $metric = self::calculate_finish_duration_seconds($starttime, $finishtime);
             }
 
             $rows[] = self::build_row(
                 $user,
                 $metric,
-                $metric !== null ? self::format_duration_hours((int) round($metric)) : "—",
+                $metric !== null ? self::format_finish_duration((int) $metric) : "—",
                 $metric !== null
                     ? get_string("finishedon", "gimidashboardreports_leaderboard", userdate($finishtime))
                     : get_string("notrankedfinishaccess", "gimidashboardreports_leaderboard"),
                 [
                     [
-                        "value" => $metric !== null ? self::format_duration_hours((int) round($metric)) : "—",
-                        "sortvalue" => $metric !== null ? (int) round($metric) : 999999999,
+                        "value" => $metric !== null ? self::format_finish_duration((int) $metric) : "—",
+                        "sortvalue" => $metric !== null ? (int) $metric : 999999999,
                     ],
                     [
                         "value" => $starttime > 0 ? userdate($starttime) : "—",
@@ -1068,12 +1069,30 @@ class report implements report_interface {
     }
 
     /**
-     * Formats an elapsed duration using days, hours, minutes and seconds.
+     * Calculates the elapsed time used by Fastest to Finish.
+     *
+     * The metric is intentionally kept in seconds. Do not divide by DAYSECS here:
+     * short courses need minute-level precision and Days Inactive uses its own day-based logic.
+     *
+     * @param int $starttime First course access timestamp.
+     * @param int $finishtime Course completion timestamp.
+     * @return int|null Duration in seconds, or null when timestamps are not usable.
+     */
+    protected static function calculate_finish_duration_seconds(int $starttime, int $finishtime): ?int {
+        if ($starttime <= 0 || $finishtime <= 0) {
+            return null;
+        }
+
+        return max(0, $finishtime - $starttime);
+    }
+
+    /**
+     * Formats a Fastest to Finish duration without collapsing it to days.
      *
      * @param int $seconds Total seconds.
      * @return string
      */
-    protected static function format_duration_hours(int $seconds): string {
+    protected static function format_finish_duration(int $seconds): string {
         $seconds = max(0, $seconds);
 
         $hours = intdiv($seconds, HOURSECS);
@@ -1081,7 +1100,15 @@ class report implements report_interface {
         $minutes = intdiv($seconds, MINSECS);
         $seconds -= $minutes * MINSECS;
 
-        return $hours . "h " . $minutes . "m " . $seconds . "s";
+        if ($hours > 0) {
+            return $hours . "h " . $minutes . "m " . $seconds . "s";
+        }
+
+        if ($minutes > 0) {
+            return $minutes . "m " . $seconds . "s";
+        }
+
+        return $seconds . "s";
     }
 
     /**
