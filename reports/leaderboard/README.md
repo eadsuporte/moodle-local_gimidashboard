@@ -41,7 +41,6 @@ That means:
 - **Fastest to Finish**
   - days between enrolment creation and certificate issue date;
   - currently checks certificate issue data from:
-    - `mod_customcert`;
     - `tool_certificate` when the installation exposes `tool_certificate_templates.courseid`.
   - learners without a certificate stay listed but unranked.
 
