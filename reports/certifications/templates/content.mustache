@@ -1,0 +1,173 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template gimidashboardreports_certifications/content
+
+    Example context (json):
+    {
+    }
+}}
+<div class="gimi-certifications-report">
+    <div class="gimi-certifications-kpis">
+        {{#kpis}}
+            <div class="gimi-certifications-kpi gimi-kpi-card">
+                <div class="gimi-certifications-kpi-label gimi-kpi-card-label">{{{label}}}</div>
+                <div class="gimi-certifications-kpi-value gimi-kpi-card-value">{{{value}}}</div>
+            </div>
+        {{/kpis}}
+    </div>
+
+    <div class="gimi-certifications-note">{{{helptext}}}</div>
+
+    <section class="gimi-certifications-card">
+        <div class="gimi-certifications-card-head">
+            <div>
+                <h4>{{#str}}statisticssummary, gimidashboardreports_certifications{{/str}}</h4>
+                <p>{{{periodlabel}}}</p>
+            </div>
+        </div>
+
+        {{#hascourserows}}
+            <div class="table-responsive">
+                <table class="table table-sm gimi-certifications-table" id="gimi-certifications-course-table" data-title="{{#str}}statisticssummary, gimidashboardreports_certifications{{/str}}">
+                    <thead>
+                    <tr>
+                        <th>{{#str}}coursename, gimidashboardreports_certifications{{/str}}</th>
+                        <th>{{#str}}enrolled, gimidashboardreports_certifications{{/str}}</th>
+                        <th>{{#str}}certified, gimidashboardreports_certifications{{/str}}</th>
+                        <th>{{#str}}certifiedlast2years, gimidashboardreports_certifications{{/str}}</th>
+                        <th>{{#str}}failoruncertified, gimidashboardreports_certifications{{/str}}</th>
+                        <th>{{#str}}approvedrate, gimidashboardreports_certifications{{/str}}</th>
+                        <th>{{#str}}failrate, gimidashboardreports_certifications{{/str}}</th>
+                        <th>{{#str}}latestcertification, gimidashboardreports_certifications{{/str}}</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {{#courserows}}
+                        <tr>
+                            <td>{{{coursename}}}</td>
+                            <td data-order="{{enrolledsort}}">{{{enrolled}}}</td>
+                            <td data-order="{{certifiedsort}}">{{{certified}}}</td>
+                            <td data-order="{{recentcertifiedsort}}">{{{recentcertified}}}</td>
+                            <td data-order="{{failedsort}}">{{{failed}}}</td>
+                            <td data-order="{{approvedratesort}}"><span class="gimi-certifications-rate is-approved">{{{approvedrate}}}</span></td>
+                            <td data-order="{{failratesort}}"><span class="gimi-certifications-rate is-failed">{{{failrate}}}</span></td>
+                            <td data-order="{{latestcertificationsort}}">{{{latestcertification}}}</td>
+                        </tr>
+                    {{/courserows}}
+                    </tbody>
+                </table>
+            </div>
+        {{/hascourserows}}
+        {{^hascourserows}}
+            <div class="gimi-empty-state">{{#str}}nodata, gimidashboardreports_certifications{{/str}}</div>
+        {{/hascourserows}}
+    </section>
+
+    <section class="gimi-certifications-card">
+        <div class="gimi-certifications-card-head">
+            <div>
+                <h4>{{#str}}allcertifiedusers, gimidashboardreports_certifications{{/str}}</h4>
+                <p>{{{certifiedlabel}}}</p>
+            </div>
+        </div>
+
+        {{#hasuserrows}}
+            <div class="table-responsive">
+                <table class="table table-sm gimi-certifications-table" id="gimi-certifications-user-table" data-title="{{#str}}allcertifiedusers, gimidashboardreports_certifications{{/str}}">
+                    <thead>
+                    <tr>
+                        <th>{{#str}}firstname, gimidashboardreports_certifications{{/str}}</th>
+                        <th>{{#str}}lastname, gimidashboardreports_certifications{{/str}}</th>
+                        <th>{{#str}}email, gimidashboardreports_certifications{{/str}}</th>
+                        <th>{{#str}}coursename, gimidashboardreports_certifications{{/str}}</th>
+                        <th>{{#str}}issueddate, gimidashboardreports_certifications{{/str}}</th>
+                        <th>{{#str}}certifiedlast2yearslabel, gimidashboardreports_certifications{{/str}}</th>
+                        <th>{{#str}}certsource, gimidashboardreports_certifications{{/str}}</th>
+                        <th>{{#str}}status, gimidashboardreports_certifications{{/str}}</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {{#userrows}}
+                        <tr>
+                            <td>{{{firstname}}}</td>
+                            <td>{{{lastname}}}</td>
+                            <td>{{{email}}}</td>
+                            <td>{{{coursename}}}</td>
+                            <td data-order="{{issuedatesort}}">{{{issuedate}}}</td>
+                            <td data-order="{{recentsort}}">{{{recentlabel}}}</td>
+                            <td>{{{source}}}</td>
+                            <td><span class="gimi-certifications-status {{{statusclass}}}">{{{status}}}</span></td>
+                        </tr>
+                    {{/userrows}}
+                    </tbody>
+                </table>
+            </div>
+        {{/hasuserrows}}
+        {{^hasuserrows}}
+            <div class="gimi-empty-state">{{#str}}nocertifiedusers, gimidashboardreports_certifications{{/str}}</div>
+        {{/hasuserrows}}
+    </section>
+
+    <section class="gimi-certifications-card">
+        <div class="gimi-certifications-card-head">
+            <div>
+                <h4>{{#str}}certificatecoursestable, gimidashboardreports_certifications{{/str}}</h4>
+                <p>{{#str}}certificatecourseshelp, gimidashboardreports_certifications{{/str}}</p>
+            </div>
+        </div>
+
+        {{#hascertificatecourserows}}
+            <div class="table-responsive">
+                <table class="table table-sm gimi-certifications-table" id="gimi-certifications-certificate-course-table"
+                       data-title="{{#str}}certificatecoursestable, gimidashboardreports_certifications{{/str}}">
+                    <thead>
+                    <tr>
+                        <!--th>{{#str}}certificatecomponent, gimidashboardreports_certifications{{/str}}</th-->
+                        <th>{{#str}}certificatename, gimidashboardreports_certifications{{/str}}</th>
+                        <th>{{#str}}coursename, gimidashboardreports_certifications{{/str}}</th>
+                        <th>{{#str}}courseinstances, gimidashboardreports_certifications{{/str}}</th>
+                        <th>{{#str}}certificateactivities, gimidashboardreports_certifications{{/str}}</th>
+                        <th>{{#str}}totalinstances, gimidashboardreports_certifications{{/str}}</th>
+                        <th>{{#str}}totalcourses, gimidashboardreports_certifications{{/str}}</th>
+                        <!--th>{{#str}}courseshortname, gimidashboardreports_certifications{{/str}}</th-->
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {{#certificatecourserows}}
+                        <tr>
+                            <!--td>{{{certificatecomponent}}}</td-->
+                            <td>{{{certificatename}}}</td>
+                            <td>{{{course}}}</td>
+                            <td data-order="{{courseinstancessort}}">{{{courseinstances}}}</td>
+                            <td>{{{activities}}}</td>
+                            <td data-order="{{totalinstancessort}}">{{{totalinstances}}}</td>
+                            <td data-order="{{totalcoursessort}}">{{{totalcourses}}}</td>
+                            <!--td>{{{courseshortname}}}</td-->
+                        </tr>
+                    {{/certificatecourserows}}
+                    </tbody>
+                </table>
+            </div>
+        {{/hascertificatecourserows}}
+        {{^hascertificatecourserows}}
+            <div class="gimi-empty-state">{{#str}}nocertificatecourses, gimidashboardreports_certifications{{/str}}</div>
+        {{/hascertificatecourserows}}
+    </section>
+
+</div>
+<link rel="stylesheet" href="/local/gimidashboard/reports/certifications/styles.css">
